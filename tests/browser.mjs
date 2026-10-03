@@ -172,6 +172,15 @@ try {
   await page.getByRole('button', { name: '保存备注', exact: true }).click();
   assert.ok(!(await page.locator('.dmo-row').innerText()).includes('账号备注：'));
   ok('note editing supports keyboard cancel, clearing and safe literal rendering without HTML execution');
+  const spacing = await page.evaluate(() => {
+    const button = document.querySelector('.dmo-note-action');
+    const group = button.closest('.dmo-group');
+    const b = button.getBoundingClientRect(), g = group.getBoundingClientRect();
+    return { gap: g.right - b.right, inside: b.left >= g.left && b.right <= g.right };
+  });
+  assert.ok(spacing.inside);
+  assert.ok(spacing.gap >= 8, `账号备注按钮右侧应留出间距，当前 ${spacing.gap}px`);
+  ok('account note button keeps clear spacing from the group border');
   await page.setViewportSize({ width: 390, height: 600 });
   await page.getByRole('button', { name: '编辑账号备注：服务商乙 · 官方 API / provider-two', exact: true }).click();
   const noteBox = await page.locator('.dmo-note-editor').boundingBox();

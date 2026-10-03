@@ -12,7 +12,8 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const install = process.env.DSH_TEST_INSTALL_DIR ?? join(process.env.LOCALAPPDATA ?? '', 'Programs', 'DeepSeek Harness');
 const electron = join(install, 'DeepSeek Harness.exe');
 const cliEntry = join(install, 'resources', 'app.asar', 'dsh', 'node_modules', '@deepseek-ai', 'dsh-desktop-host', 'lib', 'cli.js');
-const archive = process.argv[2] ?? join(root, 'dist-draft', 'dsh-model-shelf-1.0.0.tgz');
+const packageVersion = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
+const archive = process.argv[2] ?? join(root, 'dist-draft', `dsh-model-shelf-${packageVersion}.tgz`);
 const runRoot = join(root, 'tests', 'artifacts', `clean-${Date.now()}-${randomUUID().slice(0, 8)}`);
 const home = join(runRoot, 'home');
 const profileName = 'shelf-validation';
@@ -105,6 +106,21 @@ const checkBoot = async (label, expected) => {
       await page.locator('.dmo-panel').waitFor({ state: 'visible', timeout: 10000 });
       assert.ok((await page.locator('.dmo-title').textContent()).includes('Model Shelf'));
       assert.ok(await page.getByRole('tab', { name: /^不常用/ }).isVisible());
+      const installedPackage = JSON.parse(await readFile(join(profileDir, 'node_modules', 'dsh-model-shelf', 'package.json'), 'utf8'));
+      if (installedPackage.version === '1.1.0') {
+        await page.locator('.dmo-note-action').first().click();
+        await page.locator('.dmo-note-input').fill('隔离测试账号');
+        await page.locator('.dmo-note-input').press('Enter');
+        assert.ok((await page.locator('.dmo-panel').innerText()).includes('账号备注：隔离测试账号'));
+        await page.locator('.dmo-favorite').first().click();
+        await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
+        assert.equal(await page.locator('.dmo-row').count(), 1);
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await page.locator('.dmo-trigger').waitFor({ state: 'visible', timeout: 30000 });
+        await page.locator('.dmo-trigger').click();
+        await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
+        assert.ok((await page.locator('.dmo-row').innerText()).includes('账号备注：隔离测试账号'));
+      }
       await page.locator('.dmo-panel').screenshot({ path: join(runRoot, `${label}.png`) });
     } else {
       const nativePicker = page.getByRole('button', { name: /^选择模型，当前|^请选择模型$|^Select model/ }).first();

@@ -31,7 +31,7 @@ test('search matches display name, model id and provider source; respects list b
 test('malformed persisted values are sanitized', () => {
   assert.deepEqual(normalizePreferences({ version: 2 }), emptyPreferences());
   const k = modelKey('one', 'same');
-  assert.deepEqual(normalizePreferences({ version: 1, uncommon: [k, k, 'invalid', '{}', '[[1],2]', 0], collapsed: null }), { version: 1, uncommon: [k], collapsed: [] });
+  assert.deepEqual(normalizePreferences({ version: 1, uncommon: [k, k, 'invalid', '{}', '[[1],2]', 0], collapsed: null }), { ...emptyPreferences(), uncommon: [k] });
 });
 test('preferences survive refresh, retain temporarily absent models and notify subscribers', () => {
   const data = new Map(); const storage = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v) };
@@ -48,6 +48,44 @@ test('corrupt or unavailable storage does not crash; reports nonpersistent mode'
   store.update((p) => ({ ...p, uncommon: [modelKey('one', 'same')] }));
   assert.equal(store.getSnapshot().uncommon.length, 1);
   assert.ok(store.getError());
+});
+test('favorites are a manual overlay independent of main/uncommon and provider identities', () => {
+  const k = modelKey('one', 'same');
+  const p = { ...emptyPreferences(), favorites: [k], uncommon: [k] };
+  assert.equal(partitionModels(groups, p, 'favorites').length, 1);
+  assert.equal(partitionModels(groups, p, 'favorites')[0].id, 'one');
+  assert.equal(partitionModels(groups, p, 'main').flatMap((g) => g.models).length, 2);
+  assert.equal(partitionModels(groups, p, 'uncommon')[0].models.length, 1);
+  p.favorites = toggleKey(p.favorites, k);
+  assert.deepEqual(partitionModels(groups, p, 'favorites'), []);
+  assert.deepEqual(p.uncommon, [k]);
+});
+test('old v1 data keeps classification and folds while new fields default empty', () => {
+  const old = { version: 1, uncommon: [modelKey('one', 'same')], collapsed: [groupKey('main', 'one')] };
+  assert.deepEqual(normalizePreferences(old), { ...emptyPreferences(), uncommon: old.uncommon, collapsed: old.collapsed });
+});
+test('account notes distinguish same-platform providers and participate in search', () => {
+  const samePlatform = groups.map((g) => ({ ...g, name: '同一平台' }));
+  const p = normalizePreferences({ ...emptyPreferences(), providerNotes: { one: '  工作账号  ', two: '个人账号' } });
+  assert.equal(p.providerNotes.one, '工作账号');
+  assert.equal(partitionModels(samePlatform, p, 'main', '工作账号 same')[0].id, 'one');
+  assert.equal(partitionModels(samePlatform, p, 'main', '个人账号 same')[0].id, 'two');
+  const sanitized = normalizePreferences({ ...p, favorites: ['bad', modelKey('one', 'same')], providerNotes: { one: '', two: 123, long: 'x'.repeat(200), html: '<img src=x onerror=alert(1)>' } });
+  assert.equal(sanitized.providerNotes.one, undefined);
+  assert.equal(sanitized.providerNotes.two, undefined);
+  assert.equal(sanitized.providerNotes.long.length, 120);
+  assert.equal(sanitized.providerNotes.html, '<img src=x onerror=alert(1)>');
+  assert.equal(sanitized.favorites.length, 1);
+});
+test('favorites and account notes survive reload, retain missing providers, and sync by storage event', () => {
+  const data = new Map(); let handler;
+  const storage = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v) };
+  const store = createPreferenceStore(storage, { addEventListener: (_, fn) => handler = fn, removeEventListener() {} });
+  store.update((p) => ({ ...p, favorites: [modelKey('absent', 'model')], providerNotes: { absent: '备用账号' } }));
+  assert.deepEqual(createPreferenceStore(storage).getSnapshot(), store.getSnapshot());
+  data.set(STORAGE_KEY, JSON.stringify({ ...emptyPreferences(), providerNotes: { two: '个人账号' } }));
+  handler({ key: STORAGE_KEY });
+  assert.equal(store.getSnapshot().providerNotes.two, '个人账号');
 });
 test('renamed plugin imports old prototype preferences once without deleting legacy data', () => {
   const legacy = { ...emptyPreferences(), uncommon: [modelKey('one', 'same')] };

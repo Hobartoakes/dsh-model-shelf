@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-shelf",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "latest" },
   "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",

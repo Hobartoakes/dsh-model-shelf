@@ -4,7 +4,7 @@
 
 > 作者：[Hobartoakes](https://github.com/Hobartoakes) · 许可证：[MIT](LICENSE) · [问题反馈](https://github.com/Hobartoakes/dsh-model-shelf/issues)
 >
-> 源码采用 MIT 公开。npm 发行状态以 [npm 包页面](https://www.npmjs.com/package/dsh-model-shelf) 的实际可用版本为准；dsh-market 收录是独立流程。
+> 源码采用 MIT 公开。预构建安装包见 [GitHub Release v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)。本项目尚未发布 npm，也未被 dsh-market 收录。
 
 ## 演示
 
@@ -52,13 +52,13 @@
 
 ## 安装与卸载
 
-npm 发行版本可用时，通过官方 CLI 安装：
+无需 npm 账号，直接安装 GitHub Release 的预构建包：
 
 ```powershell
-dsh plugin --profile desktop add dsh-model-shelf@1.0.0 --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz" --ignore-scripts
 ```
 
-请先在 npm 包页面确认目标版本实际可用；准备中的源码分支不代表版本已发布。也可以使用本地预构建归档（将路径替换为实际归档位置）：
+如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
 dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.0.0.tgz" --ignore-scripts
@@ -127,8 +127,9 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
 - npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
-- npm 版本：[以实际 registry 记录为准](https://www.npmjs.com/package/dsh-model-shelf)。
-- GitHub Release 安装包与市场收录：单独进行，不由 npm 发布自动完成。
+- GitHub Release：[v1.0.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，不需要 npm 注册或登录。
+- npm：本项目尚未发布，请勿将裸包名当作可用安装来源。
+- dsh-market：尚未提交收录 PR；发布 Release 不代表已经收录。
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
@@ -138,4 +139,4 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 A wide, collapsible model picker for DSH, with two separate lists: Main and Uncommon. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. The source repository is public. Check the npm registry for available release versions; market listing is a separate process. Release preparation does not itself publish a package.
+Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. Prebuilt packages are distributed through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. Market listing is a separate process and has not been submitted.

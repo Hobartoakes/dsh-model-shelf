@@ -127,7 +127,15 @@ const checkBoot = async (label, expected) => {
 
 try {
   assert.equal(process.platform, 'win32', 'This clean-profile integration fixture currently supports Windows only');
-  await access(electron); await access(archive);
+  await access(electron);
+  if (/^https:\/\//.test(archive)) {
+    const source = new URL(archive);
+    assert.equal(source.hostname, 'github.com', 'Remote fixture must be a public GitHub Release asset');
+    assert.equal(source.username + source.password + source.search + source.hash, '', 'Do not pass credentials or private download URLs');
+    assert.ok(/^\/[^/]+\/[^/]+\/releases\/download\/[^/]+\/[^/]+\.tgz$/.test(source.pathname));
+  } else {
+    await access(archive);
+  }
   const before = await fingerprint();
   await mkdir(home, { recursive: true });
   await runCLI(['--profile', profileName, '--from-default-profile', 'web', '--dump-config']);

@@ -1,6 +1,8 @@
 # 版本记录
 
-## 1.0.0 · 源码公开准备版（尚未发布 npm）
+## 1.0.0 · 首次发行版本
+
+发行状态以 npm registry 和维护者发布记录为准；此处描述该版本内容。
 
 - 正式命名为 **模型书架 · DSH Model Shelf**，包名 `dsh-model-shelf`。
 - 作者 **Hobartoakes**，采用 **MIT License**。

@@ -69,6 +69,6 @@ pnpm run check:release
 
 - macOS、Linux 和其他 DSH 版本。
 - 不同公开版本之间的升级。
-- npm 远端安装与 dsh-market 一键安装（尚未发布 npm、尚未收录）。
+- 此报告仅覆盖本地预构建归档；npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证。
 
 本报告不是对所有宿主版本的兼容性保证，也不验证 API 中转服务的实际上游模型身份。

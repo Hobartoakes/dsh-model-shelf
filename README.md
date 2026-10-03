@@ -4,7 +4,7 @@
 
 > 作者：[Hobartoakes](https://github.com/Hobartoakes) · 许可证：[MIT](LICENSE) · [问题反馈](https://github.com/Hobartoakes/dsh-model-shelf/issues)
 >
-> 源码公开，**尚未发布 npm 包，也未被 dsh-market 收录**。`private: true` 暂时阻止 npm 发布，不影响 MIT 开源许可或从本地预构建归档安装。
+> 源码采用 MIT 公开。npm 发行状态以 [npm 包页面](https://www.npmjs.com/package/dsh-model-shelf) 的实际可用版本为准；dsh-market 收录是独立流程。
 
 ## 演示
 
@@ -52,9 +52,13 @@
 
 ## 安装与卸载
 
-当前尚未发布 npm 包，也未被 dsh-market 收录，请不要将包名安装命令当作已可用的公开来源。
+npm 发行版本可用时，通过官方 CLI 安装：
 
-本地已构建归档的安装示例（将路径替换为实际归档位置）：
+```powershell
+dsh plugin --profile desktop add dsh-model-shelf@1.0.0 --ignore-scripts
+```
+
+请先在 npm 包页面确认目标版本实际可用；准备中的源码分支不代表版本已发布。也可以使用本地预构建归档（将路径替换为实际归档位置）：
 
 ```powershell
 dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.0.0.tgz" --ignore-scripts
@@ -122,15 +126,16 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - 作者：Hobartoakes。
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
-- npm 包名：准备期间查询 `dsh-model-shelf` 尚未注册；查询不等于预留，发布前需再次确认。
-- npm 发布、GitHub Release 安装包发布、市场收录：尚未执行。
+- npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
+- npm 版本：[以实际 registry 记录为准](https://www.npmjs.com/package/dsh-model-shelf)。
+- GitHub Release 安装包与市场收录：单独进行，不由 npm 发布自动完成。
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查发布文件。npm 发布前检查还会要求 `private: false`；当前保持 `private: true`，因此 npm 发布仍被阻止。干净 profile 的集成验证记录见 [验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查发布文件。维护者实际发布前仍需确认授权、npm 登录身份、包名 / 版本可用性及归档内容；发布检查本身不执行上传。干净 profile 的集成验证记录见 [验证报告](docs/VALIDATION.md)。
 
 ## English summary
 
 A wide, collapsible model picker for DSH, with two separate lists: Main and Uncommon. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. The source repository is public; npm publication and market listing have not been performed. npm publishing remains disabled (`private: true`).
+Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. The source repository is public. Check the npm registry for available release versions; market listing is a separate process. Release preparation does not itself publish a package.

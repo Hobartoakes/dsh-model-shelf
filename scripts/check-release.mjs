@@ -4,6 +4,7 @@ const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
 const issues = [];
 const publishing = process.argv.includes('--publish');
 if (publishing && pkg.private !== false) issues.push('npm 发布仍未授权：确认发布后才将 private 改为 false。');
+if (publishing && (pkg.publishConfig?.registry !== 'https://registry.npmjs.org/' || pkg.publishConfig?.access !== 'public' || pkg.publishConfig?.tag !== 'latest')) issues.push('公开发布必须限定官方 npm registry、public 和 latest 标签。');
 const author = typeof pkg.author === 'string' ? pkg.author : pkg.author?.name;
 if (!author || /待补|todo|placeholder/i.test(author)) issues.push('填写真实作者名称。');
 const repository = typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url;

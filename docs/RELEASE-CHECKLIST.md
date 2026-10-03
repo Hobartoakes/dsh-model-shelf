@@ -19,20 +19,22 @@
 - [x] 目标包出现在实际客户端图中，广告的 JS 资源响应 200，界面真实挂载。
 - [x] 修复首次创建模型目录时缺少 remote.session 注入声明的问题。
 - [x] 验证过程未修改当前 desktop manifest 或 patch，未复制用户凭据，未发起真实模型调用。
-- [x] 保持 private: true，通过 prepublishOnly 防止未授权 npm 发布。
+- [x] 用户明确授权 npm 发布后，将 private 改为 false，并限定公开发布到官方 registry；prepublishOnly 仍检查发布元数据。
 
 详细过程见 [验证报告](VALIDATION.md)。
 
 ## 下一阶段仍未执行
 
 - [ ] 再次确认 npm 包名可用性，以及准备 npm 发布账号和权限。
-- [ ] 用户明确授权 npm 发布后，才将 private 改为 false。
+- [x] 用户明确授权 npm 发布，并解除 private 发布保护。
 - [ ] 发布 npm 包和 / 或 GitHub Release 预构建安装包。
 - [ ] 按 awesome-dsh-plugin 当时的贡献规范提交目录收录 PR。
 - [ ] 收录同步后，从 dsh-market 实测一键安装。
 - [ ] 有公开新版本时验证真实升级流程；当前未验证跨版本升级。
 - [ ] 其他 DSH 版本及平台经过实测后，才扩展兼容声明。
 
-`pnpm run check:release` 只检查发布文件，不执行发布。`prepublishOnly` 会额外检查发布授权；private: true 时仍会阻止 npm 发布。
+`pnpm run check:release` 只检查发布文件，不执行发布。private 标志解除并不代表包已经发布；还必须完成 npm 登录、二次验证（如要求）、归档审查、实际上传和 registry 核验。
+
+这份清单记录发布准备阶段的检查；npm 的实际可用版本以 registry 为准。
 
 当前电脑原型的旧归档没有被覆盖。正式项目在独立目录中整理，测试使用独立 DSH_HOME、独立 profile、随机本地端口，不替换正在使用的 GUI。

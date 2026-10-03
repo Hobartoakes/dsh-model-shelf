@@ -1,0 +1,124 @@
+import { chromium } from 'playwright-core';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
+const root = new URL('../', import.meta.url);
+const require = createRequire(import.meta.url);
+const react = await readFile(join(dirname(require.resolve('react/package.json')), 'umd/react.production.min.js'), 'utf8');
+const reactDOM = await readFile(join(dirname(require.resolve('react-dom/package.json')), 'umd/react-dom.production.min.js'), 'utf8');
+const client = await readFile(new URL('lib/client.js', root), 'utf8');
+const html = `<!doctype html><meta charset="utf-8"><title>Model organizer test harness</title>
+<style>body{font-family:system-ui;margin:0;background:#fafafa;color:#222}#anchor{position:fixed;bottom:30px;right:30px;padding:14px;background:white;border:1px solid #ddd;border-radius:12px;width:650px}body.dark{--dsw-alias-bg-layer-3:#202126;--dsw-alias-bg-layer-2:#292b30;--dsw-alias-label-primary:#eee;--dsw-alias-label-secondary:#ccc;--dsw-alias-label-tertiary:#aaa;--dsw-alias-border-l1:#444;--dsw-alias-interactive-bg-hover:#30333a;background:#161719;color:#eee}</style>
+<div id="anchor"></div><script>${react}</script><script>${reactDOM}</script>
+<script>window.__ModuleLoader__={load(entry){window.plugin=entry.factory(name=>name==='react'?React:name==='react-dom'?ReactDOM:undefined)}};</script>
+<script>${client}</script>
+<script>
+const listeners=new Set(); const selected=[]; window.selected=selected;
+const groups=[{id:'provider-one',name:'服务商甲 · API 中转',models:Array.from({length:16},(_,i)=>({id:i===0?'gpt-example-a':'model-'+i,name:i===0?'GPT 示例模型（完整名称不截断）':'示例模型 '+i,...(i===0?{reasoning:{defaultEffort:'medium',efforts:[{id:'low',name:'低'},{id:'medium',name:'中'},{id:'high',name:'高'}]}}:{})}))},{id:'provider-two',name:'服务商乙 · 官方 API',models:[{id:'gpt-example-a',name:'GPT 示例模型（相同 ID 不同服务商）'},{id:'another-id',name:'另一款模型'}]}];
+let state={current:{provider:'provider-one',model:'gpt-example-a',reasoningEffort:'medium'},groups,status:'ready',failures:[],pending:null,error:null};
+const store={subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn)},getSnapshot(){return state}};
+window.setState=(next)=>{state={...state,...next};for(const fn of listeners)fn()};
+let shouldFail=false, shouldThrow=false, shouldWait=false; window.failNext=()=>shouldFail=true; window.throwNext=()=>shouldThrow=true; window.slowNext=()=>shouldWait=true;
+const disposers=[]; const ctx={effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=()=>{root.render(React.createElement(Component,{locked:false,...options.inject('test-session')}))};return()=>{}}}};
+const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
+</script>`;
+await mkdir(new URL('tests/artifacts/', root), { recursive: true });
+const htmlURL = new URL('tests/artifacts/harness.html', root);
+await writeFile(htmlURL, html);
+await mkdir(new URL('docs/images/', root), { recursive: true });
+const browserOptions = process.env.DSH_TEST_BROWSER_EXECUTABLE
+  ? { executablePath: process.env.DSH_TEST_BROWSER_EXECUTABLE, headless: true }
+  : { channel: process.platform === 'win32' ? 'msedge' : 'chrome', headless: true };
+const browser = await chromium.launch(browserOptions);
+let checks = 0;
+const ok = (name) => { checks++; console.log(`PASS ${name}`); };
+try {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+  const errors = []; page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(htmlURL.href);
+  const open = async () => { await page.locator('.dmo-trigger').click(); await page.locator('.dmo-panel').waitFor({ state: 'visible' }); };
+  await open();
+  assert.equal(await page.evaluate(() => window.registration.priority), -100);
+  assert.equal(await page.evaluate(() => plugin.inject.includes('remote') && plugin.inject.includes('remote.session')), true);
+  assert.equal(await page.getByRole('searchbox').evaluate((e) => e === document.activeElement), true);
+  const box = await page.locator('.dmo-panel').boundingBox(); assert.equal(Math.round(box.width), 640); assert.ok(box.height > 360); assert.ok(box.y >= 12 && box.y + box.height <= 988);
+  ok('wide/tall popup stays inside viewport and overrides named slot');
+  assert.equal(await page.locator('.dmo-row').count(), 18);
+  assert.ok((await page.locator('.dmo-row').first().innerText()).includes('服务商甲 · API 中转（provider-one）'));
+  assert.ok((await page.locator('.dmo-row').first().innerText()).includes('模型 ID：gpt-example-a'));
+  ok('every row displays provider and exact model ID');
+  // Publication screenshots: isolated popup, synthetic fixture only, never actual GUI data.
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/main-list.png', root)) });
+  await page.evaluate(() => document.body.classList.add('dark'));
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/dark-list.png', root)) });
+  await page.evaluate(() => document.body.classList.remove('dark'));
+  await page.getByRole('button', { name: '移至不常用：服务商甲 · API 中转 / gpt-example-a', exact: true }).click();
+  assert.equal(await page.locator('.dmo-row').count(), 17); assert.equal(await page.evaluate(() => selected.length), 0);
+  await page.getByRole('tab', { name: '不常用 (1)', exact: true }).click(); assert.equal(await page.locator('.dmo-row').count(), 1);
+  ok('manual move does not select/delete model or move identical ID from another provider');
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/uncommon-list.png', root)) });
+  await page.reload(); await open();
+  assert.equal(await page.getByRole('tab', { name: '不常用 (1)', exact: true }).getAttribute('aria-selected'), 'true');
+  await page.getByRole('button', { name: '移回主列表：服务商甲 · API 中转 / gpt-example-a', exact: true }).click();
+  await page.getByRole('tab', { name: '主列表 (18)', exact: true }).click(); assert.equal(await page.locator('.dmo-row').count(), 18);
+  ok('manual preference persists on reload and restores to main list');
+  await page.getByRole('button', { name: '全部折叠', exact: true }).click(); assert.equal(await page.locator('.dmo-row').count(), 0);
+  await page.getByRole('searchbox').fill('服务商乙 gpt-example-a'); assert.equal(await page.locator('.dmo-row').count(), 1);
+  await page.getByRole('searchbox').fill(''); assert.equal(await page.locator('.dmo-row').count(), 0);
+  await page.reload(); await open(); assert.equal(await page.locator('.dmo-row').count(), 0);
+  await page.getByRole('button', { name: '全部展开', exact: true }).click();
+  ok('fold state persists; search temporarily expands without overwriting fold preference');
+  await page.evaluate(() => failNext());
+  await page.getByRole('button', { name: '选择 服务商乙 · 官方 API 的 另一款模型，模型 ID another-id', exact: true }).click();
+  await page.getByRole('alert').waitFor(); assert.ok(await page.locator('.dmo-panel').isVisible());
+  ok('rejected selection stays open with actionable error');
+  await page.getByLabel('思考强度', { exact: true }).selectOption('high');
+  assert.equal(await page.evaluate(() => selected.at(-1).reasoningEffort), 'high'); assert.ok(await page.locator('.dmo-panel').isVisible());
+  ok('reasoning strength retains native selection API');
+  await page.getByRole('button', { name: '选择 服务商甲 · API 中转 的 GPT 示例模型（完整名称不截断），模型 ID gpt-example-a', exact: true }).click();
+  await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(() => selected.at(-1).reasoningEffort), 'high');
+  await open(); ok('reselecting current model preserves customized reasoning strength');
+  await page.evaluate(() => throwNext());
+  await page.getByRole('button', { name: '选择 服务商乙 · 官方 API 的 另一款模型，模型 ID another-id', exact: true }).click();
+  await page.getByRole('alert').waitFor();
+  assert.equal(await page.getByRole('button', { name: '选择 服务商乙 · 官方 API 的 另一款模型，模型 ID another-id', exact: true }).isDisabled(), false);
+  assert.ok(await page.getByRole('button', { name: '重新加载', exact: true }).isVisible());
+  ok('transport rejection resets native pending selection instead of stranding disabled controls');
+  await page.getByRole('searchbox').fill('服务商乙 another-id');
+  await page.getByRole('searchbox').press('ArrowDown'); await page.getByRole('searchbox').press('Enter');
+  await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+  assert.deepEqual(await page.evaluate(() => selected.at(-1)), { provider: 'provider-two', model: 'another-id' });
+  ok('keyboard search selects exact provider/model pair');
+  await open(); await page.keyboard.press('Escape'); assert.equal(await page.locator('.dmo-panel').count(), 0); assert.equal(await page.locator('.dmo-trigger').evaluate((e) => e === document.activeElement), true);
+  ok('Escape closes and restores trigger focus');
+  await open();
+  await page.evaluate(() => slowNext());
+  await page.getByRole('button', { name: '选择 服务商甲 · API 中转 的 示例模型 1，模型 ID model-1', exact: true }).click();
+  await page.keyboard.press('Escape'); await open();
+  await page.evaluate(() => finishSelection());
+  await page.waitForFunction(() => document.querySelector('.dmo-current')?.textContent.includes('model-1'));
+  assert.ok(await page.locator('.dmo-panel').isVisible());
+  ok('late async success cannot close a newly reopened popup');
+  await page.evaluate(() => setState({groups:[],current:{provider:'offline-provider',model:'offline-model',reasoningEffort:'high'},retainedEffort:'高',routable:false}));
+  assert.ok((await page.locator('.dmo-current').innerText()).includes('已保留思考强度：高'));
+  assert.ok((await page.locator('.dmo-current').innerText()).includes('当前模型暂不可用'));
+  await page.evaluate(() => setState({groups,current:{provider:'provider-two',model:'another-id'},retainedEffort:undefined,routable:true}));
+  ok('unavailable catalog preserves current identity and retained reasoning label');
+  await page.locator('.dmo-close').focus(); await page.keyboard.press('Shift+Tab'); assert.ok(await page.locator('.dmo-panel').evaluate((e) => e.contains(document.activeElement)));
+  await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/wide-picker.png', root)) });
+  await page.evaluate(() => document.body.classList.add('dark'));
+  assert.equal(await page.locator('.dmo-panel').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(32, 33, 38)');
+  await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/dark-picker.png', root)) });
+  ok('focus remains in popup and dark theme uses host surface tokens');
+  await page.setViewportSize({ width: 390, height: 600 });
+  const mobile = await page.locator('.dmo-panel').boundingBox(); assert.ok(mobile.x >= 12 && mobile.width <= 366 && mobile.y >= 12 && mobile.y + mobile.height <= 588);
+  await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/narrow-picker.png', root)) });
+  ok('narrow window layout fits without horizontal or vertical overflow');
+  await page.evaluate(() => dispose()); assert.equal(await page.locator('style[data-plugin="dsh-model-shelf"]').count(), 0);
+  ok('plugin lifecycle disposes injected stylesheet');
+  assert.deepEqual(errors, []);
+  console.log(`Browser checks: ${checks}, uncaught page errors: ${errors.length}`);
+} finally { await browser.close(); }

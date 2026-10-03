@@ -1,0 +1,11 @@
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+const root = new URL('../', import.meta.url);
+const preferences = (await readFile(new URL('src/preferences.js', root), 'utf8')).replace(/^export /gm, '');
+const client = (await readFile(new URL('src/client.js', root), 'utf8')).replace(/^import .* from '\.\/preferences\.js';\r?\n/m, '').replace(/^export /gm, '');
+const css = await readFile(new URL('src/style.css', root), 'utf8');
+const styledClient = client.replace('function apply(ctx) {', `function apply(ctx) {\n  ctx.effect(() => {\n    const style = document.createElement('style');\n    style.dataset.plugin = 'dsh-model-shelf';\n    style.textContent = ${JSON.stringify(css)};\n    document.head.appendChild(style);\n    return () => style.remove();\n  });`);
+const bundle = `window.__ModuleLoader__.load({\n  id: 'dsh-model-shelf',\n  factory: (require) => {\n${preferences}\n${styledClient}\nreturn { apply, inject, makeModelPicker };\n  }\n});\n`;
+await mkdir(new URL('lib/', root), { recursive: true });
+await writeFile(new URL('lib/client.js', root), bundle.replace('export ', ''));
+await writeFile(new URL('lib/index.js', root), 'export function apply() {}\n');
+console.log('Built Model Shelf client and lifecycle-owned stylesheet.');

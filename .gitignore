@@ -1,0 +1,21 @@
+# Dependencies and locally built package archives
+node_modules/
+dist/
+dist-draft/
+
+# Private installation snapshots, generated fixtures, and real GUI screenshots
+install-backup/
+tests/artifacts/
+tests/vendor/
+tests/capture-dsh-window.py
+
+# Machine-specific settings / credentials
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# lib/ is intentionally tracked: market installs must not need build scripts.
+# docs/images/ contains synthetic-data-only publication screenshots.

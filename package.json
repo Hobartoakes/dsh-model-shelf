@@ -1,0 +1,37 @@
+{
+  "name": "dsh-model-shelf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",
+  "author": { "name": "Hobartoakes", "url": "https://github.com/Hobartoakes" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Hobartoakes/dsh-model-shelf.git" },
+  "homepage": "https://github.com/Hobartoakes/dsh-model-shelf#readme",
+  "bugs": { "url": "https://github.com/Hobartoakes/dsh-model-shelf/issues" },
+  "engines": { "dsh": "0.2.0-rc.2" },
+  "keywords": ["dsh-plugin", "deepseek-harness", "model-picker", "model-management", "ui"],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },
+  "files": [
+    "lib", "src", "scripts/build.mjs", "scripts/check-release.mjs", "tests/*.mjs",
+    "docs/images/*.png", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md",
+    "cordis.patch.yml", "README.md", "CHANGELOG.md", "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:clean-profile": "node tests/clean-profile.mjs",
+    "check:release": "node scripts/check-release.mjs",
+    "prepublishOnly": "node scripts/check-release.mjs --publish"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "inject": ["@deepseek-ai/dsh-client-ui-model-selection", "@deepseek-ai/dsh-client-ui-slots"],
+      "platform": "web"
+    }
+  },
+  "devDependencies": { "playwright-core": "^1.63.0", "react": "18.2.0", "react-dom": "18.2.0" }
+}

@@ -27,7 +27,9 @@
 
 - [ ] 再次确认 npm 包名可用性，以及准备 npm 发布账号和权限。
 - [x] 用户明确授权 npm 发布，并解除 private 发布保护。
-- [ ] 发布 npm 包和 / 或 GitHub Release 预构建安装包。
+- [x] 发布 [GitHub Release v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 并上传预构建安装包。
+- [x] 验证未登录公开下载、SHA256 一致，以及官方 CLI 从公开 URL 安装、禁用、重新启用和卸载。
+- [ ] 发布 npm 包（本次任务未执行）。
 - [ ] 按 awesome-dsh-plugin 当时的贡献规范提交目录收录 PR。
 - [ ] 收录同步后，从 dsh-market 实测一键安装。
 - [ ] 有公开新版本时验证真实升级流程；当前未验证跨版本升级。

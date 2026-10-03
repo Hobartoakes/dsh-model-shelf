@@ -69,6 +69,23 @@ pnpm run check:release
 
 - macOS、Linux 和其他 DSH 版本。
 - 不同公开版本之间的升级。
-- 此报告仅覆盖本地预构建归档；npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证。
+- npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证；本项目尚未发布 npm，也未提交市场收录 PR。
 
 本报告不是对所有宿主版本的兼容性保证，也不验证 API 中转服务的实际上游模型身份。
+
+## GitHub Release v1.0.0 公开发行验证
+
+- 已发布 [v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，预构建归档为 [dsh-model-shelf-1.0.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz)。
+- 未发送 Authorization 或登录 Cookie，使用公开下载链接成功获取安装包，大小 **150041 字节**。
+- 下载内容与上传前审查的归档 SHA256 一致：`f20edcf6f954e40e0050438adeda5cd84ce493474e6a772c79eaa141cf1211d8`。
+- 使用官方 CLI **直接从公开 HTTPS 链接安装**，而非只安装本地副本，7 项隔离 profile 集成检查再次通过。
+- 安装后的真实客户端图、广告的 JS 资源、增强模型面板均正常；禁用、重新启用和卸载正常，原生选择器可打开。
+- 当前 desktop manifest 和 patch 的哈希保持不变，所有临时测试服务在完成后停止。
+
+复现公开链接安装验证：
+
+```powershell
+node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz"
+```
+
+发布后的验证记录不改变已发布的归档和 v1.0.0 标签；归档包含发布前的报告快照，最新验证记录以本页及 Release 说明为准。

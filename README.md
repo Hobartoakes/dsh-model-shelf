@@ -39,7 +39,7 @@
 - 移动分类不会选择模型、删除 API 配置或影响其他服务商的同名模型。
 - 每款模型显示模型名称、服务商名称、服务商 ID 和精确模型 ID。
 - 以 `(provider ID, model ID)` 区分模型；不同服务商的同名模型互不影响。
-- 支持搜索模型名称、模型 ID、服务商名称和服务商 ID；搜索作用于当前列表。
+- 支持搜索模型名称、模型 ID、服务商名称、服务商 ID 和账号备注；搜索作用于当前列表。
 - 搜索临时展开匹配分组，不改变原折叠状态。
 - 沿用 DSH 原生模型切换和思考强度选项，保留会话锁定与失败提示。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
@@ -88,7 +88,8 @@ dsh plugin --profile desktop remove dsh-model-shelf
 2. 在主列表找到模型，点击右侧“移至不常用”，将该款模型移到独立列表。
 3. 切换“不常用”标签页，仍可选择其中的模型，或点击“移回主列表”。
 4. 点击服务商标题折叠分组，或使用“全部展开 / 全部折叠”。
-5. 搜索结果只来自当前列表；未找到时可切换另一列表继续搜索。
+5. 点击模型旁的“☆ 收藏”，之后可在“收藏”标签页快速使用。
+6. 搜索结果只来自当前列表；未找到时可切换另一列表继续搜索。
 
 当前模型属于不常用列表时，再次打开选择器会自动打开该列表，但不会改变其分类。
 
@@ -96,14 +97,25 @@ dsh plugin --profile desktop remove dsh-model-shelf
 
 - 在任一列表点击模型旁的“☆ 收藏”，再打开“收藏”标签页使用；取消收藏不删除模型，也不改变原分类。
 - 点击服务商标题旁的“账号备注”，输入备注并保存。Enter 保存，Escape 或“取消”放弃编辑，清空后保存可删除备注。
-- 同平台的不同账号必须在宿主中配置成不同的服务商 ID；备注按 ID 保存，不会把同名平台的配置合并，也不会自动读取或验证实际账号身份。
 - 同一 API 配置的所有模型共用该账号备注。请勿把 API 密钥、密码或令牌填入备注；备注只在当前浏览器保存。
+- 插件**不会自动读取或验证**这个配置实际登录了哪个账号；备注只是你手动贴的标签。
+
+#### 为什么同平台的多个账号要各自建一个 API 配置
+
+插件按**服务商配置 ID**（每行显示的 `服务商 ID：xxx`）保存备注，相当于给每个“抽屉”贴标签：
+
+| 做法 | 结果 |
+| --- | --- |
+| 只建一个平台配置，在里面换着用两个 Key | ❌ 插件只看到一个 ID，只能贴一个备注，无法区分 |
+| 建两个配置（如“工作”“个人”），各填各的 Key | ✅ 两个 ID，可分别备注，模型列表也会分成两组 |
+
+判断方法：打开选择器看 `服务商 ID`。**若两个账号显示的 ID 相同，说明它们在 DSH 里是同一个配置**，需要到宿主的 API 服务商配置里再新增一条。新增后即使两个分组的模型一样，也能分别备注。
 
 ### 键盘
 
 - 搜索框中的 ↑ / ↓：高亮结果；Enter：选择模型。
 - Tab / Shift+Tab：在面板控件间移动。
-- Escape：关闭面板并返回模型按钮。
+- Escape：关闭面板并返回模型按钮；在备注输入框中则只放弃备注编辑，不关闭面板。
 
 ## 数据保存与隐私
 
@@ -142,7 +154,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
 - npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
-- GitHub Release：[v1.0.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，不需要 npm 注册或登录。
+- GitHub Release：[v1.0.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，不需要 npm 注册或登录。**当前源码 main 分支为 1.1.0 候选版，尚未发布安装包**，因此 Release 页面暂无 1.1.0 可下载文件。
 - npm：本项目尚未发布，请勿将裸包名当作可用安装来源。
 - dsh-market：尚未提交收录 PR；发布 Release 不代表已经收录。
 
@@ -152,6 +164,6 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## English summary
 
-A wide, collapsible model picker for DSH, with two separate lists: Main and Uncommon. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
+A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
 Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. Prebuilt packages are distributed through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. Market listing is a separate process and has not been submitted.

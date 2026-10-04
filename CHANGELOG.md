@@ -1,6 +1,8 @@
 # 版本记录
 
-## 1.1.0 · 收藏与账号备注（源码工作副本，尚未发布安装包）
+## 1.1.0 · 收藏与账号备注（已发布 GitHub Release v1.1.0）
+
+预构建安装包：[dsh-model-shelf-1.1.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.0/dsh-model-shelf-1.1.0.tgz)。
 
 - 新增独立的**收藏**列表：手动点击“☆ 收藏 / ★ 已收藏”，不影响主列表 / 不常用分类，也不会选择模型。
 - 新增**账号备注**：按服务商配置 ID 分别保存，可区分同一平台下的多个 API 账号。

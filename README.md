@@ -4,9 +4,9 @@
 
 > 作者：[Hobartoakes](https://github.com/Hobartoakes) · 许可证：[MIT](LICENSE) · [问题反馈](https://github.com/Hobartoakes/dsh-model-shelf/issues)
 >
-> 源码采用 MIT 公开。预构建安装包见 [GitHub Release v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)。本项目尚未发布 npm，也未被 dsh-market 收录。
+> 源码采用 MIT 公开。预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm，也未被 dsh-market 收录。
 
-> 当前工作副本为 **1.1.0 候选版（尚未发布）**，新增收藏与账号备注。下面的公开 Release 链接仍指向 1.0.0，旧版不包含这两项新增功能。
+> 最新 **v1.1.0** 包含收藏与账号备注。历史版本 [v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 不包含这两项功能。
 
 ## 演示
 
@@ -63,13 +63,13 @@
 无需 npm 账号，直接安装 GitHub Release 的预构建包：
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.0/dsh-model-shelf-1.1.0.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.0.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.1.0.tgz" --ignore-scripts
 ```
 
 安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。
@@ -154,7 +154,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
 - npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
-- GitHub Release：[v1.0.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，不需要 npm 注册或登录。**当前源码 main 分支为 1.1.0 候选版，尚未发布安装包**，因此 Release 页面暂无 1.1.0 可下载文件。
+- GitHub Release：[v1.1.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0)，不需要 npm 注册或登录，包含收藏与账号备注；[v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 为不含这两项功能的历史版本。
 - npm：本项目尚未发布，请勿将裸包名当作可用安装来源。
 - dsh-market：尚未提交收录 PR；发布 Release 不代表已经收录。
 

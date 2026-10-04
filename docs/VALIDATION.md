@@ -2,7 +2,7 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.1.0 候选版**（尚未发布安装包），作者 Hobartoakes，MIT。
+- 包：**dsh-model-shelf 1.1.0**（已发布 [GitHub Release v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0)），作者 Hobartoakes，MIT。
 - DSH：**0.2.0-rc.2**，Windows 安装版的 Electron CLI。
 - 浏览器：本机 Microsoft Edge，真实浏览器测试。
 - **14 项偏好测试 + 21 项离线浏览器检查 + 7 项干净 profile 检查通过**。
@@ -91,7 +91,7 @@ pnpm run check:release
 
 ## GitHub Release v1.0.0 公开发行验证（历史记录）
 
-本节记录 **1.0.0** 的公开发行验证，当时不含收藏与账号备注。1.1.0 候选版尚未发布安装包，也尚未进行公开下载验证。
+本节记录 **1.0.0** 的公开发行验证，当时不含收藏与账号备注。
 
 - 已发布 [v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0)，预构建归档为 [dsh-model-shelf-1.0.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz)。
 - 未发送 Authorization 或登录 Cookie，使用公开下载链接成功获取安装包，大小 **150041 字节**。
@@ -105,5 +105,14 @@ pnpm run check:release
 ```powershell
 node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.0.0/dsh-model-shelf-1.0.0.tgz"
 ```
+
+## GitHub Release v1.1.0 公开发行验证
+
+- 已发布 [v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0)，预构建归档为 [dsh-model-shelf-1.1.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.0/dsh-model-shelf-1.1.0.tgz)，大小 **206017 字节**。
+- 先创建草稿 Release 并上传归档；从 Release API 下载（携带登录态）验证字节与本地一致后才公开。
+- 公开后**未发送 Authorization 或登录 Cookie**，使用公开下载链接成功获取安装包，大小 **206017 字节**。
+- 下载内容与上传前审查的归档 SHA256 一致：`AE5C461B1CAED4B13761F6A65B9D4756E122E3BBBF78ADFC84B62DC128C81523`。
+- v1.0.0 的归档与标签保持不变。
+- 当前 desktop 已从本地候选包升级到 1.1.0；此项公开链接验证未再次修改 desktop。
 
 发布后的验证记录不改变已发布的归档和 v1.0.0 标签；归档包含发布前的报告快照，最新验证记录以本页及 Release 说明为准。

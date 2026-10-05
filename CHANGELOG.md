@@ -1,5 +1,12 @@
 # 版本记录
 
+## 1.1.1 · 可复制文字（未发布）
+
+- 修复模型书架 UI 中文字无法用鼠标拖选复制的问题。
+- 将分组标题、模型行、当前模型按钮改为 `div[role=button]` 并添加 `user-select:text`，使服务商名称、服务商 ID、模型名称、模型 ID、账号备注等文字均可拖动选中复制。
+- 保留键盘操作（Enter / Space）与 aria 属性，选中模型、折叠分组等功能行为不变。
+- 测试更新：14 项偏好测试、21 项离线浏览器检查通过。
+
 ## 1.1.0 · 收藏与账号备注（已发布 GitHub Release v1.1.0）
 
 预构建安装包：[dsh-model-shelf-1.1.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.0/dsh-model-shelf-1.1.0.tgz)。

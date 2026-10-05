@@ -224,9 +224,9 @@ export function makeModelPicker(preferences) {
       h('div', { className: 'dmo-list', id: `${popupId}-list`, role: 'tabpanel', 'aria-labelledby': `${popupId}-${list}`, 'aria-busy': state.status === 'loading' || busy },
         state.status === 'loading' && h('p', { className: 'dmo-empty', role: 'status' }, '正在加载模型…'),
         shown.map((g) => h('section', { className: 'dmo-group', key: g.id },
-          h('div', { className: 'dmo-group-top' }, h('button', { type: 'button', className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), onClick: () => {
+          h('div', { className: 'dmo-group-top' }, h('div', { role: 'button', tabIndex: 0, className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), 'aria-disabled': searching, onClick: () => {
             if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) }));
-          }, disabled: searching },
+          }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) })); } } },
             h('span', { 'aria-hidden': true }, expanded(g.id) ? '▾' : '▸'),
             h('span', { className: 'dmo-group-title' }, g.name || g.id,
               providerNote(prefs, g.id) && h('span', { className: 'dmo-account' }, `账号备注：${providerNote(prefs, g.id)}`),

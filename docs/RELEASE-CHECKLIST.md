@@ -30,12 +30,14 @@
 - [x] 用户明确授权 npm 发布，并解除 private 发布保护。
 - [x] 发布 [GitHub Release v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 并上传预构建安装包。
 - [x] 验证未登录公开下载、SHA256 一致，以及官方 CLI 从公开 URL 安装、禁用、重新启用和卸载。
-- [ ] 发布 npm 包（本次任务未执行）。
-- [ ] 按 awesome-dsh-plugin 当时的贡献规范提交目录收录 PR。
+- [ ] 发布 npm 包（尚未执行）。
+- [x] 按 awesome-dsh-plugin 当时的贡献规范提交目录收录 PR：[#7630](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7630)（单文件条目，CI `check` 与 `Submission gate` 均通过，等待维护者合并）。
 - [ ] 收录同步后，从 dsh-market 实测一键安装。
 - [x] 发布 [GitHub Release v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0) 并上传预构建安装包。
 - [x] 验证 1.1.0 的未登录公开下载与 SHA256 一致（206017 字节，`AE5C461B…C81523`）。
 - [ ] 验证 1.1.0 的官方 CLI 从公开 URL 安装、禁用、重新启用和卸载。
+- [x] 发布 [GitHub Release v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 并上传预构建安装包。
+- [x] 发布 [GitHub Release v1.2.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.2.0) 并上传预构建安装包（思考强度就地检测、恢复服务商默认、逐模型上下文容量）。
 - [ ] 有公开新版本时验证真实升级流程；当前未验证跨版本升级，1.0.0 → 1.1.0 仅覆盖本地偏好兼容。
 - [ ] 其他 DSH 版本及平台经过实测后，才扩展兼容声明。
 

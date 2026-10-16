@@ -1,4 +1,5 @@
 import { modelKey, groupKey, toggleKey, partitionModels, createPreferenceStore, providerNote } from './preferences.js';
+import { isWorkBuddyProvider, loadProbeStatus, requestProbe, probeStateFor, effortSourceFor, contextWindowFor, formatCapacity, requestContextWindow } from './workbuddy-probe.js';
 
 // React and ReactDOM come from the running DSH client, never a second React copy.
 const React = require('react');
@@ -18,6 +19,11 @@ export function makeModelPicker(preferences) {
     const [active, setActive] = useState(null);
     const [position, setPosition] = useState(null);
     const [localError, setLocalError] = useState(null);
+    const [probeStatus, setProbeStatus] = useState(undefined);
+    const [probeBusy, setProbeBusy] = useState(false);
+    const [contextBusy, setContextBusy] = useState(false);
+    const [probeConfirm, setProbeConfirm] = useState(false);
+    const [probeNote, setProbeNote] = useState(null);
     const [editingNote, setEditingNote] = useState(null);
     const noteInput = useRef(null);
     useEffect(() => { if (editingNote) noteInput.current?.focus(); }, [editingNote?.id]);
@@ -44,11 +50,40 @@ export function makeModelPicker(preferences) {
     const busy = locked || state.status === 'selecting';
     const activeRow = visible.find((item) => item.key === active) ?? visible[0];
     const error = localError ?? state.error ?? preferences.getError();
+    // WorkBuddy detection state for the *current* model. The picker only ever
+    // changes that model's reasoning effort, so it is the only model whose
+    // detection state can change anything here.
+    const probe = probeStateFor(probeStatus, state.current?.model);
+    const effortSource = effortSourceFor(probeStatus, state.current?.model);
+    // Per-model context window: only a CTXPATCH host reports capacities at all,
+    // so an unpatched install simply never produces a row here.
+    const contextRow = contextWindowFor(probeStatus, state.current?.model);
+    const declaredEfforts = (reasoning?.efforts?.length ?? 0) > 0;
+    const detection = state.current && !declaredEfforts && probe.kind === 'detectable' ? probe : null;
+    // A verified verdict the directory has not published yet. Reporting it is the
+    // honest option: the picker must not invent a level the adapter does not offer.
+    const staleDetected = probe.kind === 'detected' && !declaredEfforts;
 
     useEffect(() => {
       mounted.current = true;
       return () => { mounted.current = false; };
     }, []);
+
+    // Ask the owning plugin once per popup (and per model), never per render:
+    // its status route also fetches live credit, and this plugin is a guest.
+    useEffect(() => {
+      if (!open) return;
+      setProbeConfirm(false);
+      setProbeNote(null);
+      const providerId = state.current?.provider;
+      if (!isWorkBuddyProvider(providerId)) { setProbeStatus(undefined); return; }
+      let cancelled = false;
+      setProbeStatus(undefined);
+      loadProbeStatus(providerId)
+        .then((status) => { if (!cancelled) setProbeStatus(status); })
+        .catch(() => { if (!cancelled) setProbeStatus(undefined); });
+      return () => { cancelled = true; };
+    }, [open, state.current?.provider, state.current?.model]);
 
     const close = (restore = true) => {
       const epoch = ++popupEpoch.current;
@@ -129,10 +164,21 @@ export function makeModelPicker(preferences) {
       const epoch = popupEpoch.current;
       setLocalError(null);
       try {
-        // Reselecting the current model must not reset a customized reasoning effort.
-        const sameModel = state.current?.provider === selection.provider && state.current?.model === selection.model;
-        const request = sameModel && selection.reasoningEffort === undefined && state.current.reasoningEffort !== undefined
-          ? { ...selection, reasoningEffort: state.current.reasoningEffort } : selection;
+        // `resetEffort` is this plugin's own flag, never a value the directory
+        // accepts: it selects the same model with no `reasoningEffort` at all,
+        // which is exactly how the shared directory's own "Default" entry clears
+        // a customised level. It must therefore bypass the retention below.
+        const { resetEffort, ...pick } = selection;
+        // Reselecting the current model must not reset a customized reasoning effort —
+        // but only while the exact target model still publishes that effort. A route
+        // that declares no effort levels must fall back to its own default instead of
+        // inheriting a level its upstream rejects.
+        const sameModel = state.current?.provider === pick.provider && state.current?.model === pick.model;
+        const targetEfforts = (state.groups ?? []).find((g) => g.id === pick.provider)?.models.find((m) => m.id === pick.model)?.reasoning?.efforts ?? [];
+        const retainedEffort = state.current?.reasoningEffort;
+        const keepEffort = resetEffort !== true && sameModel && pick.reasoningEffort === undefined && retainedEffort !== undefined
+          && targetEfforts.some((x) => x.id === retainedEffort);
+        const request = keepEffort ? { ...pick, reasoningEffort: retainedEffort } : pick;
         const result = await select(request);
         if (!mounted.current || popupEpoch.current !== epoch) return;
         if (!result?.ok) {
@@ -204,6 +250,81 @@ export function makeModelPicker(preferences) {
       setOpen(true);
       Promise.resolve().then(load).catch((e) => { if (mounted.current) setLocalError(String(e.message ?? e)); });
     };
+    // Pin or clear this model's window. The owner keeps the choice; reloading the
+    // directory is what makes the new size reach the next request.
+    const applyContextWindow = async (contextWindow) => {
+      const providerId = state.current?.provider;
+      const modelId = state.current?.model;
+      if (providerId === undefined || modelId === undefined) return;
+      setContextBusy(true);
+      setProbeNote(null);
+      try {
+        const result = await requestContextWindow(providerId, probeStatus, modelId, contextWindow);
+        if (result.state !== 'ok') {
+          if (mounted.current) setProbeNote({ tone: 'error', text: result.reason ?? '容量修改未生效。' });
+          return;
+        }
+        try { await Promise.resolve(load()); } catch { /* a rejected reload keeps the old directory, which is still safe */ }
+        const refreshed = await loadProbeStatus(providerId, { force: true });
+        if (!mounted.current) return;
+        setProbeStatus(refreshed);
+        setProbeNote({ tone: 'ok', text: contextWindow === null ? '已恢复服务商默认容量。' : `上下文容量已设为 ${formatCapacity(contextWindow)}。` });
+      } catch (error) {
+        if (mounted.current) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
+      } finally {
+        if (mounted.current) setContextBusy(false);
+      }
+    };
+    const runDetection = async () => {
+      const providerId = state.current?.provider;
+      const modelId = state.current?.model;
+      setProbeConfirm(false);
+      setProbeNote(null);
+      if (providerId === undefined || modelId === undefined) return;
+      setProbeBusy(true);
+      try {
+        const result = await requestProbe(providerId, probeStatus, modelId);
+        if (result.state !== 'ok') {
+          if (mounted.current) setProbeNote({ tone: 'error', text: result.reason ?? '检测未完成。' });
+          return;
+        }
+        // A successful detection makes the owning plugin invalidate its catalog;
+        // reloading the directory is what turns the verdict into a dropdown.
+        try { await Promise.resolve(load()); } catch { /* a rejected reload keeps the old directory, which is still safe */ }
+        const refreshed = await loadProbeStatus(providerId, { force: true });
+        if (!mounted.current) return;
+        setProbeStatus(refreshed);
+        setProbeNote(result.validation === 'validating' && result.efforts.length > 0
+          ? { tone: 'ok', text: `已检测：${result.efforts.join(' / ')}` }
+          : result.validation === 'non-validating'
+            ? { tone: 'error', text: '上游接受任意档位取值，无法确认有效档位，因此不提供档位选择。' }
+            : { tone: 'error', text: '检测未得到可用档位。' });
+      } catch (error) {
+        if (mounted.current) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
+      } finally {
+        if (mounted.current) setProbeBusy(false);
+      }
+    };
+    const probeBlock = !state.current ? null : probeBusy
+      ? h('p', { className: 'dmo-probe', role: 'status' }, '正在检测思考强度…')
+      : h(React.Fragment, null,
+        probeNote !== null && !staleDetected && h('p', { className: `dmo-probe ${probeNote.tone === 'ok' ? 'dmo-probe-ok' : 'dmo-probe-error'}`, role: 'status' }, probeNote.text),
+        detection !== null && (probeConfirm
+          ? h('div', { className: 'dmo-probe-confirm' },
+            h('span', null, `将请求 WorkBuddy 向上游发送探测请求，以确认「${currentModel?.name || state.current.model}」接受的思考强度档位。`),
+            h('div', { className: 'dmo-note-buttons' },
+              h('button', { type: 'button', className: 'dmo-tab', disabled: busy, onClick: runDetection }, '确认检测'),
+              h('button', { type: 'button', className: 'dmo-tab', onClick: () => setProbeConfirm(false) }, '取消')))
+          : h('p', { className: 'dmo-probe' },
+            h('span', null, '该模型未声明思考强度，可由 WorkBuddy 检测。'),
+            h('button', { type: 'button', className: 'dmo-effort-reset', disabled: busy, onClick: () => { setProbeNote(null); setProbeConfirm(true); } }, '检测思考强度'))),
+        detection === null && probeNote === null && probe.kind === 'rejected' && h('p', { className: 'dmo-probe', role: 'status' }, '该模型已检测：上游接受任意档位取值，因此不提供档位选择。'),
+        // A detected model whose levels have not reached the directory yet: the
+        // verdict is known, the control is not. Offer the refresh, not a fake select.
+        detection === null && staleDetected && h('p', { className: 'dmo-probe' },
+          h('span', null, `已探测到档位：${probe.efforts.join(' / ')}（模型面板尚未更新）`),
+          h('button', { type: 'button', className: 'dmo-effort-reset', disabled: busy, onClick: () => { setLocalError(null); Promise.resolve().then(load).catch((e) => setLocalError(String(e.message ?? e))); } }, '刷新档位')),
+        detection === null && probeNote === null && probe.kind === 'signed-out' && !declaredEfforts && h('p', { className: 'dmo-probe', role: 'status' }, 'WorkBuddy 未登录，暂时无法检测思考强度。'));
     const popup = open && h('div', {
       className: 'dmo-panel', id: popupId, ref: panel, role: 'dialog', 'aria-label': '模型选择器', 'aria-modal': true,
       style: position ?? { visibility: 'hidden', left: 0, top: 0 }, onKeyDown
@@ -261,10 +382,30 @@ export function makeModelPicker(preferences) {
         h('div', null, '当前模型：', currentText),
         !reasoning && labelEffort && h('div', { className: 'dmo-identity' }, `已保留思考强度：${labelEffort}`),
         state.current && state.routable === false && h('div', { className: 'dmo-error', role: 'status' }, '当前模型暂不可用，原选择和思考强度已保留。'),
-        reasoning?.efforts?.length > 0 && h('label', { className: 'dmo-effort-label' }, '思考强度', h('select', { className: 'dmo-effort', 'aria-label': '思考强度', value: effort ?? '', disabled: busy, onChange: (e) => choose({ provider: state.current.provider, model: state.current.model, reasoningEffort: e.target.value }, true) },
+        reasoning?.efforts?.length > 0 && h('label', { className: 'dmo-effort-label' }, '思考强度', h('select', { className: 'dmo-effort', 'aria-label': '思考强度', value: effort ?? '', disabled: busy,
+          // The empty value is the directory's own "provider default", expressed by
+          // sending no `reasoningEffort` at all.
+          onChange: (e) => { const next = e.target.value; choose(next === '' ? { provider: state.current.provider, model: state.current.model, resetEffort: true } : { provider: state.current.provider, model: state.current.model, reasoningEffort: next }, true); } },
           effort === undefined && h('option', { value: '' }, '服务商默认'),
           effort !== undefined && !reasoning.efforts.some((x) => x.id === effort) && h('option', { value: effort }, `${effort}（当前值）`),
-          reasoning.efforts.map((x) => h('option', { key: x.id, value: x.id }, x.name || x.id)))),
+          reasoning.efforts.map((x) => h('option', { key: x.id, value: x.id }, x.name || x.id))),
+          // Only the *pinned* level is a choice; when nothing is pinned the level
+          // shown is the adapter's own default, which the directory already reports.
+          effortSource === 'probe' && h('span', { className: 'dmo-effort-source' }, '已探测')),
+        // An explicit unpin, because the select can only express one while the model
+        // still publishes levels — a model that publishes none has no select at all,
+        // yet can still be holding a level pinned before the switch.
+        state.current && state.current.reasoningEffort !== undefined && h('button', { type: 'button', className: 'dmo-effort-reset', disabled: busy, onClick: () => choose({ provider: state.current.provider, model: state.current.model, resetEffort: true }, true) }, '恢复服务商默认'),
+        // Only a model the host actually offers a choice for: one declared
+        // capacity with nothing pinned leaves nothing to decide.
+        contextRow !== undefined && (contextRow.declared.length > 1 || contextRow.override !== undefined) && h('label', { className: 'dmo-effort-label' }, '上下文容量',
+          h('select', { className: 'dmo-effort', 'aria-label': '上下文容量', disabled: busy || contextBusy, value: contextRow.override === undefined ? '' : String(contextRow.override),
+            onChange: (e) => { const next = e.target.value; applyContextWindow(next === '' ? null : Number(next)); } },
+          h('option', { value: '' }, '服务商默认'),
+          contextRow.override !== undefined && !contextRow.declared.includes(contextRow.override) && h('option', { value: String(contextRow.override) }, `${formatCapacity(contextRow.override)}（当前值）`),
+          contextRow.declared.map((size) => h('option', { key: size, value: String(size) }, formatCapacity(size)))),
+          contextRow.effective !== undefined && h('span', { className: 'dmo-effort-source dmo-context-note' }, `当前生效 ${formatCapacity(contextRow.effective)}`)),
+        probeBlock,
         h('div', { className: 'dmo-identity' }, '分类、收藏、备注及折叠偏好保存在当前浏览器；不会自动分类。'),
         (localError || state.status === 'error' || state.failures?.length > 0) && h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setLocalError(null); Promise.resolve().then(load).catch((e) => setLocalError(String(e.message ?? e))); } }, '重新加载')));
     return h(React.Fragment, null,

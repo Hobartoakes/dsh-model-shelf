@@ -1,5 +1,20 @@
 # 版本记录
 
+## 1.2.0 · 思考强度就地检测、恢复默认与逐模型上下文容量（已发布 GitHub Release v1.2.0）
+
+预构建安装包：[dsh-model-shelf-1.2.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.2.0/dsh-model-shelf-1.2.0.tgz)。
+
+- 新增**「恢复服务商默认」**：当前模型被固定过思考强度时，面板底部出现该按钮；点击后按“不下发 `reasoningEffort`”的方式恢复为服务商默认，语义与 DSH 原生选择器的 Default 一致。此前若模型不声明档位，固定过的档位没有任何入口可以取消。
+- 新增**就地检测思考强度**：当某模型未声明档位、且 WorkBuddy 把它列为待检测对象时，模型面板底部直接给出「检测思考强度」（先确认、再检测）；检测成功后就地出现档位下拉，不必再切到 WorkBuddy 设置页去点气泡。
+- 新增**逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部出现「上下文容量」下拉，列出该模型声明的每个窗口（如 `300K` / `1M`）并显示“当前生效”，可选择「服务商默认」解除固定。这是该插件原本**只有全局开关**之外真正逐模型的入口。
+- 复用方式：通过 `dsh-workbuddy-connect` 自己挂载的同源路由 `GET /plugins/dsh-workbuddy-connect/ai/status` 读取检测状态、容量与本次进程密钥，再用 `POST /plugins/dsh-workbuddy-connect/ai/probe` 发起检测或写入容量。**不读取该插件的私有记录文件**，也不绕过它的授权、限流与“仅本机 + 密钥”双重校验；请求始终由该插件在宿主侧组装。
+- 档位来源标注：档位来自检测时，下拉旁显示「已探测」。
+- 诚实降级：WorkBuddy 未安装、未登录、路由不可达、返回无法解析的内容，或**没有打 CTXPATCH 补丁**（状态文档里没有 `contextWindowPatch`）时，对应的控件不出现，面板其余功能不受影响；已检测但模型面板尚未刷新时，显示「已探测到档位：…（模型面板尚未更新）」并提供「刷新档位」，而不是伪造一个上游并不接受的档位。
+- 状态文档读取按服务商缓存 60 秒，避免每次打开面板都去触发该插件的状态路由（它同时会拉取额度信息）。
+- 新增 `tests/workbuddy-probe.test.mjs`（22 项）与 8 项浏览器端检查；浏览器套件新增 `DSH_TEST_CDP_URL`，在无法自行拉起浏览器的环境中可挂到已启动的浏览器上运行。
+- 新增 `docs/WORKBUDDY-PROBE.md` 说明这条跨插件依赖的契约与降级边界。
+- 配套的宿主侧补丁在独立工程 `dsh-workbuddy-connect-patch`：`node patch.mjs [--install]` 重新生成并安装打了补丁的插件包。
+
 ## 1.1.1 · 可复制文字（已发布 GitHub Release v1.1.1）
 
 预构建安装包：[dsh-model-shelf-1.1.1.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.1/dsh-model-shelf-1.1.1.tgz)。

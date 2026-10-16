@@ -21,6 +21,24 @@ let state={current:{provider:'provider-one',model:'gpt-example-a',reasoningEffor
 const store={subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn)},getSnapshot(){return state}};
 window.setState=(next)=>{state={...state,...next};for(const fn of listeners)fn()};
 let shouldFail=false, shouldThrow=false, shouldWait=false; window.failNext=()=>shouldFail=true; window.throwNext=()=>shouldThrow=true; window.slowNext=()=>shouldWait=true;
+// WorkBuddy Connect owns these two same-origin routes; the picker is a guest on
+// them, so the harness answers exactly like the real pair does — including the
+// CTXPATCH fields a patched host adds.
+const wbGroups=[...groups,{id:'workbuddy-ai',name:'WorkBuddy AI',models:[{id:'wb-flash',name:'DeepSeek V4.1 Flash'}]}];
+const wbProbe={running:false,candidates:['wb-flash'],results:[]};
+const wbModels=[{id:'wb-flash',name:'DeepSeek V4.1 Flash',contextWindow:300000,supportedContextWindows:[300000,1000000]}];
+const wbOverrides={};
+const fetchCalls=[]; window.fetchCalls=fetchCalls; window.wbGroups=wbGroups;
+const jsonResponse=(body,ok=true,status=200)=>({ok,status,json:async()=>body});
+window.publishEfforts=()=>setState({groups:wbGroups.map(g=>g.id!=='workbuddy-ai'?g:{...g,models:g.models.map(m=>m.id==='wb-flash'?{...m,reasoning:{defaultEffort:'medium',efforts:[{id:'low',name:'低'},{id:'medium',name:'中'},{id:'high',name:'高'}]}}:m)})});
+window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:options??{}});
+ if(String(url).endsWith('/ai/status')){const doc={status:'signed-in',probeKey:'test-key',contextWindowPatch:'0.7.1-ctxpatch.1',contextWindowOverrides:{...wbOverrides},probe:{...wbProbe,results:wbProbe.results.map(r=>({...r}))},models:wbModels.map(m=>({...m,contextWindow:wbOverrides[m.id]??m.contextWindow}))};
+  if(localStorage.getItem('wbStock')==='1'){delete doc.contextWindowPatch;delete doc.contextWindowOverrides;for(const m of doc.models)delete m.supportedContextWindows;}
+  return jsonResponse(doc);}
+ if(String(url).endsWith('/ai/probe')){const body=JSON.parse(options.body);
+  if(body.action==='set-model-context-window'){if(body.contextWindow===null)delete wbOverrides[body.model];else wbOverrides[body.model]=body.contextWindow;return jsonResponse({state:'updated',model:body.model,contextWindow:body.contextWindow});}
+  wbProbe.candidates=['wb-flash'];wbProbe.results=[{id:'wb-flash',validation:'validating',efforts:['low','medium','high'],probedAt:1}];window.publishEfforts();return jsonResponse({state:'ok',validation:'validating',efforts:['low','medium','high'],requests:2});}
+ return jsonResponse({error:'not found'},false,404);};
 const disposers=[]; const ctx={effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=()=>{root.render(React.createElement(Component,{locked:false,...options.inject('test-session')}))};return()=>{}}}};
 const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
 </script>`;
@@ -31,7 +49,11 @@ await mkdir(new URL('docs/images/', root), { recursive: true });
 const browserOptions = process.env.DSH_TEST_BROWSER_EXECUTABLE
   ? { executablePath: process.env.DSH_TEST_BROWSER_EXECUTABLE, headless: true }
   : { channel: process.platform === 'win32' ? 'msedge' : 'chrome', headless: true };
-const browser = await chromium.launch(browserOptions);
+// A sandbox that refuses to spawn a browser can still attach to one that was
+// started outside it, which keeps this suite runnable during plugin development.
+const browser = process.env.DSH_TEST_CDP_URL
+  ? await chromium.connectOverCDP(process.env.DSH_TEST_CDP_URL)
+  : await chromium.launch(browserOptions);
 let checks = 0;
 const ok = (name) => { checks++; console.log(`PASS ${name}`); };
 try {
@@ -114,6 +136,9 @@ try {
   await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/dark-picker.png', root)) });
   ok('focus remains in popup and dark theme uses host surface tokens');
   await page.setViewportSize({ width: 390, height: 600 });
+  // The popup re-places itself from a resize listener, and React commits that
+  // asynchronously: measure the settled layout, not the pre-resize one.
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const mobile = await page.locator('.dmo-panel').boundingBox(); assert.ok(mobile.x >= 12 && mobile.width <= 366 && mobile.y >= 12 && mobile.y + mobile.height <= 588);
   await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/narrow-picker.png', root)) });
   ok('narrow window layout fits without horizontal or vertical overflow');
@@ -188,6 +213,92 @@ try {
   assert.ok(await page.getByRole('button', { name: '保存备注', exact: true }).isVisible());
   await page.getByRole('button', { name: '取消', exact: true }).click();
   ok('account note editor and three lists fit a narrow viewport');
+  // --- WorkBuddy reasoning-effort detection and the explicit unpin ----------
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  if ((await page.locator('.dmo-panel').count()) > 0) { await page.keyboard.press('Escape'); await page.locator('.dmo-panel').waitFor({ state: 'hidden' }); }
+  await page.evaluate(() => setState({ groups: wbGroups }));
+  await open();
+  await page.getByRole('tab', { name: /^主列表/ }).click();
+  await page.getByRole('button', { name: '选择 WorkBuddy AI 的 DeepSeek V4.1 Flash，模型 ID wb-flash', exact: true }).click();
+  await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+  await open();
+  await page.waitForFunction(() => document.querySelector('.dmo-probe')?.textContent.includes('该模型未声明思考强度'));
+  assert.equal(await page.evaluate(() => fetchCalls.filter((c) => c.url.endsWith('/ai/status')).length), 1);
+  assert.equal(await page.getByLabel('思考强度', { exact: true }).count(), 0);
+  ok('a model WorkBuddy lists as a detection candidate offers detection inside the picker');
+
+  await page.getByRole('button', { name: '检测思考强度', exact: true }).click();
+  assert.ok((await page.locator('.dmo-probe-confirm').innerText()).includes('WorkBuddy'));
+  await page.getByRole('button', { name: '取消', exact: true }).click();
+  assert.equal(await page.evaluate(() => fetchCalls.some((c) => c.options.method === 'POST')), false);
+  ok('detection asks first and sends nothing when declined');
+
+  await page.getByRole('button', { name: '检测思考强度', exact: true }).click();
+  await page.getByRole('button', { name: '确认检测', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.dmo-effort-source')?.textContent === '已探测');
+  const probeCall = await page.evaluate(() => fetchCalls.find((c) => c.options.method === 'POST'));
+  assert.equal(probeCall.url, '/plugins/dsh-workbuddy-connect/ai/probe');
+  assert.equal(probeCall.options.headers['x-workbuddy-probe-key'], 'test-key');
+  assert.deepEqual(JSON.parse(probeCall.options.body), { action: 'probe', model: 'wb-flash' });
+  assert.ok((await page.locator('.dmo-probe').innerText()).includes('已检测：low / medium / high'));
+  assert.equal(await page.getByLabel('思考强度', { exact: true }).inputValue(), 'medium');
+  ok('a confirmed detection reuses WorkBuddy and renders the verified levels in place');
+
+  await page.evaluate(() => setState({ groups }));
+  await page.waitForFunction(() => document.querySelector('.dmo-probe')?.textContent.includes('已探测到档位'));
+  assert.equal(await page.getByLabel('思考强度', { exact: true }).count(), 0);
+  await page.evaluate(() => publishEfforts());
+  await page.getByLabel('思考强度', { exact: true }).waitFor({ state: 'visible' });
+  ok('a verdict the catalog has not published yet is reported, never faked as a dropdown');
+
+  await page.getByLabel('思考强度', { exact: true }).selectOption('high');
+  assert.equal(await page.evaluate(() => selected.at(-1).reasoningEffort), 'high');
+  assert.ok(await page.getByRole('button', { name: '恢复服务商默认', exact: true }).isVisible());
+  await page.getByRole('button', { name: '恢复服务商默认', exact: true }).click();
+  await page.waitForFunction(() => { const last = window.selected.at(-1); return last !== undefined && !('reasoningEffort' in last); });
+  assert.deepEqual(await page.evaluate(() => selected.at(-1)), { provider: 'workbuddy-ai', model: 'wb-flash' });
+  assert.equal(await page.getByRole('button', { name: '恢复服务商默认', exact: true }).count(), 0);
+  assert.ok(await page.locator('.dmo-panel').isVisible());
+  ok('restoring the provider default unpins the level and keeps the popup open');
+
+  // --- per-model context window (CTXPATCH host) -----------------------------
+  assert.equal(await page.locator('.dmo-context-note').innerText(), '当前生效 300K');
+  assert.equal(await page.getByLabel('上下文容量', { exact: true }).inputValue(), '');
+  assert.deepEqual(await page.getByLabel('上下文容量', { exact: true }).locator('option').allInnerTexts(), ['服务商默认', '300K', '1M']);
+  const postsBefore = await page.evaluate(() => fetchCalls.filter((c) => c.options.method === 'POST').length);
+  await page.getByLabel('上下文容量', { exact: true }).selectOption('1000000');
+  await page.waitForFunction(() => document.querySelector('.dmo-context-note')?.textContent === '当前生效 1M');
+  const pinned = await page.evaluate(() => JSON.parse(fetchCalls.filter((c) => c.options.method === 'POST').at(-1).options.body));
+  assert.deepEqual(pinned, { action: 'set-model-context-window', model: 'wb-flash', contextWindow: 1000000 });
+  assert.equal(await page.evaluate(() => fetchCalls.filter((c) => c.options.method === 'POST').length), postsBefore + 1);
+  assert.equal(await page.getByLabel('上下文容量', { exact: true }).inputValue(), '1000000');
+  assert.ok((await page.locator('.dmo-probe').innerText()).includes('上下文容量已设为 1M'));
+  ok('a model window is pinned per model, in place, through the owner control route');
+
+  await page.getByLabel('上下文容量', { exact: true }).selectOption('');
+  await page.waitForFunction(() => document.querySelector('.dmo-context-note')?.textContent === '当前生效 300K');
+  assert.deepEqual(await page.evaluate(() => JSON.parse(fetchCalls.filter((c) => c.options.method === 'POST').at(-1).options.body)),
+    { action: 'set-model-context-window', model: 'wb-flash', contextWindow: null });
+  assert.equal(await page.getByLabel('上下文容量', { exact: true }).inputValue(), '');
+  assert.ok((await page.locator('.dmo-probe').innerText()).includes('已恢复服务商默认容量'));
+  ok('clearing the pin returns that one model to the provider default');
+
+  // A stock host has no patch stamp: the control must not appear at all. The
+  // status document is cached per provider for a minute, so this reloads the
+  // harness (which resets that cache) with the stock answer turned on.
+  await page.evaluate(() => localStorage.setItem('wbStock', '1'));
+  await page.reload();
+  await open();
+  await page.evaluate(() => setState({ groups: wbGroups }));
+  await page.getByRole('tab', { name: /^主列表/ }).click();
+  await page.getByRole('button', { name: '选择 WorkBuddy AI 的 DeepSeek V4.1 Flash，模型 ID wb-flash', exact: true }).click();
+  await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+  await open();
+  await page.waitForFunction(() => document.querySelector('.dmo-probe') !== null);
+  assert.equal(await page.getByLabel('上下文容量', { exact: true }).count(), 0);
+  assert.equal(await page.locator('.dmo-context-note').count(), 0);
+  ok('an unpatched WorkBuddy host is never shown a per-model window control');
+  await page.evaluate(() => localStorage.removeItem('wbStock'));
   await page.evaluate(() => dispose()); assert.equal(await page.locator('style[data-plugin="dsh-model-shelf"]').count(), 0);
   ok('plugin lifecycle disposes injected stylesheet');
   assert.deepEqual(errors, []);

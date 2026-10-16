@@ -85,7 +85,7 @@ pnpm run check:release
 - macOS、Linux 和其他 DSH 版本。
 - 不同公开版本之间的升级；1.0.0 → 1.1.0 的本地偏好兼容已由单元测试覆盖，但真实安装包的升级流程尚未实测。
 - 账号备注不会自动读取或验证实际账号身份；多账号区分依赖宿主中存在多个服务商配置 ID。
-- npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证；本项目尚未发布 npm，也未提交市场收录 PR。
+- npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证；本项目尚未发布 npm，目录收录 PR 已提交（[#7630](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7630)）但尚未合并，因此 dsh-market 侧仍不可安装。
 
 本报告不是对所有宿主版本的兼容性保证，也不验证 API 中转服务的实际上游模型身份。
 

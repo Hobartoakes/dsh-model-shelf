@@ -6,7 +6,7 @@
 >
 > 源码采用 MIT 公开。预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm，也未被 dsh-market 收录。
 
-> 最新 **v1.1.0** 包含收藏与账号备注。历史版本 [v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 不包含这两项功能。
+> 最新发布 **v1.2.0**：思考强度就地检测、**恢复服务商默认**，以及（对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`）逐模型上下文容量。上一个版本 [v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 修复了界面文字无法拖选复制的问题。
 
 ## 演示
 
@@ -42,6 +42,8 @@
 - 支持搜索模型名称、模型 ID、服务商名称、服务商 ID 和账号备注；搜索作用于当前列表。
 - 搜索临时展开匹配分组，不改变原折叠状态。
 - 沿用 DSH 原生模型切换和思考强度选项，保留会话锁定与失败提示。
+- 思考强度可随时**恢复服务商默认**；未声明档位的模型若装了 `dsh-workbuddy-connect`，可在面板内**就地检测档位**，并在档位旁标注来源（1.2.0）。
+- **逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部按模型选择 `300K` / `1M` 等它声明的容量，并显示“当前生效”；未打补丁时该控件不出现（1.2.0）。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
 
 模型 ID 是服务商目录提供的调用标识。若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**，不会猜测或额外标注未经验证的模型厂商。
@@ -55,6 +57,7 @@
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
+| 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
 尚未验证其他 DSH 版本、macOS 或 Linux。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
 
@@ -63,13 +66,13 @@
 无需 npm 账号，直接安装 GitHub Release 的预构建包：
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.1.1/dsh-model-shelf-1.1.1.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.2.0/dsh-model-shelf-1.2.0.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.1.1.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.2.0.tgz" --ignore-scripts
 ```
 
 安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。
@@ -111,6 +114,25 @@ dsh plugin --profile desktop remove dsh-model-shelf
 
 判断方法：打开选择器看 `服务商 ID`。**若两个账号显示的 ID 相同，说明它们在 DSH 里是同一个配置**，需要到宿主的 API 服务商配置里再新增一条。新增后即使两个分组的模型一样，也能分别备注。
 
+### 思考强度：检测与恢复默认（1.2.0）
+
+Dsh 的思考强度由模型目录声明。WorkBuddy 线路的 `deepseek-v4.1-*` 等模型**不声明档位**：档位只能由 `dsh-workbuddy-connect` 向上游探测得出。过去的体验是分裂的——档位要在这个插件的下拉里选，能不能测出来却要在另一个插件的气泡里点。
+
+- **就地检测**：当某模型没有声明档位、且 WorkBuddy 把它列为待检测对象时，面板底部会出现「检测思考强度」。点击后先显示确认（探测会向上游发送请求），确认后由 WorkBuddy 完成探测；成功后面板随即出现档位下拉，并在旁边标注「已探测」。
+- **恢复服务商默认**：当前模型被固定过档位时，面板底部出现「恢复服务商默认」。它按“不下发 `reasoningEffort`”恢复为服务商默认，而不是把档位写死成某个值；模型不声明档位时同样可用（此时下拉根本不存在，只能靠这个按钮解除固定）。
+- **已检测但面板没更新**：显示「已探测到档位：…（模型面板尚未更新）」和「刷新档位」，不会伪造一个上游并不接受的档位。
+- **WorkBuddy 没装 / 没登录 / 探测不可用**：不显示检测入口，其余功能完全不受影响。若已登录但该模型被判定为“接受任意档位取值”，面板会说明因此不提供档位选择。
+- 面板只读取 WorkBuddy 的**同源只读状态路由**并用它自己的进程密钥发起操作；检测与容量写入都由 WorkBuddy 在宿主侧完成，授权、限流与“仅本机 + 密钥”校验一律不绕过。状态读取按服务商缓存 60 秒，避免每次打开面板都触发它的额度查询。详见 [跨插件契约](docs/WORKBUDDY-PROBE.md)。
+
+### 逐模型上下文容量（1.2.0，需要宿主补丁）
+
+WorkBuddy 原本只有**一个全局开关**（“使用最大上下文窗口”），一开就让该线路所有模型都跑到最大窗口，不能单独把某个模型留在小窗口。想让“逐模型”真正生效，只能改它自己——所以配了一个独立工程 **`dsh-workbuddy-connect-patch`**（`node patch.mjs --install`）：它给该插件的目录行加一张按模型 id 的容量覆盖表，并新增一个控制动作与状态字段，安装为本地 `file:` 包。
+
+- 打上之后：面板底部出现「上下文容量」，列出该模型声明的每个容量（如 `300K` / `1M`），旁边显示“当前生效”；选「服务商默认」即可解除固定。
+- 容量是**按模型**存的（`~/.dsh/.workbuddy-ai-context.json`），换账号也不丢；一个模型固定在 300K 不影响其他模型继续用 1M。
+- **没打补丁**：状态文档里没有 `contextWindowPatch`，模型书架直接不显示这个控件，其余功能完全不变——补丁的缺失只会让功能消失，不会让面板出错。
+- 上游每次发版后需要重跑补丁脚本；脚本的每一处替换都要求**唯一命中**，上游改动会让它报错而不是改错地方。
+
 ### 键盘
 
 - 搜索框中的 ↑ / ↓：高亮结果；Enter：选择模型。
@@ -126,7 +148,7 @@ dsh plugin --profile desktop remove dsh-model-shelf
 - **目前不跨设备同步，也不纳入 DSH profile 备份。**
 - 浏览器存储不可用时显示警告，当前页面仍可操作，但刷新后可能丢失偏好。
 - 卸载不主动清空浏览器偏好，便于重装后恢复。
-- 插件不新增外部网络请求；模型目录及切换沿用宿主已有接口，实际模型调用仍受宿主与服务商配置约束。
+- **不发起任何外部网络请求**；除宿主已有的模型目录与切换接口外，仅在已安装 `dsh-workbuddy-connect` 且当前模型属于它时，向该插件在本机监听的同源路由读取思考强度与容量状态，并在你确认后请它发起探测或写入你选择的容量。插件不读取该插件的私有文件，也不代它绕过授权。
 
 详见 [隐私说明](docs/PRIVACY.md)。
 
@@ -140,7 +162,7 @@ pnpm run test:browser
 pnpm pack --pack-destination dist-draft
 ```
 
-`test:browser` 使用离线 HTML 和模拟目录，不启动 DSH 服务器，也不发起真实模型调用。Windows 默认使用已安装的 Edge；其他平台默认尝试已安装的 Chrome。可通过 `DSH_TEST_BROWSER_EXECUTABLE` 指定浏览器程序路径。其他平台运行测试不等于已验证其 DSH 宿主集成。
+`test:browser` 使用离线 HTML 和模拟目录，不启动 DSH 服务器，也不发起真实模型调用。Windows 默认使用已安装的 Edge；其他平台默认尝试已安装的 Chrome。可通过 `DSH_TEST_BROWSER_EXECUTABLE` 指定浏览器程序路径；若当前环境不允许由测试自行拉起浏览器，可用 `DSH_TEST_CDP_URL=http://127.0.0.1:9222` 挂到已用 `--remote-debugging-port` 启动的浏览器上运行同一套检查。其他平台运行测试不等于已验证其 DSH 宿主集成。
 
 另有显式执行的 `pnpm run test:clean-profile`，在 Windows 上用独立 DSH_HOME 和随机本地端口启动临时测试宿主，验证安装 / 禁用 / 重新启用 / 卸载；不替换当前 GUI，结束后停止测试进程。详见 [验证报告](docs/VALIDATION.md)。
 
@@ -154,7 +176,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
 - npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
-- GitHub Release：[v1.1.1 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1)，不需要 npm 注册或登录，修复了界面文字无法拖选复制的问题；[v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0) 含收藏与账号备注；[v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 为不含这两项功能的历史版本。
+- GitHub Release：[v1.2.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.2.0)，不需要 npm 注册或登录，含思考强度就地检测、恢复服务商默认与逐模型上下文容量；[v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 修复了界面文字无法拖选复制的问题；[v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0) 含收藏与账号备注；[v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 为不含这两项功能的历史版本。
 - npm：本项目尚未发布，请勿将裸包名当作可用安装来源。
 - dsh-market：尚未提交收录 PR；发布 Release 不代表已经收录。
 

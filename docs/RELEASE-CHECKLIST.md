@@ -38,6 +38,8 @@
 - [ ] 验证 1.1.0 的官方 CLI 从公开 URL 安装、禁用、重新启用和卸载。
 - [x] 发布 [GitHub Release v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 并上传预构建安装包。
 - [x] 发布 [GitHub Release v1.2.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.2.0) 并上传预构建安装包（思考强度就地检测、恢复服务商默认、逐模型上下文容量）。
+- [x] 验证 1.2.0 的未登录公开下载与 SHA256 一致（245192 字节，`C47E9135…B6B588`）。
+- [x] 验证 1.2.0 的官方 CLI 从公开 URL 安装：隔离 `DSH_HOME` 中 `dsh plugin --profile desktop add <release URL> --ignore-scripts` 成功装为 1.2.0，bundle 正确注册，安装后的 `lib/client.js` 与本地发布产物 SHA256 一致，`remove` 后包与 bundle 条目一并清除。
 - [ ] 有公开新版本时验证真实升级流程；当前未验证跨版本升级，1.0.0 → 1.1.0 仅覆盖本地偏好兼容。
 - [ ] 其他 DSH 版本及平台经过实测后，才扩展兼容声明。
 

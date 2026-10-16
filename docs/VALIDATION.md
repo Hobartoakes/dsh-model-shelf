@@ -115,4 +115,16 @@ node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/rel
 - v1.0.0 的归档与标签保持不变。
 - 当前 desktop 已从本地候选包升级到 1.1.0；此项公开链接验证未再次修改 desktop。
 
+## GitHub Release v1.2.0 公开发行验证
+
+- 已发布 [v1.2.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.2.0)，预构建归档为 [dsh-model-shelf-1.2.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.2.0/dsh-model-shelf-1.2.0.tgz)，大小 **245192 字节**。
+- 归档自 Release 提交 `3f67282` 的干净工作树打包；打包前后连续两次构建产物 SHA256 一致（`lib/` 与 `src/` 同步，无脏文件）。
+- 公开后**未发送 Authorization 或登录 Cookie**，使用公开下载链接成功获取安装包，大小 **245192 字节**。
+- 下载内容与本地构建归档 SHA256 一致：`C47E9135C2620E306ACC2E26644CB0E707DFDCF406680DC42BE5962CD9B6B588`。
+- 使用官方 CLI **直接从公开 HTTPS 链接安装**到隔离 `DSH_HOME`：`dsh plugin --profile desktop add <release URL> --ignore-scripts` 装为 **dsh-model-shelf 1.2.0**，`dsh.profile.bundles` 正确追加 `dsh-model-shelf`。
+- 安装后的 `lib/client.js` 与本地发布产物 SHA256 一致（`DA3CCDFE…E35BF`），`cordis.patch.yml`、`src/workbuddy-probe.js`、`docs/WORKBUDDY-PROBE.md` 均在包内。
+- `dsh plugin --profile desktop remove dsh-model-shelf` 后包目录与 bundle 条目一并清除。
+- v1.0.0、v1.1.0、v1.1.1 的归档与标签保持不变。
+- 本版新增的验证：单元测试 36 项（新增 22 项）与离线浏览器回归 29 项（新增 8 项）全部通过，0 个未捕获页面错误。
+
 发布后的验证记录不改变已发布的归档和 v1.0.0 标签；归档包含发布前的报告快照，最新验证记录以本页及 Release 说明为准。

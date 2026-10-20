@@ -2,11 +2,14 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.1.0**（已发布 [GitHub Release v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0)），作者 Hobartoakes，MIT。
-- DSH：**0.2.0-rc.2**，Windows 安装版的 Electron CLI。
+- 包：**dsh-model-shelf 1.2.1**（未发布；本地候选包，兼容 DSH 0.2.1-rc.2），作者 Hobartoakes，MIT。
+- DSH：**0.2.1-rc.2**，Windows 安装版的 Electron CLI。
 - 浏览器：本机 Microsoft Edge，真实浏览器测试。
-- **14 项偏好测试 + 21 项离线浏览器检查 + 7 项干净 profile 检查通过**。
+- **36 项偏好测试 + 29 项离线浏览器检查 + 7 项干净 profile 检查通过**，0 个未捕获页面错误。
 - 测试没有发起真实模型调用，也没有复制用户凭据。
+- 1.2.1 的宿主兼容性逐项核对见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)；本节末尾的版本小节记录当次范围。
+
+历史版本的范围与数字保留在下方对应小节，未随本次迁移改写。
 
 ## 1. 偏好数据（14 项）
 
@@ -78,7 +81,7 @@ pnpm run test:clean-profile
 pnpm run check:release
 ```
 
-干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。请先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档（当前为 1.1.0）。
+干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。请先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档（当前为 1.2.1）。
 
 ## 尚未验证
 
@@ -128,3 +131,24 @@ node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/rel
 - 本版新增的验证：单元测试 36 项（新增 22 项）与离线浏览器回归 29 项（新增 8 项）全部通过，0 个未捕获页面错误。
 
 发布后的验证记录不改变已发布的归档和 v1.0.0 标签；归档包含发布前的报告快照，最新验证记录以本页及 Release 说明为准。
+
+## 1.2.1 · 兼容 DSH 0.2.1-rc.2（未发布）
+
+- 包：**dsh-model-shelf 1.2.1** 本地候选包，本机 desktop profile 已安装。
+- DSH：**0.2.1-rc.2**（`app.asar` 内 `dsh/desktop-runtime.json` 声明 `release.version: 0.2.1-rc.2`、`hostProtocolVersion: 4`）。
+- **36 项单元测试**通过（`node --test tests/*.test.mjs`）。
+- **29 项离线浏览器检查**通过（`node tests/browser.mjs`），含一条锁定"注册项不声明 `conversation.input.model.label` 子插槽"的断言；该断言经临时反向修改验证确实会失败。0 个未捕获页面错误。
+- **7 项隔离干净 profile 集成检查**通过（`node tests/clean-profile.mjs`）：真实 0.2.1 宿主 + 隔离 `DSH_HOME`，覆盖安装、禁用、重新启用、卸载，且桌面 manifest 与 patch 指纹未被改动。
+- 真实宿主探针：插件与 `@deepseek-ai/dsh-client-ui-model-selection` 同时在客户端图中，书架触发器与面板正常渲染，未捕获页面错误为 0。
+- `pnpm run check:release` 通过。
+- 模型目录相关契约在 0.2.0 → 0.2.1 间无变化，业务逻辑未改写；改动集中在元数据、文档与一条测试断言。逐项记录见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)。
+
+### 本版已知取舍
+
+0.2.1 新增的子插槽 `conversation.input.model.label`（宿主自带 1017 徽标插件用它给模型名加角标）本插件**不声明**，因此书架内的模型名按纯文本显示、不带该角标。原因：同一个键只能被声明一次，声明它会让宿主自己的模型选择插件在每次加载时抛 `slot "…" is already declared`（已实测，与注册先后无关）。完整分析见 HOST-COMPATIBILITY.md 的「有意不做」一节。
+
+### 尚未验证
+
+- macOS、Linux 和其他 DSH 版本。
+- npm registry 安装与 dsh-market 一键安装（本项目未发布 npm）。
+- 跨公开版本的真实升级流程；1.2.1 尚未发布，本地偏好兼容仅由单元测试覆盖。

@@ -52,14 +52,19 @@
 
 | 项目 | 已验证范围 |
 | --- | --- |
-| DSH 宿主 | **0.2.0-rc.2**，元数据暂限定这一版本 |
+| DSH 宿主 | **0.2.1-rc.2**，元数据暂限定这一版本 |
 | 实际环境 | Windows 桌面版 DSH 的现有 Web GUI |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
+| 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名按纯文本显示，不带宿主自带的 1017 徽标。理由见下文 |
 | 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
 尚未验证其他 DSH 版本、macOS 或 Linux。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
+
+0.2.1 起，宿主自己也往这个座位里填一个官方选择器（priority `0`），并声明 `conversation.input.model.label` 子插槽给模型名加徽标。本插件以更低的 priority 胜出，因此整张座位（包括模型名的渲染）由本插件负责。
+
+同一个子插槽键只能被声明一次，而 `renderSlot` 只为声明了 `children` 的条目合成。本插件**有意不声明**它：一旦声明，宿主自己的模型选择插件会在每次加载时抛 `slot "…" is already declared`（已实测，且与注册先后顺序无关）。那是把宿主插件搞坏，不是外观损失，因此书架内的模型名按纯文本显示，不带 1017 徽标；原生座位与宿主自带插件完全不受影响。完整的逐项契约核对见 [docs/HOST-COMPATIBILITY.md](docs/HOST-COMPATIBILITY.md)。
 
 ## 安装与卸载
 
@@ -188,4 +193,4 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.0-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. Prebuilt packages are distributed through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. Market listing is a separate process and has not been submitted.
+Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.1-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. Prebuilt packages are distributed through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. Market listing is a separate process and has not been submitted.

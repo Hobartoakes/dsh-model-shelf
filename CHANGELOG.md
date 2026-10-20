@@ -1,5 +1,14 @@
 # 版本记录
 
+## 1.2.1 · 兼容 DSH 0.2.1（未发布）
+
+- 兼容性从 **DSH 0.2.0-rc.2** 提到 **0.2.1-rc.2**（`engines.dsh` 与发布检查同步更新）。
+- 模型目录服务契约逐项核对无变化：`modelDirectories.directoryFor()`、快照字段（`current` / `routable` / `groups` / `failures` / `status` / `pending` / `error` / `retainedEffort`）、`select()` 的 `{ok, value|error}` 与 `session/writer-held`、`resetConnected()`、`load()`、`sessions.subagentAddress()` 全部保持原样，业务逻辑无需改写。逐项记录见新增的 [`docs/HOST-COMPATIBILITY.md`](docs/HOST-COMPATIBILITY.md)。
+- 0.2.1 起宿主自己也往 `conversation.input.model` 注册官方选择器（priority `0`）。本插件继续以 `priority: -100` 胜出，规则不变：同 priority 才冲突，最低 priority 渲染。
+- **已知取舍**：0.2.1 新增的子插槽 `conversation.input.model.label`（宿主 1017 徽标用它给模型名加角标）本插件**不声明**，因此书架内的模型名按纯文本显示、不带该角标。同一个键只能被声明一次，声明它会让宿主自己的模型选择插件在每次加载时报 `slot "…" is already declared`（已实测，与注册先后无关），属于把宿主插件搞坏，故不做。
+- 新增一条浏览器断言锁定该取舍：注册项不得带 `children`。离线浏览器检查 31 项、单元测试 36 项通过；隔离干净 profile 集成测试在真实 0.2.1 宿主下通过，未捕获页面错误为 0。
+- CTXPATCH / WorkBuddy 探测链路不受影响：它读的是 `dsh-workbuddy-connect` 自己挂载的同源状态文档，不是 DSH 模型目录；0.2.1 的目录里本来也没有逐模型容量字段。
+
 ## 1.2.0 · 思考强度就地检测、恢复默认与逐模型上下文容量（已发布 GitHub Release v1.2.0）
 
 预构建安装包：[dsh-model-shelf-1.2.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.2.0/dsh-model-shelf-1.2.0.tgz)。

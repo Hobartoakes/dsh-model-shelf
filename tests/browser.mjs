@@ -63,6 +63,11 @@ try {
   const open = async () => { await page.locator('.dmo-trigger').click(); await page.locator('.dmo-panel').waitFor({ state: 'visible' }); };
   await open();
   assert.equal(await page.evaluate(() => window.registration.priority), -100);
+  // DSH 0.2.1: the seat's own registration must NOT declare the model-label
+  // child slot. The host's model-selection plugin already declares it, and a key
+  // may only be declared once — a second declaration makes that plugin throw on
+  // every load. Assert the shelf stays out of it.
+  assert.equal(await page.evaluate(() => window.registration.children), undefined);
   assert.equal(await page.evaluate(() => plugin.inject.includes('remote') && plugin.inject.includes('remote.session')), true);
   assert.equal(await page.getByRole('searchbox').evaluate((e) => e === document.activeElement), true);
   const box = await page.locator('.dmo-panel').boundingBox(); assert.equal(Math.round(box.width), 640); assert.ok(box.height > 360); assert.ok(box.y >= 12 && box.y + box.height <= 988);

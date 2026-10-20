@@ -18,7 +18,7 @@ try {
 for (const path of ['lib/index.js', 'lib/client.js', 'docs/images/main-list.png', 'docs/images/uncommon-list.png', 'docs/images/dark-list.png']) {
   try { await access(new URL(path, root)); } catch { issues.push(`缺少发布文件：${path}`); }
 }
-if (pkg.engines?.dsh !== '0.2.0-rc.2') issues.push('当前仅验证 DSH 0.2.0-rc.2；扩大兼容范围前需补充验证记录。');
+if (pkg.engines?.dsh !== '0.2.1-rc.2') issues.push('当前仅验证 DSH 0.2.1-rc.2；扩大兼容范围前需补充验证记录。');
 if (issues.length) {
   console.log('发布检查尚未通过（不执行发布）：');
   issues.forEach((issue) => console.log(`- ${issue}`));

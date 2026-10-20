@@ -127,7 +127,10 @@ const checkBoot = async (label, expected) => {
       await nativePicker.waitFor({ state: 'visible', timeout: 30000 });
       assert.equal(await nativePicker.getAttribute('aria-haspopup'), 'menu');
       await nativePicker.click();
-      await page.getByRole('menu').first().waitFor({ state: 'visible', timeout: 10000 });
+      // 0.2.1's ModelSelect opens on its model pane when nothing is selected yet
+      // (role "group") and on the root pane otherwise (role "menu"), so wait for
+      // either rather than pinning the fixture to one session state.
+      await page.locator('[role="menu"], [role="group"]').first().waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await page.locator('style[data-plugin="dsh-model-shelf"]').count(), 0);
       assert.equal(await page.locator('.dmo-trigger').count(), 0);
     }
@@ -177,7 +180,7 @@ try {
   pass('uninstall removes dependency and bundle without orphaned plugin patch rows');
   assert.deepEqual(await fingerprint(), before);
   pass('active desktop manifest and patch fingerprints unchanged');
-  await writeFile(join(runRoot, 'result.json'), JSON.stringify({ success: true, checks, runtime: '0.2.0-rc.2', isolatedHome: true, credentialCopies: false, realModelCalls: false }, null, 2));
+  await writeFile(join(runRoot, 'result.json'), JSON.stringify({ success: true, checks, runtime: '0.2.1-rc.2', isolatedHome: true, credentialCopies: false, realModelCalls: false }, null, 2));
   console.log(`Clean profile checks: ${checks.length}; test evidence kept under ignored tests/artifacts.`);
 } catch (error) {
   console.error(redact(error.stack ?? error)); process.exitCode = 1;

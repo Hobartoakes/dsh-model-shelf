@@ -10,6 +10,7 @@
 - [x] 查询 npm：准备期间 `dsh-model-shelf` 尚未注册；查询不是预留。
 - [x] 中文介绍、英文摘要、安装 / 卸载 / 使用说明。
 - [x] 仅声明已验证的 DSH 0.2.0-rc.2，说明平台与依赖服务。
+- [x] 1.2.1 起兼容声明扩展到 **0.2.1-rc.2**：`engines.dsh` 已更新，模型目录契约逐项核对无变化，干净 profile 集成测试在真实 0.2.1 宿主下通过。逐项记录见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)。
 - [x] 手动分类、模型身份显示、本地保存范围与上游模型映射限制。
 - [x] 隐私说明、版本记录和模拟数据演示截图。
 - [x] 包文件白名单与 Git 排除规则，排除真实对话、本机备份、依赖目录和测试数据目录。
@@ -41,7 +42,9 @@
 - [x] 验证 1.2.0 的未登录公开下载与 SHA256 一致（245192 字节，`C47E9135…B6B588`）。
 - [x] 验证 1.2.0 的官方 CLI 从公开 URL 安装：隔离 `DSH_HOME` 中 `dsh plugin --profile desktop add <release URL> --ignore-scripts` 成功装为 1.2.0，bundle 正确注册，安装后的 `lib/client.js` 与本地发布产物 SHA256 一致，`remove` 后包与 bundle 条目一并清除。
 - [ ] 有公开新版本时验证真实升级流程；当前未验证跨版本升级，1.0.0 → 1.1.0 仅覆盖本地偏好兼容。
-- [ ] 其他 DSH 版本及平台经过实测后，才扩展兼容声明。
+- [ ] 其他 DSH 版本及平台经过实测后，才扩展兼容声明；目前已实测 **0.2.0-rc.2 与 0.2.1-rc.2**（均 Windows），macOS / Linux 仍未验证。
+- [ ] 1.2.1 尚未发布：发布前需重新打包、走公开下载与 SHA256 校验、以及官方 CLI 从公开 URL 安装/禁用/卸载验证（参照 1.2.0 一节的做法）。
+- [ ] 0.2.1 的 1017 角标缺口：宿主侧把 `conversation.input.model.label` 的声明权从 `ui-model-selection` 上移到 `ui-conversation`（或提供替换者可复用的 children 继承）后，本插件即可恢复角标。可向 DSH 提 issue 跟踪。
 
 `pnpm run check:release` 只检查发布文件，不执行发布。private 标志解除并不代表包已经发布；还必须完成 npm 登录、二次验证（如要求）、归档审查、实际上传和 registry 核验。
 

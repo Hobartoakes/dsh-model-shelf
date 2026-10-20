@@ -9,6 +9,15 @@ const { createElement: h, useState, useRef, useEffect, useLayoutEffect, useSyncE
 // a directory using remote.session, so declare the nested capability explicitly.
 export const inject = ['slots', 'modelDirectories', 'sessions', 'remote', 'remote.session'];
 
+// DSH 0.2.1 gives the model seat a child slot, `conversation.input.model.label`,
+// that host badges (the built-in 1017 marker) register into. Rendering it needs
+// the entry to *declare* that key, and a key may only be declared once — so
+// declaring it here would make the host's own model-selection plugin throw
+// `slot "…" is already declared` on every load. That is a real regression, not a
+// cosmetic one, so this plugin deliberately does not declare it and renders
+// plain model names: the host badge is simply absent inside the shelf.
+// See README "兼容性" and docs/HOST-COMPATIBILITY.md.
+
 export function makeModelPicker(preferences) {
   return function ModelPicker({ locked, available, directory, load, select }) {
     const state = useSyncExternalStore(directory.subscribe.bind(directory), directory.getSnapshot.bind(directory));

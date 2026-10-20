@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-shelf",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "latest" },
   "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",
@@ -9,14 +9,14 @@
   "repository": { "type": "git", "url": "git+https://github.com/Hobartoakes/dsh-model-shelf.git" },
   "homepage": "https://github.com/Hobartoakes/dsh-model-shelf#readme",
   "bugs": { "url": "https://github.com/Hobartoakes/dsh-model-shelf/issues" },
-  "engines": { "dsh": "0.2.0-rc.2" },
+  "engines": { "dsh": "0.2.1-rc.2" },
   "keywords": ["dsh-plugin", "deepseek-harness", "model-picker", "model-management", "ui"],
   "type": "module",
   "main": "lib/index.js",
   "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },
   "files": [
     "lib", "src", "scripts/build.mjs", "scripts/check-release.mjs", "tests/*.mjs",
-    "docs/images/*.png", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/WORKBUDDY-PROBE.md",
+    "docs/images/*.png", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
     "cordis.patch.yml", "README.md", "CHANGELOG.md", "LICENSE"
   ],
   "scripts": {

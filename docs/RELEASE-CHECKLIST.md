@@ -51,3 +51,21 @@
 这份清单记录发布准备阶段的检查；npm 的实际可用版本以 registry 为准。
 
 当前电脑原型的旧归档没有被覆盖。正式项目在独立目录中整理，测试使用独立 DSH_HOME、独立 profile、随机本地端口，不替换正在使用的 GUI。
+
+## 版本更新时必改的文档
+
+版本号或宿主版本一变，下面每一项都要跟着改。漏改不会立刻报错，而是等用户装完包才发现 README 还写着上一个版本——1.2.1 迁移时就漏过 `docs/VALIDATION.md` 与 `docs/RELEASE-CHECKLIST.md`。
+
+| 文件 | 必改内容 |
+| --- | --- |
+| `package.json` | `version`；兼容宿主变化时改 `engines.dsh`；新增文档要加进 `files` 白名单 |
+| `scripts/check-release.mjs` | `SUPPORTED_DSH` 常量与对应断言（扩大兼容范围时） |
+| `CHANGELOG.md` | 新增当前版本的条目（`check:release` 会校验 `## <version>` 存在） |
+| `README.md` | 「兼容性」表的宿主版本、正文的版本说明；如需可补角标/缺口说明 |
+| `docs/VALIDATION.md` | 「范围与结果」的**包版本行**（`check:release` 锚定这一行）；文末新增该版本小节 |
+| `docs/RELEASE-CHECKLIST.md` | 版本相关待办的勾选与新增；「尚未验证」随实测范围更新 |
+| `docs/HOST-COMPATIBILITY.md` | 宿主版本变化时逐项核对并更新；标题的迁移方向 |
+
+`scripts/check-release.mjs` 会自动校验其中四项：CHANGELOG 有当前版本条目、README 声明了当前宿主版本、VALIDATION 的范围行是当前版本、以及每个 `docs/*.md` 都在 `files` 白名单内。所以**改完文档先跑一次 `pnpm run check:release`**，它会在发布前把漏改指出来。
+
+历史小节（已发布版本的验证记录、CHANGELOG 旧条目）不要改写，按项目约定历史文本是证据；要改的是"描述当前状态"的那些位置。

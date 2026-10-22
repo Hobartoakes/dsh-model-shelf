@@ -2,11 +2,11 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.3.0**，作者 Hobartoakes，MIT；已完成本地构建、打包与真实隔离 profile 安装生命周期验证，不代表已公开发行。
+- 包：**dsh-model-shelf 1.3.0**，作者 Hobartoakes，MIT；已公开发布 GitHub Release（非草稿、非预发布），完成公开下载校验、公开 URL 隔离安装生命周期验证及实际 desktop 升级。
 - DSH 兼容声明保持 **0.2.1-rc.2**，不扩大已声明范围；历史宿主核对见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)。
 - 当前实现已合入 main（`5efddd0`、`851101d`）。据控制器本轮执行结果：**42 项单元测试 + 40 项离线浏览器检查通过，未捕获页面错误为 0**；构建、发布文件检查与 `npm pack` 已执行成功。
-- 控制器运行 `node tests/clean-profile.mjs`：**7/7 项通过**，在真实隔离宿主完成安装 / 禁用 / 重新启用 / 卸载，当前 desktop 指纹保持不变。本次文档收尾未重跑测试、构建或安装。
-- **当前 desktop 安装、现有 GUI 验收、公开上传 / 下载及公开 URL 安装仍待完成**。当前 GUI 浏览器返回 `authentication-required`，验收待鉴权后进行；隔离宿主成功不替代当前 GUI 验收。
+- 控制器对本地归档及公开 URL 分别运行 `node tests/clean-profile.mjs`：均为 **7/7 项通过**，在真实隔离宿主完成安装 / 禁用 / 重新启用 / 卸载与原生选择器恢复；隔离测试期间 desktop 指纹保持不变。本次发布后文档跟进仅运行发布文件检查与 diff 检查，不重跑测试、构建或安装。
+- 实际 desktop 已经官方 CLI 从 **1.2.1 升级到 1.3.0**，客户端哈希与源码构建产物一致；仅本插件 dependency 改变，bundle 顺序与 patch 不变。**现有 GUI 激活 / 交互验收仍待完成**：浏览器返回 `authentication-required`，须鉴权后继续；安装或隔离宿主成功不替代当前 GUI 验收。
 - 离线浏览器检查使用模拟目录；历史演示截图不代表 1.3.0 当前界面，不含真实用户数据。
 
 下方编号 1–3 节及旧版本小节保留历史验证范围与数字，不是 1.3.0 本轮结果；本版状态见文末 1.3.0 小节。
@@ -81,14 +81,14 @@ pnpm run test:clean-profile
 pnpm run check:release
 ```
 
-干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。请先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档（本轮 1.3.0 本地包已由控制器生成并通过 7/7 项检查；文档收尾后由控制器重新打包，最终归档另行核验）。
+干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。开发时先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档，也可显式传入公开归档 URL。1.3.0 最终归档已发布并通过公开 URL 的 7/7 项检查，本次发布后文档跟进不重新打包。
 
 ## 尚未验证
 
 - macOS、Linux 和其他 DSH 版本。
-- 不同公开版本之间的升级；1.0.0 → 1.1.0 的本地偏好兼容已由单元测试覆盖，但真实安装包的升级流程尚未实测。
+- 不同公开版本之间的升级仍未验证；本轮已实测本地安装的 1.2.1 → 公开版 1.3.0 官方 CLI 升级，但 1.2.1 未公开发布，不将此结果扩大为跨公开版本升级保证。1.0.0 → 1.1.0 的本地偏好兼容已由单元测试覆盖。
 - 账号备注不会自动读取或验证实际账号身份；多账号区分依赖宿主中存在多个服务商配置 ID。
-- npm registry 安装和 dsh-market 一键安装需在对应发行或收录完成后另行验证；本项目尚未发布 npm，目录收录 PR 已提交（[#7630](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7630)）但尚未合并，因此 dsh-market 侧仍不可安装。
+- npm registry 安装和 dsh-market 一键安装未验证；npm 尚未发布且不是本版计划发行渠道。目录收录 PR [#7630](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7630) 历史上已提交、当时尚未合并，本轮未重新核验当前收录状态。
 
 本报告不是对所有宿主版本的兼容性保证，也不验证 API 中转服务的实际上游模型身份。
 
@@ -158,7 +158,10 @@ node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/rel
 - 实现已合入 main：`5efddd0`、`851101d`。本版增加平铺收藏、服务商整组不常用覆盖 / 恢复、标签页记忆、服务商与收藏的拖动 / 键盘按钮排序，以及离线身份顺序保留。
 - 控制器本轮实际运行 **42 项单元测试 + 40 项离线浏览器检查，全部通过，未捕获页面错误为 0**；本版构建、发布文件检查及 `npm pack` 成功。本次文档收尾仅运行发布文件检查与 diff 检查，不重复上述套件。
 - 控制器运行 `node tests/clean-profile.mjs`：**7/7 项真实隔离 profile 集成检查通过**，覆盖安装 / 禁用 / 重新启用 / 卸载；当前 desktop manifest 与 patch 指纹保持不变。这是本版独立执行的结果，不沿用旧版证据。
-- **目标环境待完成**：当前 desktop 安装；刷新现有 GUI 后验收。当前 GUI 浏览器返回 `authentication-required`，验收待完成，不将无法进入页面记为功能通过或失败。
-- **最终归档待完成**：文档收尾后由控制器重新打包，审查最终归档内容并计算 SHA256；最终哈希写入 Release 说明，不嵌入归档内文档，避免自引用。
-- **公开发布待完成**：[v1.3.0 Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0) / 归档上传、无登录公开下载与 SHA256 校验、公开 URL 安装验证。该链接仅为发布目标；npm 尚未发布，也不是本版计划发行渠道。
+- **实际 desktop 安装完成**：控制器通过官方 CLI 从 1.2.1 升级至 1.3.0；安装后客户端哈希与源码构建产物一致。仅 `dsh-model-shelf` dependency 改变，bundle 顺序与 patch 不变。既有无关插件 balance / dsml / account-pool / security provider 出现兼容性警告，未授予任何豁免。
+- **当前 GUI 激活 / 交互验收待完成**：浏览器返回 `authentication-required`，须鉴权并刷新现有 GUI 后继续；不将无法进入页面记为功能通过或失败。
+- **公开发布完成**：[v1.3.0 Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0) 为非草稿、非预发布。发布提交 `42760acc4b47c0f392ec6ccf482dd594ac450761` 已推送 main 与 v1.3.0 标签。npm 尚未发布，也不是本版计划发行渠道。
+- **最终归档及公开下载验证完成**：[dsh-model-shelf-1.3.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz)，**269184 字节**，SHA256：`bd1387e6e52bc1ba44a0c9541d124882ef40f5c6b83f9fd6b7ff37425e52e9a5`。控制器无登录下载返回 HTTP **200**，大小及哈希一致。
+- **公开 URL 安装验证完成**：控制器运行 `node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz"`，**7/7 通过**，覆盖官方 CLI 安装 / 禁用 / 重新启用 / 卸载与原生选择器恢复；该隔离测试期间 desktop 指纹保持不变。
+- **发布后记录**：已发布归档不可变，内含较早的打包时状态文字。本次四份源码文档更新不替换归档、不移动标签，也不计划重新打包；因此最终哈希可记录在源码文档中，不产生归档自引用。文档跟进的提交 / 推送由控制器另行执行。
 - README 的截图为旧版本模拟数据历史图，未更新为 1.3.0 截图，不证明本版当前 GUI 状态。`engines.dsh` 保持 **0.2.1-rc.2**；精确门禁见[发布检查清单](RELEASE-CHECKLIST.md)。

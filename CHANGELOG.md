@@ -2,7 +2,7 @@
 
 ## 1.3.0 · 手动整理与排序
 
-发布目标：[GitHub Release v1.3.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)；目标归档：[dsh-model-shelf-1.3.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz)。目标链接不是已上传或公开下载已验证的声明；精确门禁见[发布检查清单](docs/RELEASE-CHECKLIST.md)。
+已公开发布（非草稿、非预发布）：[GitHub Release v1.3.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)；归档：[dsh-model-shelf-1.3.0.tgz](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz)。发布提交 `42760acc4b47c0f392ec6ccf482dd594ac450761` 已推送 main 与 v1.3.0 标签；精确门禁见[发布检查清单](docs/RELEASE-CHECKLIST.md)。
 
 - 收藏改为逐条平铺，可交错排列不同服务商的模型。
 - 支持服务商整组移至不常用（覆盖以后新增的模型）；恢复服务商仅解除整组覆盖，保留单模型原分类，不影响收藏或当前会话模型。
@@ -11,7 +11,10 @@
 - 排序刷新后保留；离线身份保留位置，新条目追加末尾，取消后重新收藏追加末尾。
 - 保持 `engines.dsh: 0.2.1-rc.2`，不扩大宿主兼容范围。
 - 实现已合入 main（`5efddd0`、`851101d`）；控制器实际运行本版 **42 项单元测试 + 40 项离线浏览器检查通过**，未捕获页面错误为 0，并完成构建、发布文件检查与 `npm pack`。
-- 控制器运行 `node tests/clean-profile.mjs`，**7/7 项真实隔离 profile 集成检查通过**，覆盖安装 / 禁用 / 重新启用 / 卸载，当前 desktop 指纹保持不变。此证据不替代当前 desktop 安装、现有 GUI 验收或公开发行验证；详见[验证报告](docs/VALIDATION.md)。旧版本验证与截图不作为本版安装证据。
+- 控制器运行本地归档及公开 URL 的 `node tests/clean-profile.mjs`，均为 **7/7 项真实隔离 profile 集成检查通过**，覆盖官方 CLI 安装 / 禁用 / 重新启用 / 卸载与原生选择器恢复；隔离测试期间 desktop 指纹保持不变。
+- 公开归档 **269184 字节**，SHA256：`bd1387e6e52bc1ba44a0c9541d124882ef40f5c6b83f9fd6b7ff37425e52e9a5`；控制器无登录公开下载 HTTP **200**，哈希一致。
+- 实际 desktop 已通过官方 CLI 从 **1.2.1 升级至 1.3.0**，客户端哈希与源码构建产物一致；仅本插件 dependency 改变，bundle 顺序与 patch 不变。现有 GUI 浏览器仍返回 `authentication-required`，**当前 GUI 激活 / 交互验收待完成**。既有无关插件的兼容性警告未获豁免。详见[验证报告](docs/VALIDATION.md)；旧版本验证与截图不作为本版安装证据。
+- **发布后文档记录**：已发布归档不可变，包含较早的打包时状态；本次源码文档更新不替换归档或标签，不计划重新打包。最终哈希现可记入源码文档。npm 尚未发布，也不是本版计划发行渠道。
 
 ## 1.2.1 · 兼容 DSH 0.2.1（未发布）
 

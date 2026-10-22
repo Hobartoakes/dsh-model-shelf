@@ -39,13 +39,12 @@ window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:optio
   if(body.action==='set-model-context-window'){if(body.contextWindow===null)delete wbOverrides[body.model];else wbOverrides[body.model]=body.contextWindow;return jsonResponse({state:'updated',model:body.model,contextWindow:body.contextWindow});}
   wbProbe.candidates=['wb-flash'];wbProbe.results=[{id:'wb-flash',validation:'validating',efforts:['low','medium','high'],probedAt:1}];window.publishEfforts();return jsonResponse({state:'ok',validation:'validating',efforts:['low','medium','high'],requests:2});}
  return jsonResponse({error:'not found'},false,404);};
-const disposers=[]; const ctx={effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=()=>{root.render(React.createElement(Component,{locked:false,...options.inject('test-session')}))};return()=>{}}}};
+const disposers=[]; const ctx={effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false)=>{root.render(React.createElement(Component,{locked,...options.inject('test-session')}))};return()=>{}}}};
 const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
 </script>`;
 await mkdir(new URL('tests/artifacts/', root), { recursive: true });
 const htmlURL = new URL('tests/artifacts/harness.html', root);
 await writeFile(htmlURL, html);
-await mkdir(new URL('docs/images/', root), { recursive: true });
 const browserOptions = process.env.DSH_TEST_BROWSER_EXECUTABLE
   ? { executablePath: process.env.DSH_TEST_BROWSER_EXECUTABLE, headless: true }
   : { channel: process.platform === 'win32' ? 'msedge' : 'chrome', headless: true };
@@ -61,7 +60,289 @@ try {
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(htmlURL.href);
   const open = async () => { await page.locator('.dmo-trigger').click(); await page.locator('.dmo-panel').waitFor({ state: 'visible' }); };
-  await open();
+  // Exercise the real bundled picker; only the native directory boundary is synthetic.
+  const prefsKey = 'dsh-model-shelf.preferences.v1';
+  const one = '["provider-one","gpt-example-a"]', two = '["provider-two","gpt-example-a"]';
+  const other = '["provider-one","model-1"]';
+  const saved = () => page.evaluate((key) => JSON.parse(localStorage.getItem(key)), prefsKey);
+  const reset = async (prefs = {}) => {
+    await page.evaluate(({ key, prefs }) => { localStorage.clear(); localStorage.setItem(key, JSON.stringify({ version: 1, ...prefs })); }, { key: prefsKey, prefs });
+    await page.reload(); await open();
+  };
+  const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const rowKeys = () => page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
+  const groupIds = () => page.locator('.dmo-group').evaluateAll(rows => rows.map(row => row.dataset.providerId));
+  const organizationFailures = [];
+  const scenario = async (name, run) => {
+    try { await run(); ok(name); } catch (error) { organizationFailures.push(`${name}: ${error.message}`); console.error(`FAIL ${name}: ${error.message}`); }
+  };
+  await scenario('flat favorites share display/keyboard order and atomic favorite membership', async () => {
+    await reset({ collapsed: ['["favorites","provider-one"]', '["favorites","provider-two"]'], providerNotes: { 'provider-two': 'Personal route' } });
+    await page.getByRole('button', { name: /^收藏：服务商乙 .*gpt-example-a/ }).click();
+    await page.getByRole('button', { name: '收藏：服务商甲 · API 中转 / model-1', exact: true }).click();
+    await page.getByRole('button', { name: '收藏：服务商甲 · API 中转 / gpt-example-a', exact: true }).click();
+    assert.deepEqual((await saved()).favorites, [two, other, one]);
+    assert.deepEqual((await saved()).favoriteOrder, [two, other, one]);
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.deepEqual(await rowKeys(), [two, other, one]);
+    assert.equal(await page.locator('.dmo-group-heading, .dmo-tools').count(), 0);
+    assert.ok((await page.locator('.dmo-row').first().innerText()).includes('Personal route'));
+    await page.setViewportSize({ width: 390, height: 600 }); await settle();
+    assert.equal(await page.locator('.dmo-panel').evaluate(e => e.scrollWidth <= e.clientWidth), true);
+    await page.screenshot({ path: fileURLToPath(new URL('tests/artifacts/flat-favorites-narrow.png', root)) });
+    await page.setViewportSize({ width: 1280, height: 1000 }); await settle();
+    await page.locator('.dmo-row').first().locator('.dmo-select').click();
+    await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.evaluate(() => selected.at(-1)), { provider: 'provider-two', model: 'gpt-example-a' });
+    await open();
+    await page.getByRole('searchbox').press('ArrowDown'); await page.getByRole('searchbox').press('ArrowDown'); await page.getByRole('searchbox').press('Enter');
+    await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.evaluate(() => selected.at(-1)), { provider: 'provider-one', model: 'model-1' });
+    await open(); await page.getByRole('searchbox').press('ArrowUp'); await page.getByRole('searchbox').press('Enter');
+    await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+    assert.deepEqual(await page.evaluate(() => selected.at(-1)), { provider: 'provider-one', model: 'gpt-example-a' });
+    await open(); await page.locator('.dmo-row').first().locator('.dmo-favorite').click();
+    assert.deepEqual((await saved()).favoriteOrder, [other, one]);
+    await page.getByRole('tab', { name: /^主列表/ }).click();
+    await page.getByRole('button', { name: /^收藏：服务商乙 .*gpt-example-a/ }).click();
+    assert.deepEqual((await saved()).favoriteOrder, [other, one, two]);
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.deepEqual(await rowKeys(), [other, one, two]);
+    await page.getByRole('searchbox').fill('Personal route'); assert.deepEqual(await rowKeys(), [two]);
+  });
+  await scenario('provider archive inherits arrivals, preserves individual flags and restores explicitly', async () => {
+    await reset({ uncommon: [other, '["provider-two","another-id"]'], favorites: [one], providerOrder: { main: ['offline-main'], uncommon: ['offline-uncommon'] } });
+    await page.getByRole('searchbox').fill('provider-one gpt-example-a');
+    await page.getByRole('button', { name: '整组移至不常用：provider-one', exact: true }).click({ timeout: 2000 });
+    assert.equal(await page.locator('.dmo-row').count(), 0);
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    assert.deepEqual(await page.evaluate(() => state.current), { provider: 'provider-one', model: 'gpt-example-a', reasoningEffort: 'medium' });
+    assert.deepEqual((await saved()).collapsed, []);
+    assert.deepEqual((await saved()).providerOrder.uncommon, ['offline-uncommon', 'provider-two', 'provider-one']);
+    assert.deepEqual((await saved()).uncommon, [other, '["provider-two","another-id"]']);
+    await page.getByRole('searchbox').fill(''); await page.getByRole('tab', { name: /^不常用/ }).click();
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    const archived = page.locator('.dmo-group[data-provider-id="provider-one"]');
+    assert.ok(await archived.locator('.dmo-move').first().isDisabled());
+    assert.ok((await archived.innerText()).includes('先恢复服务商'));
+    await page.evaluate(() => setState({ groups: groups.map(g => g.id === 'provider-one' ? { ...g, models: [...g.models, { id: 'new-arrival', name: 'New arrival' }] } : g) }));
+    assert.equal(await archived.locator('.dmo-row').count(), 17);
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.deepEqual(await rowKeys(), [one]);
+    await page.locator('.dmo-select').click(); await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => selected.at(-1).provider), 'provider-one');
+    await open();
+    await page.getByRole('button', { name: '恢复服务商：provider-one', exact: true }).click();
+    assert.deepEqual((await saved()).uncommonProviders, []);
+    assert.deepEqual((await saved()).providerOrder.main, ['offline-main', 'provider-two', 'provider-one']);
+    await page.getByRole('tab', { name: /^主列表/ }).click();
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    assert.ok((await rowKeys()).includes('["provider-one","new-arrival"]'));
+    assert.ok(!(await rowKeys()).includes(other));
+    await page.getByRole('tab', { name: /^不常用/ }).click();
+    assert.deepEqual(await rowKeys(), ['["provider-two","another-id"]', other]);
+  });
+  await scenario('remembered empty favorites wins over current model across reopen and reload', async () => {
+    await reset({ uncommonProviders: ['provider-one'] });
+    assert.equal(await page.getByRole('tab', { name: /^不常用/ }).getAttribute('aria-selected'), 'true');
+    assert.equal((await saved()).lastList, null);
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.equal((await saved()).lastList, 'favorites');
+    await page.keyboard.press('Escape'); await open();
+    assert.equal(await page.getByRole('tab', { name: /^收藏/ }).getAttribute('aria-selected'), 'true');
+    await page.reload(); await open();
+    assert.equal(await page.getByRole('tab', { name: /^收藏/ }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('.dmo-row').count(), 0);
+    await reset({ uncommon: [one] });
+    assert.equal(await page.getByRole('tab', { name: /^不常用/ }).getAttribute('aria-selected'), 'true');
+    await reset(); assert.equal(await page.getByRole('tab', { name: /^主列表/ }).getAttribute('aria-selected'), 'true');
+  });
+  await scenario('catalog orders persist unsearched arrivals once and retain offline positions', async () => {
+    await reset({ favorites: [two, one], providerOrder: { main: ['offline', 'provider-two'], uncommon: ['offline-uncommon'] } });
+    await settle();
+    assert.deepEqual((await saved()).providerOrder.main, ['offline', 'provider-two', 'provider-one']);
+    assert.deepEqual((await saved()).favoriteOrder, [one, two]);
+    await page.evaluate(() => {
+      window.preferenceWrites = 0;
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) { if (key === 'dsh-model-shelf.preferences.v1') window.preferenceWrites++; return original.call(this, key, value); };
+    });
+    await page.getByRole('searchbox').fill('no-match');
+    await page.evaluate(() => setState({ groups: [...groups, { id: 'new-provider', name: 'New', models: [{ id: 'new', name: 'New' }] }] }));
+    await settle();
+    assert.deepEqual((await saved()).providerOrder.main, ['offline', 'provider-two', 'provider-one', 'new-provider']);
+    assert.equal(await page.evaluate(() => preferenceWrites), 1);
+    await page.evaluate(() => setState({ groups: [...state.groups].reverse() })); await settle();
+    assert.equal(await page.evaluate(() => preferenceWrites), 1);
+    await page.evaluate(() => setState({ groups: [groups[0]] })); await settle();
+    assert.deepEqual((await saved()).favoriteOrder, [one, two]);
+    await page.evaluate(() => setState({ groups: [...groups].reverse() })); await settle();
+    assert.equal(await page.evaluate(() => preferenceWrites), 1);
+    await page.getByRole('searchbox').fill('');
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+  });
+  await scenario('catalog discovery does not overwrite corrupt preferences or hide their warning', async () => {
+    await page.evaluate(key => localStorage.setItem(key, '{broken'), prefsKey);
+    await page.reload(); await open(); await settle();
+    assert.equal(await page.getByRole('alert').count(), 1);
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), prefsKey), '{broken');
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.equal((await saved()).lastList, 'favorites');
+    assert.equal(await page.getByRole('alert').count(), 0);
+  });
+  await scenario('provider drag reorders full keys independently without selection or folding', async () => {
+    await reset({ lastList: 'main', uncommon: [other, '["provider-two","another-id"]'], providerOrder: { main: ['provider-one', 'offline', 'provider-two'], uncommon: ['provider-one', 'provider-two'] } });
+    const handles = page.locator('.dmo-drag');
+    assert.equal(await handles.count(), 2, 'independent provider handles exist');
+    await page.getByRole('button', { name: '全部折叠', exact: true }).click();
+    await handles.first().dragTo(handles.last());
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    assert.deepEqual((await saved()).providerOrder.main, ['offline', 'provider-two', 'provider-one']);
+    assert.deepEqual((await saved()).providerOrder.uncommon, ['provider-one', 'provider-two']);
+    assert.equal(await page.locator('.dmo-row').count(), 0);
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    await page.getByRole('tab', { name: /^不常用/ }).click();
+    await handles.first().dragTo(handles.last());
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    await page.reload(); await open();
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    await page.getByRole('tab', { name: /^主列表/ }).click();
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    await page.evaluate(() => setState({ groups: [...groups, { id: 'new-provider', models: [{ id: 'new' }] }, { id: 'offline', models: [{ id: 'back' }] }] }));
+    assert.deepEqual(await groupIds(), ['offline', 'provider-two', 'provider-one', 'new-provider']);
+    await settle();
+    assert.deepEqual((await saved()).providerOrder.main, ['offline', 'provider-two', 'provider-one', 'new-provider']);
+  });
+  await scenario('keyboard ordering skips offline neighbors, retains focus and announces position', async () => {
+    await reset({ lastList: 'main', providerOrder: { main: ['provider-one', 'offline', 'provider-two'] } });
+    assert.equal(await page.locator('.dmo-order-up').count(), 2, 'keyboard alternatives exist');
+    assert.ok(await page.locator('.dmo-order-up').first().isDisabled());
+    assert.ok(await page.locator('.dmo-order-down').last().isDisabled());
+    const down = page.locator('.dmo-group[data-provider-id="provider-one"] .dmo-order-down');
+    await down.focus(); await page.keyboard.press('Enter');
+    assert.deepEqual(await groupIds(), ['provider-two', 'provider-one']);
+    assert.deepEqual((await saved()).providerOrder.main, ['offline', 'provider-two', 'provider-one']);
+    assert.ok((await page.locator('.dmo-order-status').innerText()).includes('第 2 / 2'));
+    assert.equal(await page.evaluate(() => document.activeElement.closest('.dmo-group')?.dataset.providerId), 'provider-one');
+    await page.keyboard.press('Enter');
+    assert.deepEqual(await groupIds(), ['provider-one', 'provider-two']);
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    assert.deepEqual((await saved()).collapsed, []);
+  });
+  await scenario('favorite drag and keyboard reorder persist full identities and append new items', async () => {
+    const offline = '["offline","model"]';
+    await reset({ lastList: 'favorites', favorites: [one, two, offline], favoriteOrder: [one, offline, two] });
+    await page.locator('.dmo-drag').first().dragTo(page.locator('.dmo-drag').last());
+    assert.deepEqual(await rowKeys(), [two, one]);
+    assert.deepEqual((await saved()).favoriteOrder, [offline, two, one]);
+    await page.locator('.dmo-order-up').last().focus(); await page.keyboard.press('Space');
+    assert.deepEqual(await rowKeys(), [one, two]);
+    assert.deepEqual((await saved()).favoriteOrder, [offline, one, two]);
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    await page.reload(); await open(); assert.deepEqual(await rowKeys(), [one, two]);
+    await page.getByRole('tab', { name: /^主列表/ }).click();
+    await page.getByRole('button', { name: '收藏：服务商甲 · API 中转 / model-1', exact: true }).click();
+    await page.getByRole('tab', { name: /^收藏/ }).click();
+    assert.deepEqual(await rowKeys(), [one, two, other]);
+    await page.evaluate(() => setState({ groups: [...groups, { id: 'offline', name: 'Returned', models: [{ id: 'model', name: 'Returned model' }] }] }));
+    assert.deepEqual(await rowKeys(), [offline, one, two, other]);
+  });
+  // Start a real browser mouse gesture, then alter the directory/UI before release.
+  const beginDrag = async (source) => {
+    await source.scrollIntoViewIfNeeded();
+    await page.evaluate(() => { window.dragStarts = 0; document.addEventListener('dragstart', () => window.dragStarts++, { once: true, capture: true }); });
+    const b = await source.boundingBox();
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down();
+    await page.mouse.move(b.x + b.width / 2 + 12, b.y + b.height / 2 + 6, { steps: 4 });
+    await page.mouse.move(b.x + b.width / 2 + 20, b.y + b.height / 2 + 8);
+    assert.equal(await page.evaluate(() => dragStarts), 1, 'native dragstart fired');
+  };
+  const releaseAt = async (target) => {
+    const b = await target.boundingBox();
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 4 });
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.up(); await settle();
+  };
+  await scenario('native drags cancel across tabs, query, source disappearance and Escape', async () => {
+    for (const list of ['main', 'favorites']) {
+      const setup = async () => {
+        await reset({ lastList: list, favorites: [one, two], uncommon: [other, '["provider-two","another-id"]'], collapsed: ['["main","provider-one"]', '["main","provider-two"]'] });
+        await settle();
+      };
+      const orders = async () => { const p = await saved(); return { providers: p.providerOrder, favorites: p.favoriteOrder }; };
+      for (const reason of ['tab', 'tab-back', 'query', 'query-clear', 'source', 'source-return', 'escape']) {
+        await setup(); const before = await orders();
+        await beginDrag(page.locator('.dmo-drag').first());
+        if (reason.startsWith('tab')) {
+          await page.getByRole('tab', { name: /^不常用/ }).evaluate(e => e.click());
+          assert.equal(await page.getByRole('tab', { name: /^不常用/ }).getAttribute('aria-selected'), 'true');
+          if (reason === 'tab-back') await page.getByRole('tab', { name: list === 'main' ? /^主列表/ : /^收藏/ }).evaluate(e => e.click());
+        } else if (reason.startsWith('query')) {
+          await page.getByRole('searchbox').fill('provider');
+          if (reason === 'query-clear') await page.getByRole('searchbox').fill('');
+        } else if (reason.startsWith('source')) {
+          await page.evaluate(() => setState({ groups: [groups[1]] })); await settle();
+          assert.equal(await page.locator('.dmo-drag').count(), 1, 'actual source disappeared');
+          if (reason === 'source-return') { await page.evaluate(() => setState({ groups })); await settle(); }
+        } else { await page.keyboard.press('Escape'); }
+        await releaseAt(page.locator('.dmo-drag').last());
+        assert.deepEqual(await orders(), before, `${list}: ${reason} cannot reorder`);
+        assert.equal(await page.evaluate(() => selected.length), 0);
+        if (await page.locator('.dmo-group-heading[aria-expanded="false"]').count()) await page.locator('.dmo-group-heading[aria-expanded="false"]').first().click();
+        await page.locator('.dmo-select').first().click({ timeout: 2000 });
+        await page.locator('.dmo-panel').waitFor({ state: 'hidden', timeout: 2000 });
+        assert.equal(await page.evaluate(() => selected.length), 1, 'next intentional click is not swallowed');
+      }
+      await setup(); const before = await orders();
+      await page.getByRole('searchbox').fill('provider');
+      assert.equal(await page.locator('.dmo-order button:enabled').count(), 0);
+      assert.equal(await page.locator('[draggable="true"]').count(), 0);
+      await page.getByRole('searchbox').fill('');
+      // Untrusted external data must not create an internal drag capability.
+      await page.locator('.dmo-drag').last().evaluate(e => { const dt = new DataTransfer(); dt.setData('text/plain', 'provider-one'); e.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: dt })); });
+      assert.deepEqual(await orders(), before);
+    }
+  });
+  await scenario('order controls remain readable and separate from copyable identity in both themes and narrow layouts', async () => {
+    for (const list of ['main', 'favorites']) {
+      await page.setViewportSize({ width: 1280, height: 1000 });
+      await reset({ lastList: list, favorites: [one, two], providerNotes: { 'provider-one': '工作账号 / Full account identity' } });
+      for (const dark of [false, true]) {
+        await page.evaluate(dark => document.body.classList.toggle('dark', dark), dark);
+        for (const width of [1280, 390]) {
+          await page.setViewportSize({ width, height: width === 390 ? 600 : 1000 }); await settle();
+          const layout = await page.locator('.dmo-panel').evaluate(panel => {
+            const container = panel.querySelector('.dmo-group-top, .dmo-row');
+            const identity = container.querySelector('.dmo-group-heading, .dmo-select');
+            const actions = container.querySelector('.dmo-provider-actions, .dmo-row-actions');
+            const order = container.querySelector('.dmo-order');
+            const i = identity.getBoundingClientRect(), a = actions.getBoundingClientRect(), o = order.getBoundingClientRect();
+            return { overflow: panel.scrollWidth > panel.clientWidth || panel.querySelector('.dmo-list').scrollWidth > panel.querySelector('.dmo-list').clientWidth,
+              separated: o.right <= i.left && i.right <= a.left, copyable: getComputedStyle(identity).userSelect, draggable: identity.draggable,
+              identity: identity.textContent };
+          });
+          assert.equal(layout.overflow, false); assert.equal(layout.separated, true);
+          assert.equal(layout.copyable, 'text'); assert.equal(layout.draggable, false);
+          assert.ok(layout.identity.includes('provider-one')); assert.ok(layout.identity.includes('Full account identity'));
+          await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL(`tests/artifacts/order-${list}-${dark ? 'dark' : 'light'}-${width}.png`, root)) });
+        }
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 1000 });
+  });
+  await scenario('locked session keeps selection blocked with order controls present', async () => {
+    await reset({ lastList: 'favorites', favorites: [one, two] });
+    await page.evaluate(() => render(true)); await settle();
+    assert.equal(await page.locator('.dmo-select').first().getAttribute('aria-disabled'), 'true');
+    await page.locator('.dmo-select').first().click({ force: true });
+    await page.locator('.dmo-order-down').first().click();
+    assert.equal(await page.evaluate(() => selected.length), 0);
+    await page.keyboard.press('Escape');
+    await page.locator('.dmo-trigger').click({ force: true }); assert.equal(await page.locator('.dmo-panel').count(), 0);
+  });
+  assert.deepEqual(organizationFailures, []);
+  await reset();
   assert.equal(await page.evaluate(() => window.registration.priority), -100);
   // DSH 0.2.1: the seat's own registration must NOT declare the model-label
   // child slot. The host's model-selection plugin already declares it, and a key
@@ -76,16 +357,16 @@ try {
   assert.ok((await page.locator('.dmo-row').first().innerText()).includes('服务商甲 · API 中转（provider-one）'));
   assert.ok((await page.locator('.dmo-row').first().innerText()).includes('模型 ID：gpt-example-a'));
   ok('every row displays provider and exact model ID');
-  // Publication screenshots: isolated popup, synthetic fixture only, never actual GUI data.
-  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/main-list.png', root)) });
+  // Regression screenshots stay in ignored artifacts; never overwrite publication images.
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('tests/artifacts/main-list.png', root)) });
   await page.evaluate(() => document.body.classList.add('dark'));
-  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/dark-list.png', root)) });
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('tests/artifacts/dark-list.png', root)) });
   await page.evaluate(() => document.body.classList.remove('dark'));
   await page.getByRole('button', { name: '移至不常用：服务商甲 · API 中转 / gpt-example-a', exact: true }).click();
   assert.equal(await page.locator('.dmo-row').count(), 17); assert.equal(await page.evaluate(() => selected.length), 0);
   await page.getByRole('tab', { name: '不常用 (1)', exact: true }).click(); assert.equal(await page.locator('.dmo-row').count(), 1);
   ok('manual move does not select/delete model or move identical ID from another provider');
-  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/uncommon-list.png', root)) });
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('tests/artifacts/uncommon-list.png', root)) });
   await page.reload(); await open();
   assert.equal(await page.getByRole('tab', { name: '不常用 (1)', exact: true }).getAttribute('aria-selected'), 'true');
   await page.getByRole('button', { name: '移回主列表：服务商甲 · API 中转 / gpt-example-a', exact: true }).click();
@@ -179,7 +460,7 @@ try {
   await page.getByRole('button', { name: /^收藏：同平台 API \/ gpt-example-a，账号备注 示例个人账号/ }).click();
   await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
   await page.getByRole('searchbox').fill('');
-  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('docs/images/favorites-list.png', root)) });
+  await page.locator('.dmo-panel').screenshot({ path: fileURLToPath(new URL('tests/artifacts/favorites-list.png', root)) });
   assert.equal(await page.evaluate(() => selected.length), 0);
   await page.reload(); await open(); await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
   assert.ok((await page.locator('.dmo-row').innerText()).includes('账号备注：示例个人账号'));
@@ -204,7 +485,7 @@ try {
   ok('note editing supports keyboard cancel, clearing and safe literal rendering without HTML execution');
   const spacing = await page.evaluate(() => {
     const button = document.querySelector('.dmo-note-action');
-    const group = button.closest('.dmo-group');
+    const group = button.closest('.dmo-group, .dmo-row');
     const b = button.getBoundingClientRect(), g = group.getBoundingClientRect();
     return { gap: g.right - b.right, inside: b.left >= g.left && b.right <= g.right };
   });

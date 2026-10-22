@@ -1,4 +1,4 @@
-import { modelKey, groupKey, toggleKey, partitionModels, createPreferenceStore, providerNote } from './preferences.js';
+import { modelKey, groupKey, toggleKey, partitionModels, favoriteRows, isUncommon, orderedKeys, reorderKeys, setProviderUncommon, setFavorite, createPreferenceStore, providerNote } from './preferences.js';
 import { isWorkBuddyProvider, loadProbeStatus, requestProbe, probeStateFor, effortSourceFor, contextWindowFor, formatCapacity, requestContextWindow } from './workbuddy-probe.js';
 
 // React and ReactDOM come from the running DSH client, never a second React copy.
@@ -18,6 +18,18 @@ export const inject = ['slots', 'modelDirectories', 'sessions', 'remote', 'remot
 // plain model names: the host badge is simply absent inside the shelf.
 // See README "兼容性" and docs/HOST-COMPATIBILITY.md.
 
+// Record unsearched catalog arrivals, retaining offline identities and their slots.
+// Returning the original snapshot when equal is essential: store updates notify React.
+function withCatalogOrder(prefs, groups) {
+  const merge = (saved, current) => orderedKeys(saved, [...saved, ...current]);
+  const same = (a, b) => a.length === b.length && a.every((key, i) => key === b[i]);
+  const main = merge(prefs.providerOrder.main, partitionModels(groups, prefs, 'main').map(g => g.id));
+  const uncommon = merge(prefs.providerOrder.uncommon, partitionModels(groups, prefs, 'uncommon').map(g => g.id));
+  const favorites = merge(prefs.favoriteOrder, favoriteRows(groups, prefs).map(row => row.key));
+  if (same(main, prefs.providerOrder.main) && same(uncommon, prefs.providerOrder.uncommon) && same(favorites, prefs.favoriteOrder)) return prefs;
+  return { ...prefs, providerOrder: { main, uncommon }, favoriteOrder: favorites };
+}
+
 export function makeModelPicker(preferences) {
   return function ModelPicker({ locked, available, directory, load, select }) {
     const state = useSyncExternalStore(directory.subscribe.bind(directory), directory.getSnapshot.bind(directory));
@@ -26,6 +38,16 @@ export function makeModelPicker(preferences) {
     const [list, setList] = useState('main');
     const [query, setQuery] = useState('');
     const [active, setActive] = useState(null);
+    const [orderStatus, setOrderStatus] = useState('');
+    const drag = useRef(null);
+    const [dropKey, setDropKey] = useState(null);
+    const suppressClick = useRef(false);
+    const cancelDrag = () => { drag.current = null; setDropKey(null); };
+    const finishDrag = () => {
+      cancelDrag();
+      // Native dragend can be followed by a click; do not select or fold then.
+      setTimeout(() => { suppressClick.current = false; }, 0);
+    };
     const [position, setPosition] = useState(null);
     const [localError, setLocalError] = useState(null);
     const [probeStatus, setProbeStatus] = useState(undefined);
@@ -51,7 +73,66 @@ export function makeModelPicker(preferences) {
     const currentNote = state.current ? providerNote(prefs, state.current.provider) : '';
     const searching = query.trim().length > 0;
     const expanded = (id) => searching || !prefs.collapsed.includes(groupKey(list, id));
-    const visible = shown.flatMap((g) => expanded(g.id) ? g.models.map((m) => ({ group: g, model: m, key: modelKey(g.id, m.id) })) : []);
+    const flatFavorites = favoriteRows(groups, prefs, query);
+    const visible = list === 'favorites' ? flatFavorites : shown.flatMap((g) => expanded(g.id) ? g.models.map((m) => ({ group: g, model: m, key: modelKey(g.id, m.id) })) : []);
+    useEffect(() => {
+      // Discovery is not consent to replace unreadable storage or clear its warning.
+      if (!preferences.getError() && withCatalogOrder(prefs, groups) !== prefs) preferences.update(p => withCatalogOrder(p, groups));
+    }, [groups, prefs]);
+    const orderKind = list === 'favorites' ? 'favorite' : 'provider';
+    const orderKeys = (p = preferences.getSnapshot(), catalog = directory.getSnapshot().groups ?? []) => list === 'favorites'
+      ? favoriteRows(catalog, p).map(row => row.key)
+      : partitionModels(catalog, p, list).map(g => g.id);
+    // Invalidate on every observed departure, not just at drop: switching back
+    // or a disappearing source returning must never resurrect an old gesture.
+    useLayoutEffect(() => {
+      if (drag.current && (!open || searching || drag.current.list !== list || !orderKeys().includes(drag.current.key))) cancelDrag();
+    }, [open, query, list, groups, prefs]);
+    const validMove = (payload, target) => {
+      const keys = orderKeys();
+      return open && !searching && payload?.list === list && payload.kind === orderKind
+        && keys.includes(payload.key) && keys.includes(target) && payload.key !== target;
+    };
+    const reorder = (payload, target) => {
+      if (!validMove(payload, target)) return;
+      preferences.update(p => {
+        const seeded = withCatalogOrder(p, directory.getSnapshot().groups ?? []);
+        const keys = payload.kind === 'favorite' ? seeded.favoriteOrder : seeded.providerOrder[list];
+        const next = reorderKeys(keys, payload.key, target);
+        return payload.kind === 'favorite' ? { ...seeded, favoriteOrder: next }
+          : { ...seeded, providerOrder: { ...seeded.providerOrder, [list]: next } };
+      });
+      const keys = orderKeys();
+      setOrderStatus(`${payload.key} 已移至第 ${keys.indexOf(payload.key) + 1} / ${keys.length} 项`);
+    };
+    const dropProps = (key) => ({
+      'data-drop-target': dropKey === key || undefined,
+      onDragOver: e => { if (validMove(drag.current, key)) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; setDropKey(key); } },
+      onDrop: e => { e.preventDefault(); e.stopPropagation(); reorder(drag.current, key); finishDrag(); },
+      onDragLeave: e => { if (!e.currentTarget.contains(e.relatedTarget)) setDropKey(null); }
+    });
+    const renderedOrderKeys = orderKeys(prefs, groups);
+    const orderControls = (key, label) => {
+      const keys = renderedOrderKeys, index = keys.indexOf(key);
+      const step = (direction, event) => {
+        event.stopPropagation();
+        const controls = event.currentTarget.parentElement;
+        const current = orderKeys(), neighbor = current[current.indexOf(key) + direction];
+        reorder({ list, kind: orderKind, key }, neighbor);
+        // Keep the same action unless it has reached the boundary, then offer
+        // the reverse action on the same identity rather than losing focus.
+        queueMicrotask(() => {
+          const preferred = controls.querySelector(direction < 0 ? '.dmo-order-up' : '.dmo-order-down');
+          (preferred?.disabled ? controls.querySelector(direction < 0 ? '.dmo-order-down' : '.dmo-order-up') : preferred)?.focus();
+        });
+      };
+      return h('div', { className: 'dmo-order', onClick: e => e.stopPropagation() },
+      h('button', { type: 'button', className: 'dmo-drag', disabled: searching, draggable: !searching, 'aria-label': `拖动排序：${label}`, title: '拖动排序',
+        onDragStart: e => { if (searching) { e.preventDefault(); return; } drag.current = { list, kind: orderKind, key }; suppressClick.current = true; e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', key); },
+        onDragEnd: finishDrag }, '⠿'),
+      h('button', { type: 'button', className: 'dmo-order-up', disabled: searching || index <= 0, 'aria-label': `上移：${label}`, onClick: e => step(-1, e) }, '↑'),
+      h('button', { type: 'button', className: 'dmo-order-down', disabled: searching || index >= keys.length - 1, 'aria-label': `下移：${label}`, onClick: e => step(1, e) }, '↓'));
+    };
     const currentGroup = groups.find((g) => g.id === state.current?.provider);
     const currentModel = currentGroup?.models.find((m) => m.id === state.current?.model);
     const reasoning = currentModel?.reasoning;
@@ -95,6 +176,7 @@ export function makeModelPicker(preferences) {
     }, [open, state.current?.provider, state.current?.model]);
 
     const close = (restore = true) => {
+      cancelDrag();
       const epoch = ++popupEpoch.current;
       setOpen(false);
       setEditingNote(null);
@@ -198,9 +280,13 @@ export function makeModelPicker(preferences) {
       } finally { inFlight.current = false; }
     };
 
-    const changeList = (next) => { setList(next); setActive(null); setEditingNote(null); search.current?.focus(); };
-    const toggleFavorite = (key) => {
-      preferences.update((p) => ({ ...p, favorites: toggleKey(p.favorites, key) }));
+    const changeList = (next) => {
+      cancelDrag();
+      preferences.update(p => ({ ...p, lastList: next }));
+      setList(next); setActive(null); setEditingNote(null); search.current?.focus();
+    };
+    const toggleFavorite = (provider, model) => {
+      preferences.update(p => setFavorite(p, provider, model, !p.favorites.includes(modelKey(provider, model))));
       setActive(null); search.current?.focus();
     };
     const saveNote = () => {
@@ -213,11 +299,18 @@ export function makeModelPicker(preferences) {
       setActive(null);
       search.current?.focus();
     };
+    const moveProvider = (provider, uncommon) => {
+      // Seed the entire destination before moving, never just the searched subset.
+      preferences.update(p => setProviderUncommon(withCatalogOrder(p, groups), provider, uncommon));
+      setActive(null); search.current?.focus();
+    };
     const setAllCollapsed = (collapse) => {
       const keys = shown.map((g) => groupKey(list, g.id));
       preferences.update((p) => ({ ...p, collapsed: collapse ? [...new Set([...p.collapsed, ...keys])] : p.collapsed.filter((k) => !keys.includes(k)) }));
     };
     const onKeyDown = (event) => {
+      suppressClick.current = false;
+      cancelDrag();
       if (event.nativeEvent?.isComposing || event.keyCode === 229) return;
       if (event.key === 'Escape' && event.target.closest?.('.dmo-note-editor')) {
         event.preventDefault(); event.stopPropagation(); setEditingNote(null); search.current?.focus(); return;
@@ -254,8 +347,8 @@ export function makeModelPicker(preferences) {
       if (open) { close(); return; }
       ++popupEpoch.current;
       setQuery(''); setActive(null); setPosition(null); setLocalError(null);
-      // Reopen the list containing the active model; never reclassify it.
-      setList(state.current && prefs.uncommon.includes(modelKey(state.current.provider, state.current.model)) ? 'uncommon' : 'main');
+      // An explicit remembered tab wins even when empty; legacy users follow classification.
+      setList(prefs.lastList ?? (state.current && isUncommon(prefs, state.current.provider, state.current.model) ? 'uncommon' : 'main'));
       setOpen(true);
       Promise.resolve().then(load).catch((e) => { if (mounted.current) setLocalError(String(e.message ?? e)); });
     };
@@ -334,27 +427,64 @@ export function makeModelPicker(preferences) {
           h('span', null, `已探测到档位：${probe.efforts.join(' / ')}（模型面板尚未更新）`),
           h('button', { type: 'button', className: 'dmo-effort-reset', disabled: busy, onClick: () => { setLocalError(null); Promise.resolve().then(load).catch((e) => setLocalError(String(e.message ?? e))); } }, '刷新档位')),
         detection === null && probeNote === null && probe.kind === 'signed-out' && !declaredEfforts && h('p', { className: 'dmo-probe', role: 'status' }, 'WorkBuddy 未登录，暂时无法检测思考强度。'));
+    const noteAction = (g) => h('button', { type: 'button', className: 'dmo-note-action', 'aria-label': `编辑账号备注：${g.name || g.id} / ${g.id}`, onClick: (e) => { e.stopPropagation(); setEditingNote({ id: g.id, draft: providerNote(prefs, g.id) }); } }, '账号备注');
+    const providerAction = (g) => {
+      const archived = prefs.uncommonProviders.includes(g.id);
+      return h('button', { type: 'button', className: 'dmo-provider-action', 'aria-label': `${archived ? '恢复服务商' : '整组移至不常用'}：${g.id}`, onClick: (e) => { e.stopPropagation(); moveProvider(g.id, !archived); } }, archived ? '恢复服务商' : '整组移至不常用');
+    };
+    const noteEditor = editingNote && h('div', { className: 'dmo-note-editor' },
+      h('label', { className: 'dmo-note-label' }, '账号备注（仅本浏览器保存，勿填密钥）',
+        h('input', { ref: noteInput, type: 'text', className: 'dmo-note-input', maxLength: 120, 'aria-label': `账号备注：${editingNote.id}`, placeholder: '例如：个人账号 / 工作账号 / 备用账号', value: editingNote.draft,
+          onChange: (e) => setEditingNote({ id: editingNote.id, draft: e.target.value }), onKeyDown: (e) => {
+            if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
+            if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); saveNote(); }
+            if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setEditingNote(null); search.current?.focus(); }
+          } })),
+      h('div', { className: 'dmo-note-buttons' },
+        h('button', { type: 'button', className: 'dmo-tab', onClick: saveNote }, '保存备注'),
+        h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setEditingNote(null); search.current?.focus(); } }, '取消')));
+    const renderRow = (g, m) => {
+      const key = modelKey(g.id, m.id);
+      const archived = prefs.uncommonProviders.includes(g.id);
+      const selected = state.current?.provider === g.id && state.current?.model === m.id;
+      const accountSuffix = providerNote(prefs, g.id) ? `，账号备注 ${providerNote(prefs, g.id)}，服务商 ID ${g.id}` : '';
+      return h('div', { className: 'dmo-row', key, 'data-model-key': key, 'data-provider-id': g.id, 'data-highlighted': activeRow?.key === key, ...(list === 'favorites' ? dropProps(key) : {}) },
+        list === 'favorites' && orderControls(key, `${g.id} / ${m.id}`),
+        h('div', { role: 'button', tabIndex: 0, className: 'dmo-select', 'aria-disabled': busy, 'aria-label': `选择 ${g.name || g.id} 的 ${m.name || m.id}，模型 ID ${m.id}${providerNote(prefs, g.id) ? '，账号备注 ' + providerNote(prefs, g.id) : ''}`, 'aria-pressed': selected, onClick: () => { if (!busy) choose({ provider: g.id, model: m.id }); }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!busy) choose({ provider: g.id, model: m.id }); } } },
+          h('span', { className: 'dmo-check', 'aria-hidden': true }, selected ? '✓' : ''),
+          h('span', { className: 'dmo-copy' }, h('span', { className: 'dmo-name' }, m.name || m.id), ...identity(g, m))),
+        h('div', { className: 'dmo-row-actions' },
+          h('button', { type: 'button', className: 'dmo-favorite', 'aria-pressed': prefs.favorites.includes(key), 'aria-label': `${prefs.favorites.includes(key) ? '取消收藏' : '收藏'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleFavorite(g.id, m.id) }, prefs.favorites.includes(key) ? '★ 已收藏' : '☆ 收藏'),
+          h('button', { type: 'button', className: 'dmo-move', disabled: archived, title: archived ? '先恢复服务商，再调整单模型分类' : undefined, 'aria-label': `${archived ? '先恢复服务商' : prefs.uncommon.includes(key) ? '移回主列表' : '移至不常用'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleUncommon(key) }, archived ? '先恢复服务商' : prefs.uncommon.includes(key) ? '移回主列表' : '移至不常用'),
+          list === 'favorites' && noteAction(g),
+          list === 'favorites' && archived && providerAction(g)));
+    };
+
     const popup = open && h('div', {
       className: 'dmo-panel', id: popupId, ref: panel, role: 'dialog', 'aria-label': '模型选择器', 'aria-modal': true,
-      style: position ?? { visibility: 'hidden', left: 0, top: 0 }, onKeyDown
+      style: position ?? { visibility: 'hidden', left: 0, top: 0 }, onKeyDown,
+      onPointerDownCapture: () => { suppressClick.current = false; cancelDrag(); },
+      onClickCapture: e => { if (suppressClick.current && e.target.closest('.dmo-select, .dmo-group-heading')) { e.preventDefault(); e.stopPropagation(); } }
     },
       h('div', { className: 'dmo-head' }, h('span', { className: 'dmo-title' }, '模型书架 · Model Shelf'), h('button', { type: 'button', className: 'dmo-close', 'aria-label': '关闭模型选择器', onClick: () => close() }, '×')),
       h('p', { className: 'dmo-hint' }, '由你手动整理：移至“不常用”不会删除模型或 API 配置，可随时移回。'),
-      h('input', { ref: search, type: 'search', className: 'dmo-search', placeholder: '搜索模型、ID、服务商或账号备注…', 'aria-label': '搜索模型、ID、服务商或账号备注', value: query, onChange: (e) => { setQuery(e.target.value); setActive(null); } }),
+      h('input', { ref: search, type: 'search', className: 'dmo-search', placeholder: '搜索模型、ID、服务商或账号备注…', 'aria-label': '搜索模型、ID、服务商或账号备注', value: query, onChange: (e) => { cancelDrag(); setQuery(e.target.value); setActive(null); } }),
       h('div', { className: 'dmo-tabs', role: 'tablist', 'aria-label': '模型列表分类' },
         h('button', { type: 'button', id: `${popupId}-main`, className: 'dmo-tab', role: 'tab', 'aria-selected': list === 'main', 'aria-controls': `${popupId}-list`, onClick: () => changeList('main') }, `主列表 (${allMain})`),
         h('button', { type: 'button', id: `${popupId}-uncommon`, className: 'dmo-tab', role: 'tab', 'aria-selected': list === 'uncommon', 'aria-controls': `${popupId}-list`, onClick: () => changeList('uncommon') }, `不常用 (${allUncommon})`),
         h('button', { type: 'button', id: `${popupId}-favorites`, className: 'dmo-tab', role: 'tab', 'aria-selected': list === 'favorites', 'aria-controls': `${popupId}-list`, onClick: () => changeList('favorites') }, `收藏 (${allFavorites})`)),
-      h('div', { className: 'dmo-tools' },
+      list !== 'favorites' && h('div', { className: 'dmo-tools' },
         h('button', { type: 'button', disabled: searching || shown.length === 0, onClick: () => setAllCollapsed(false) }, '全部展开'),
         h('button', { type: 'button', disabled: searching || shown.length === 0, onClick: () => setAllCollapsed(true) }, '全部折叠'),
         h('span', null, searching ? '搜索时自动展开匹配分组' : '按服务商分组')),
       error && h('p', { className: 'dmo-error', role: 'alert' }, String(error)),
       (state.failures ?? []).map((failure) => h('p', { className: 'dmo-error', key: failure.id, role: 'status' }, `服务商 ${failure.name ?? failure.id} 加载失败：${failure.message ?? ''}`)),
+      h('div', { className: 'dmo-order-status', role: 'status', 'aria-live': 'polite', 'aria-atomic': true }, orderStatus),
+      noteEditor,
       h('div', { className: 'dmo-list', id: `${popupId}-list`, role: 'tabpanel', 'aria-labelledby': `${popupId}-${list}`, 'aria-busy': state.status === 'loading' || busy },
         state.status === 'loading' && h('p', { className: 'dmo-empty', role: 'status' }, '正在加载模型…'),
-        shown.map((g) => h('section', { className: 'dmo-group', key: g.id },
-          h('div', { className: 'dmo-group-top' }, h('div', { role: 'button', tabIndex: 0, className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), 'aria-disabled': searching, onClick: () => {
+        list === 'favorites' ? flatFavorites.map(({ group, model }) => renderRow(group, model)) : shown.map((g) => h('section', { className: 'dmo-group', key: g.id, 'data-provider-id': g.id, ...dropProps(g.id) },
+          h('div', { className: 'dmo-group-top' }, orderControls(g.id, g.id), h('div', { role: 'button', tabIndex: 0, className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), 'aria-disabled': searching, onClick: () => {
             if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) }));
           }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) })); } } },
             h('span', { 'aria-hidden': true }, expanded(g.id) ? '▾' : '▸'),
@@ -362,30 +492,8 @@ export function makeModelPicker(preferences) {
               providerNote(prefs, g.id) && h('span', { className: 'dmo-account' }, `账号备注：${providerNote(prefs, g.id)}`),
               h('span', { className: 'dmo-identity' }, `服务商 ID：${g.id}`)),
             h('span', { className: 'dmo-count' }, `${g.models.length} 款`)),
-            h('button', { type: 'button', className: 'dmo-note-action', 'aria-label': `编辑账号备注：${g.name || g.id} / ${g.id}`, onClick: () => setEditingNote({ id: g.id, draft: providerNote(prefs, g.id) }) }, '账号备注')),
-          editingNote?.id === g.id && h('div', { className: 'dmo-note-editor' },
-            h('label', { className: 'dmo-note-label' }, '账号备注（仅本浏览器保存，勿填密钥）',
-              h('input', { ref: noteInput, type: 'text', className: 'dmo-note-input', maxLength: 120, 'aria-label': `账号备注：${g.id}`, placeholder: '例如：个人账号 / 工作账号 / 备用账号', value: editingNote.draft,
-                onChange: (e) => setEditingNote({ id: g.id, draft: e.target.value }), onKeyDown: (e) => {
-                  if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
-                  if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); saveNote(); }
-                  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setEditingNote(null); search.current?.focus(); }
-                } })),
-            h('div', { className: 'dmo-note-buttons' },
-              h('button', { type: 'button', className: 'dmo-tab', onClick: saveNote }, '保存备注'),
-              h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setEditingNote(null); search.current?.focus(); } }, '取消'))),
-          expanded(g.id) && g.models.map((m) => {
-            const key = modelKey(g.id, m.id);
-            const selected = state.current?.provider === g.id && state.current?.model === m.id;
-            const accountSuffix = providerNote(prefs, g.id) ? `，账号备注 ${providerNote(prefs, g.id)}，服务商 ID ${g.id}` : '';
-            return h('div', { className: 'dmo-row', key, 'data-model-key': key, 'data-highlighted': activeRow?.key === key },
-              h('div', { role: 'button', tabIndex: 0, className: 'dmo-select', 'aria-disabled': busy, 'aria-label': `选择 ${g.name || g.id} 的 ${m.name || m.id}，模型 ID ${m.id}${providerNote(prefs, g.id) ? '，账号备注 ' + providerNote(prefs, g.id) : ''}`, 'aria-pressed': selected, onClick: () => { if (!busy) choose({ provider: g.id, model: m.id }); }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!busy) choose({ provider: g.id, model: m.id }); } } },
-                h('span', { className: 'dmo-check', 'aria-hidden': true }, selected ? '✓' : ''),
-                h('span', { className: 'dmo-copy' }, h('span', { className: 'dmo-name' }, m.name || m.id), ...identity(g, m))),
-              h('div', { className: 'dmo-row-actions' },
-                h('button', { type: 'button', className: 'dmo-favorite', 'aria-pressed': prefs.favorites.includes(key), 'aria-label': `${prefs.favorites.includes(key) ? '取消收藏' : '收藏'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleFavorite(key) }, prefs.favorites.includes(key) ? '★ 已收藏' : '☆ 收藏'),
-                h('button', { type: 'button', className: 'dmo-move', 'aria-label': `${prefs.uncommon.includes(key) ? '移回主列表' : '移至不常用'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleUncommon(key) }, prefs.uncommon.includes(key) ? '移回主列表' : '移至不常用')));
-          }))),
+            h('div', { className: 'dmo-provider-actions' }, noteAction(g), providerAction(g))),
+          expanded(g.id) && g.models.map(m => renderRow(g, m)))),
         state.status !== 'loading' && shown.length === 0 && h('p', { className: 'dmo-empty', role: 'status' }, searching ? '该列表中没有匹配模型。可切换另一个列表继续搜索。' : list === 'favorites' ? '暂无收藏。请在任一列表点击模型旁的“☆ 收藏”。收藏不会改变主列表 / 不常用分类。' : list === 'uncommon' ? '暂无不常用模型。请在主列表点击模型旁的“移至不常用”。' : '主列表暂无模型；已移出的模型可在“不常用”列表中找回。')),
       h('div', { className: 'dmo-current' },
         h('div', null, '当前模型：', currentText),

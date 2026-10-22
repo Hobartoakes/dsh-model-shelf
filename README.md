@@ -4,13 +4,15 @@
 
 > 作者：[Hobartoakes](https://github.com/Hobartoakes) · 许可证：[MIT](LICENSE) · [问题反馈](https://github.com/Hobartoakes/dsh-model-shelf/issues)
 >
-> 源码采用 MIT 公开。预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm，也未被 dsh-market 收录。
+> 源码采用 MIT 公开。历史预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm；dsh-market 收录当前状态本轮未核验，详见下方发布状态。
 
-> 最新发布 **v1.2.0**：思考强度就地检测、**恢复服务商默认**，以及（对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`）逐模型上下文容量。上一个版本 [v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 修复了界面文字无法拖选复制的问题。
+## 1.3.0 · 手动整理与排序
+
+平铺收藏、服务商整组不常用 / 恢复、记住标签页、服务商与收藏手动拖动 / 键盘排序，并保留离线条目的顺序。发布目标：[GitHub Release v1.3.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)。此链接标识发行目标，不代表归档已上传或公开下载已验证；逐项验证与发布门禁见[发布检查清单](docs/RELEASE-CHECKLIST.md)。
 
 ## 演示
 
-以下截图来自离线测试页面，所有服务商、模型名称和 ID 均为演示数据，不包含真实对话、密钥或本机配置。
+以下均为 **1.3.0 之前的历史演示截图**，不代表本版平铺收藏、整组整理与排序界面，也不作为本版安装或 GUI 验收证据。截图来自离线测试页面，所有服务商、模型名称和 ID 均为演示数据，不包含真实对话、密钥或本机配置。
 
 ### 主列表：完整身份与服务商分组
 
@@ -53,7 +55,7 @@
 | 项目 | 已验证范围 |
 | --- | --- |
 | DSH 宿主 | **0.2.1-rc.2**，元数据暂限定这一版本 |
-| 实际环境 | Windows 桌面版 DSH 的现有 Web GUI |
+| 实际环境 | 1.3.0 在 Windows 隔离 DSH_HOME 的真实宿主完成安装 / 禁用 / 重新启用 / 卸载；当前 desktop 安装与现有 GUI 验收另列于发布检查清单 |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
@@ -68,16 +70,16 @@
 
 ## 安装与卸载
 
-无需 npm 账号，直接安装 GitHub Release 的预构建包：
+以下命令使用 **v1.3.0 的目标归档 URL**，不是公开可用性验证声明。安装前请确认 [Release 页面](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)已提供对应附件；上传与公开下载验证状态见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.2.0/dsh-model-shelf-1.2.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.2.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.3.0.tgz" --ignore-scripts
 ```
 
 安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。
@@ -101,7 +103,7 @@ dsh plugin --profile desktop remove dsh-model-shelf
 
 手动切换过标签页后，关开面板与刷新都会恢复上次标签（包括空收藏页）。没有上次标签记录时，才按当前模型所在分类打开；不改变模型分类。
 
-### 整组整理与排序（当前源码，尚未发布）
+### 整组整理与排序（1.3.0）
 
 - 服务商标题旁的“整组移至不常用”覆盖该服务商全部模型（包括以后新增的模型），不删除 API 配置、不切换当前会话模型，也不影响收藏。
 - “恢复服务商”只解除整组覆盖，**保留原来的单模型分类**：此前单独移至不常用的模型仍在不常用。覆盖期间，单模型按钮提示“先恢复服务商”。
@@ -109,7 +111,7 @@ dsh plugin --profile desktop remove dsh-model-shelf
 - 也可用把手旁的 ↑ / ↓ 上移、下移到相邻可见条目，操作后保留同一条目的焦点并朗读新位置；首条不能上移，末条不能下移。
 - 搜索有内容时拖动与上下移均禁用；不支持跨列表拖放。切换标签、改变搜索或源条目离线会取消当前拖动，即使再切回也不会恢复旧拖动。
 - 顺序在当前浏览器刷新后保留。初次按当前目录顺序记录，新发现条目和新收藏追加末尾；取消后重新收藏也追加末尾。暂时离线的身份保留排序记录，恢复后回到保留的位置。整组移入/恢复时，该服务商追加到目标分类末尾，其他服务商相对顺序不变。
-- 以上整理能力仅在当前源码与本地离线浏览器测试中验证，现有 v1.2.0 安装包及上方历史截图不代表已包含这些改动；未安装或启用到当前 DSH GUI。
+- 本版已由控制器运行 42 项单元测试、40 项离线浏览器检查（0 个未捕获页面错误）与 7 项真实隔离 profile 集成检查。隔离环境通过不等于当前 desktop 已安装或现有 GUI 已验收；详细边界见[验证报告](docs/VALIDATION.md)。上方历史截图不代表本版界面。
 
 ### 收藏与账号备注（1.1.0）
 
@@ -191,16 +193,19 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
 - 许可证：MIT，详见 [LICENSE](LICENSE)。
 - npm 包名：`dsh-model-shelf`，首次发布前查询可用性，查询不等于预留。
+- 1.3.0 发布目标：[v1.3.0 Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)。控制器已完成本版构建、发布文件检查、本地打包及隔离 profile 验证；当前 desktop / GUI 与公开发行门禁以[发布检查清单](docs/RELEASE-CHECKLIST.md)为准，不将授权或目标 URL 视为上传 / 发布证据。
 - GitHub Release：[v1.2.0 预构建安装包](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.2.0)，不需要 npm 注册或登录，含思考强度就地检测、恢复服务商默认与逐模型上下文容量；[v1.1.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.1) 修复了界面文字无法拖选复制的问题；[v1.1.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.1.0) 含收藏与账号备注；[v1.0.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.0.0) 为不含这两项功能的历史版本。
-- npm：本项目尚未发布，请勿将裸包名当作可用安装来源。
-- dsh-market：尚未提交收录 PR；发布 Release 不代表已经收录。
+- npm：本项目尚未发布，且不是本版计划发行渠道；请勿将裸包名当作可用安装来源。
+- dsh-market：历史记录中已提交收录 PR [#7630](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7630)，当时尚未合并；本轮未重新核验收录状态，发布 Release 不代表已经收录。
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查发布文件。维护者实际发布前仍需确认授权、npm 登录身份、包名 / 版本可用性及归档内容；发布检查本身不执行上传。干净 profile 的集成验证记录见 [验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查发布文件；该检查本身不执行上传。本版发行渠道为 GitHub Release，维护者需完成清单中的归档、目标环境与公开下载门禁。最终归档 SHA256 记入 Release 说明，不嵌入归档内文档，以免哈希自引用。干净 profile 的集成验证记录见 [验证报告](docs/VALIDATION.md)。
 
 ## English summary
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Tested with DSH **0.2.1-rc.2** on Windows and Microsoft Edge. Other host versions/platforms are unverified. Prebuilt packages are distributed through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. Market listing is a separate process and has not been submitted.
+Version **1.3.0** adds flat Favorites, provider-wide Uncommon override/restore, remembered tabs, and manual drag/button-based keyboard sorting with offline order retention. The controller ran 42 unit tests, 40 offline browser checks (zero uncaught page errors), build/release checks, local packaging, and all 7 real isolated-profile installation lifecycle checks; desktop fingerprints stayed unchanged. The [v1.3.0 release target](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0) and install examples do not assert a verified upload or public download. Exact desktop/live-GUI and publication gates remain in the [release checklist](docs/RELEASE-CHECKLIST.md). npm is not the intended release channel.
+
+Author: **Hobartoakes**. Licensed under **MIT**. Host compatibility remains DSH **0.2.1-rc.2**; historical integration was tested on Windows and Microsoft Edge. Other host versions/platforms are unverified. Historical prebuilt packages are available through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. A market-listing PR was submitted historically; its current status has not been rechecked.

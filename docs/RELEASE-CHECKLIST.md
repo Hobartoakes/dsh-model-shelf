@@ -2,7 +2,27 @@
 
 项目：**dsh-model-shelf / 模型书架**。作者：**Hobartoakes**。许可：**MIT**。
 
-## 已确认与完成
+## 1.3.0 当前发布门禁
+
+- [x] 安装、推送与发布已获用户授权；实际执行由控制器负责，本次仅收尾四份文档。
+- [x] 实现已合入 main（`5efddd0`、`851101d`）；控制器实际运行本版 42 项单元测试与 40 项离线浏览器检查，全部通过，未捕获页面错误为 0。本次文档收尾未重跑。
+- [x] 包版本为 1.3.0；同步 CHANGELOG、README、VALIDATION 与本清单。`engines.dsh` 保持 0.2.1-rc.2，发布检查器的 `SUPPORTED_DSH` 无需变更。
+- [x] README / CHANGELOG 使用正式 1.3.0 标题并说明能力与[发布目标](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)，不声称上传或公开下载已验证；旧截图保留历史模拟数据标签。
+- [x] 控制器完成 1.3.0 构建、发布文件检查及 `npm pack` 本地打包。
+- [x] 控制器运行 `node tests/clean-profile.mjs`，7/7 项真实隔离 profile 安装 / 禁用 / 重新启用 / 卸载检查通过；当前 desktop manifest 与 patch 指纹保持不变。
+- [ ] 文档收尾后由控制器重新打包，完成最终归档内容审查与 SHA256 计算；最终哈希写入 Release 说明，不嵌入归档内文档。
+- [ ] 控制器完成当前 desktop profile 安装；隔离 profile 的通过结果不是 desktop 安装证据。
+- [ ] 控制器刷新现有 GUI 并验收；当前 GUI 浏览器返回 `authentication-required`，须完成鉴权后继续，当前验收仍待完成。不得用离线测试、隔离宿主或历史 GUI 结论替代。
+- [ ] 控制器提交 / 推送本次最终文档与发布改动。
+- [ ] 控制器发布 v1.3.0 Release 并上传最终归档；发布目标 URL 不等于上传完成。
+- [ ] 验证无登录公开下载及其 SHA256 与最终本地归档一致，并验证官方 CLI 从公开 URL 安装。
+- [ ] 各待办有实际证据后补记本清单、验证报告与 Release 说明，必要时同步 README / CHANGELOG；不将授权、文档标题或文件检查标为发布完成。
+
+npm 尚未发布，且**不是本版计划发行渠道**；不把 npm 发布列为本次 GitHub Release 的待完成门禁。下方 npm 相关旧待办仅保留历史证据。
+
+以下旧版完成项和待办是历史证据，不代表 1.3.0 已打包、安装或发布。
+
+## 已确认与完成（历史记录）
 
 - [x] 确认正式名称、作者及 GitHub 仓库地址，补齐 author / repository / homepage / bugs。
 - [x] 用户确认 MIT，添加正式 LICENSE 和版权署名。

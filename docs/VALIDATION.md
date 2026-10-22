@@ -2,14 +2,14 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.2.1**（未发布；本地候选包，兼容 DSH 0.2.1-rc.2），作者 Hobartoakes，MIT。
-- DSH：**0.2.1-rc.2**，Windows 安装版的 Electron CLI。
-- 浏览器：本机 Microsoft Edge，真实浏览器测试。
-- **36 项偏好测试 + 29 项离线浏览器检查 + 7 项干净 profile 检查通过**，0 个未捕获页面错误。
-- 测试没有发起真实模型调用，也没有复制用户凭据。
-- 1.2.1 的宿主兼容性逐项核对见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)；本节末尾的版本小节记录当次范围。
+- 包：**dsh-model-shelf 1.3.0**，作者 Hobartoakes，MIT；已完成本地构建、打包与真实隔离 profile 安装生命周期验证，不代表已公开发行。
+- DSH 兼容声明保持 **0.2.1-rc.2**，不扩大已声明范围；历史宿主核对见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)。
+- 当前实现已合入 main（`5efddd0`、`851101d`）。据控制器本轮执行结果：**42 项单元测试 + 40 项离线浏览器检查通过，未捕获页面错误为 0**；构建、发布文件检查与 `npm pack` 已执行成功。
+- 控制器运行 `node tests/clean-profile.mjs`：**7/7 项通过**，在真实隔离宿主完成安装 / 禁用 / 重新启用 / 卸载，当前 desktop 指纹保持不变。本次文档收尾未重跑测试、构建或安装。
+- **当前 desktop 安装、现有 GUI 验收、公开上传 / 下载及公开 URL 安装仍待完成**。当前 GUI 浏览器返回 `authentication-required`，验收待鉴权后进行；隔离宿主成功不替代当前 GUI 验收。
+- 离线浏览器检查使用模拟目录；历史演示截图不代表 1.3.0 当前界面，不含真实用户数据。
 
-历史版本的范围与数字保留在下方对应小节，未随本次迁移改写。
+下方编号 1–3 节及旧版本小节保留历史验证范围与数字，不是 1.3.0 本轮结果；本版状态见文末 1.3.0 小节。
 
 ## 1. 偏好数据（14 项）
 
@@ -81,7 +81,7 @@ pnpm run test:clean-profile
 pnpm run check:release
 ```
 
-干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。请先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档（当前为 1.2.1）。
+干净 profile 测试当前仅支持 Windows，默认寻找本机 DeepSeek Harness 安装目录与 Edge。可设置 DSH_TEST_INSTALL_DIR 或 DSH_TEST_BROWSER_EXECUTABLE。请先构建并打包；默认读取 dist-draft 下与 package.json 版本一致的本地归档（本轮 1.3.0 本地包已由控制器生成并通过 7/7 项检查；文档收尾后由控制器重新打包，最终归档另行核验）。
 
 ## 尚未验证
 
@@ -152,3 +152,13 @@ node tests/clean-profile.mjs "https://github.com/Hobartoakes/dsh-model-shelf/rel
 - macOS、Linux 和其他 DSH 版本。
 - npm registry 安装与 dsh-market 一键安装（本项目未发布 npm）。
 - 跨公开版本的真实升级流程；1.2.1 尚未发布，本地偏好兼容仅由单元测试覆盖。
+
+## 1.3.0 · 手动整理与排序
+
+- 实现已合入 main：`5efddd0`、`851101d`。本版增加平铺收藏、服务商整组不常用覆盖 / 恢复、标签页记忆、服务商与收藏的拖动 / 键盘按钮排序，以及离线身份顺序保留。
+- 控制器本轮实际运行 **42 项单元测试 + 40 项离线浏览器检查，全部通过，未捕获页面错误为 0**；本版构建、发布文件检查及 `npm pack` 成功。本次文档收尾仅运行发布文件检查与 diff 检查，不重复上述套件。
+- 控制器运行 `node tests/clean-profile.mjs`：**7/7 项真实隔离 profile 集成检查通过**，覆盖安装 / 禁用 / 重新启用 / 卸载；当前 desktop manifest 与 patch 指纹保持不变。这是本版独立执行的结果，不沿用旧版证据。
+- **目标环境待完成**：当前 desktop 安装；刷新现有 GUI 后验收。当前 GUI 浏览器返回 `authentication-required`，验收待完成，不将无法进入页面记为功能通过或失败。
+- **最终归档待完成**：文档收尾后由控制器重新打包，审查最终归档内容并计算 SHA256；最终哈希写入 Release 说明，不嵌入归档内文档，避免自引用。
+- **公开发布待完成**：[v1.3.0 Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0) / 归档上传、无登录公开下载与 SHA256 校验、公开 URL 安装验证。该链接仅为发布目标；npm 尚未发布，也不是本版计划发行渠道。
+- README 的截图为旧版本模拟数据历史图，未更新为 1.3.0 截图，不证明本版当前 GUI 状态。`engines.dsh` 保持 **0.2.1-rc.2**；精确门禁见[发布检查清单](RELEASE-CHECKLIST.md)。

@@ -72,6 +72,64 @@ try {
   const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const rowKeys = () => page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
   const groupIds = () => page.locator('.dmo-group').evaluateAll(rows => rows.map(row => row.dataset.providerId));
+  // The composer owns these inherited variables; exercise the actual built trigger.
+  await reset({ providerNotes: { 'provider-one': '工作账号' } });
+  await page.keyboard.press('Escape'); await settle();
+  const trigger = page.locator('.dmo-trigger');
+  const triggerCopy = trigger.locator('.dmo-trigger-copy');
+  const triggerIcon = trigger.locator('svg');
+  const wideText = '工作账号 · GPT 示例模型（完整名称不截断） · 中';
+  const fullName = 'GPT 示例模型（完整名称不截断） · 工作账号 · 服务商甲 · API 中转（provider-one） / gpt-example-a · 中';
+  assert.equal(await triggerCopy.isVisible(), true);
+  assert.equal(await triggerCopy.innerText(), wideText);
+  assert.equal(await triggerIcon.isVisible(), false);
+  await page.locator('#anchor').evaluate(anchor => {
+    anchor.style.setProperty('--dsh-composer-model-text-display', 'none');
+    anchor.style.setProperty('--dsh-composer-model-icon-display', 'block');
+  });
+  assert.equal(await triggerCopy.isVisible(), false, 'inherited compact mode hides trigger text');
+  assert.equal(await triggerIcon.isVisible(), true, 'inherited compact mode shows a decorative icon');
+  assert.equal(await page.getByRole('button', { name: fullName, exact: true }).count(), 1);
+  assert.equal(await triggerIcon.getAttribute('aria-hidden'), 'true');
+  assert.equal(await triggerIcon.getAttribute('focusable'), 'false');
+  assert.equal(await trigger.getByRole('img').count(), 0);
+  for (const dark of [false, true]) {
+    await page.evaluate(dark => document.body.classList.toggle('dark', dark), dark);
+    assert.equal(await triggerIcon.evaluate(icon => getComputedStyle(icon).stroke === getComputedStyle(icon.parentElement).color), true);
+  }
+  await page.evaluate(() => document.body.classList.remove('dark'));
+  for (const key of ['Enter', 'Space']) {
+    await trigger.focus(); await page.keyboard.press(key);
+    await page.getByRole('dialog', { name: '模型选择器', exact: true }).waitFor({ state: 'visible' });
+    assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.getByRole('searchbox').evaluate(e => e === document.activeElement), true);
+    await page.keyboard.press('Escape'); await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
+    assert.equal(await trigger.evaluate(e => e === document.activeElement), true);
+  }
+  assert.equal(await page.evaluate(() => selected.length), 0);
+  await page.evaluate(() => setState({ current: { provider: 'provider-two', model: 'gpt-example-a' } }));
+  await settle();
+  assert.equal(await page.getByRole('button', { name: 'GPT 示例模型（相同 ID 不同服务商） · 服务商乙 · 官方 API（provider-two） / gpt-example-a', exact: true }).count(), 1);
+  await page.evaluate(() => setState({ current: { provider: 'provider-one', model: 'gpt-example-a', reasoningEffort: 'medium' } }));
+  await settle();
+  await page.locator('#anchor').evaluate(anchor => {
+    anchor.style.setProperty('--dsh-composer-model-text-display', 'block');
+    anchor.style.setProperty('--dsh-composer-model-icon-display', 'none');
+  });
+  assert.equal(await triggerCopy.isVisible(), true);
+  assert.equal(await triggerCopy.innerText(), wideText);
+  assert.equal(await triggerIcon.isVisible(), false);
+  await page.locator('#anchor').evaluate(anchor => {
+    anchor.style.removeProperty('--dsh-composer-model-text-display');
+    anchor.style.removeProperty('--dsh-composer-model-icon-display');
+  });
+  assert.equal(await triggerCopy.isVisible(), true);
+  assert.equal(await triggerCopy.innerText(), wideText);
+  assert.equal(await triggerCopy.evaluate(copy => getComputedStyle(copy).userSelect), 'text');
+  assert.equal(await triggerIcon.isVisible(), false);
+  assert.equal(await page.getByRole('button', { name: fullName, exact: true }).count(), 1);
+  ok('inherited composer compact mode preserves full identity, themed decorative icon, keyboard activation and wide fallback');
+
   const organizationFailures = [];
   const scenario = async (name, run) => {
     try { await run(); ok(name); } catch (error) { organizationFailures.push(`${name}: ${error.message}`); console.error(`FAIL ${name}: ${error.message}`); }

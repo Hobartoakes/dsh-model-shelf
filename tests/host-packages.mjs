@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
@@ -101,6 +101,32 @@ export async function loadClientFactory(file, id, modules, { document } = {}) {
   return result;
 }
 
+// This cache needs no links. Reject pre-existing symlinks/junctions in its
+// ancestors AND contents before any package fetch/read/write/extraction. This
+// is a preflight check, not protection against hostile concurrent path swaps.
+async function assertUnlinkedCache(vendor, cacheDirectory) {
+  let path = vendor;
+  for (const segment of ['', ...cacheDirectory.slice(vendor.length + 1).split(sep)]) {
+    path = join(path, segment);
+    let stat;
+    try { stat = await lstat(path); }
+    catch (error) {
+      if (error.code === 'ENOENT') return; // Remaining descendants do not exist.
+      throw error;
+    }
+    if (stat.isSymbolicLink()) throw new Error(`host fixture cache contains a symbolic link or junction: ${path}`);
+  }
+  const directories = [cacheDirectory];
+  while (directories.length) {
+    const directory = directories.pop();
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw new Error(`host fixture cache contains a symbolic link or junction: ${path}`);
+      if (entry.isDirectory()) directories.push(path);
+    }
+  }
+}
+
 // Options are test seams for isolated cache/network failure cases; neither the
 // registry, package allowlist nor integrity pins can be overridden.
 export async function loadHostPackages(version, { cacheDirectory = cacheRoot, fetch: request = globalThis.fetch } = {}) {
@@ -108,6 +134,7 @@ export async function loadHostPackages(version, { cacheDirectory = cacheRoot, fe
   const vendor = resolve(fileURLToPath(new URL('./vendor/', import.meta.url)));
   cacheDirectory = resolve(cacheDirectory);
   if (!cacheDirectory.startsWith(vendor + sep)) throw new Error('host fixture cache must stay inside tests/vendor');
+  await assertUnlinkedCache(vendor, cacheDirectory);
   const packages = {};
   // Fail before starting another fetch; a failed test never leaves hidden work.
   for (const key of Object.keys(packageNames)) packages[key] = await packageAt(version, key, cacheDirectory, request);

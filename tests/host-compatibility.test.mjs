@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, rmdir, symlink, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import semver from 'semver';
 import { loadHostPackages, loadClientFactory } from './host-packages.mjs';
 
@@ -100,6 +101,85 @@ test('host loader restores loose code from verified cache without network', asyn
 test('host loader cannot redirect its cache outside tests/vendor', async () => {
   await assert.rejects(loadHostPackages('0.2.1-rc.2', { cacheDirectory: resolve(vendorRoot, '..') }), /cache must stay inside tests\/vendor/);
 });
+
+test('host loader creates an ordinary missing cache after link preflight', async t => {
+  const original = await hostFor('0.2.1-rc.2');
+  const cacheDirectory = join(await scratchCache(t), 'fresh', 'cache');
+  const responses = new Map();
+  for (const { root, receipt } of Object.values(original.packages)) {
+    responses.set(`https://registry.npmjs.org/${encodeURIComponent(receipt.name)}/${receipt.version}`, () => Response.json({
+      name: receipt.name, version: receipt.version, dist: { tarball: receipt.url, integrity: receipt.integrity },
+    }));
+    const archive = await readFile(join(dirname(root), 'package.tgz'));
+    responses.set(receipt.url, () => new Response(archive));
+  }
+  const host = await loadHostPackages('0.2.1-rc.2', { cacheDirectory,
+    fetch: async url => { assert.ok(responses.has(url)); return responses.get(url)(); },
+  });
+  assert.deepEqual(new host.slots.SlotCore().spec('root'), { kind: 'single', scope: 'root' });
+  assert.deepEqual(await readdir(cacheDirectory), ['0.2.1-rc.2']);
+});
+
+// Real Windows junctions (directory symlinks elsewhere), not mocked path APIs.
+// The external target is our own empty temporary directory plus a sentinel.
+for (const [label, segments, missingChild = false] of [
+  ['vendor boundary', null],
+  ['cache root', []],
+  ['cache ancestor', [], true],
+  ['version directory', ['0.2.1-rc.2']],
+  ['later package directory', ['0.2.1-rc.2', 'dsh-client-store']],
+  ['unpacked package directory', ['0.2.1-rc.2', 'dsh-client-ui-model-selection', 'package']],
+  ['unpacked library directory', ['0.2.1-rc.2', 'dsh-client-ui-model-selection', 'package', 'lib']],
+  ['cached archive path', ['0.2.1-rc.2', 'dsh-client-ui-model-selection', 'package.tgz']],
+]) {
+  test(`host loader rejects an escaping link at ${label} before fetch or output`, async t => {
+    const scratch = await scratchCache(t);
+    const external = await mkdtemp(join(tmpdir(), 'shelf-containment-'));
+    const sentinel = join(external, 'sentinel.txt');
+    await writeFile(sentinel, 'outside cache: preserve me');
+    let loader = loadHostPackages;
+    let cacheDirectory = join(scratch, 'cache');
+    let link;
+    let linked = false;
+    try {
+      if (segments === null) {
+        // Test the fixed vendor boundary itself without renaming the real cache.
+        const copy = join(scratch, 'host-packages.mjs');
+        await writeFile(copy, await readFile(new URL('./host-packages.mjs', import.meta.url)));
+        loader = (await import(pathToFileURL(copy).href)).loadHostPackages;
+        link = join(scratch, 'vendor');
+        cacheDirectory = join(link, 'hosts');
+      } else {
+        link = join(cacheDirectory, ...segments);
+        if (missingChild) cacheDirectory = join(cacheDirectory, 'not-created');
+      }
+      await mkdir(dirname(link), { recursive: true });
+      await symlink(external, link, process.platform === 'win32' ? 'junction' : 'dir');
+      linked = true;
+      const before = (await readdir(scratch, { recursive: true })).sort();
+      let fetches = 0;
+      const error = await loader('0.2.1-rc.2', { cacheDirectory,
+        fetch: async () => { fetches++; throw new Error('unexpected fetch through escaped cache'); },
+      }).then(() => undefined, error => error);
+      assert.equal(fetches, 0, 'containment rejection must precede all fetches');
+      assert.match(error?.message ?? '', /host fixture cache contains a symbolic link or junction/);
+      assert.deepEqual((await readdir(scratch, { recursive: true })).sort(), before, 'rejection must not create cache output');
+      assert.deepEqual(await readdir(external), ['sentinel.txt']);
+      assert.equal(await readFile(sentinel, 'utf8'), 'outside cache: preserve me');
+    } finally {
+      if (linked) {
+        assert.ok((await lstat(link)).isSymbolicLink());
+        assert.equal(await realpath(link), await realpath(external));
+        await unlink(link); // Remove the link itself, never recursively follow it.
+      }
+      assert.ok(resolve(external).startsWith(resolve(tmpdir()) + sep + 'shelf-containment-'));
+      assert.deepEqual(await readdir(external), ['sentinel.txt'], 'do not delete unexpected external output');
+      assert.equal(await readFile(sentinel, 'utf8'), 'outside cache: preserve me');
+      await unlink(sentinel); // Only the fixture-owned sentinel and now-empty dir.
+      await rmdir(external);
+    }
+  });
+}
 
 const modelSeat = 'conversation.input.model';
 const labelSeat = 'conversation.input.model.label';

@@ -15,7 +15,7 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.3.1**，作者 Hobartoakes，MIT；[GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) 于 2026-10-30 09:43:41（Asia/Shanghai）公开发布，非草稿、非预发布，**未安装到日常环境**。
+- 包：**dsh-model-shelf 1.3.1**，作者 Hobartoakes，MIT；[GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) 于 2026-10-30 09:43:41（Asia/Shanghai）公开发布，非草稿、非预发布。2026-10-30 17:33 经用户要求，通过官方 CLI 将本机日常 desktop profile 从 1.3.0 升级到 1.3.1（当前 DSH 0.2.1-rc.5）：安装后 `node_modules/dsh-model-shelf` 为 1.3.1、客户端 SHA256 与发布字节一致，profile 仅依赖行改为 1.3.1 归档，`bundle` 顺序与 `cordis.patch.yml` 未变，重启 DSH 后加载；Harness 本身未升级。
 - 精确版本 rc.2 / rc.4 / rc.5 / alpha.2（完整版本号见上表）；未测版本不得绕过检查。
 - 控制器独立复跑构建、**128/128** 单测（0 跳过）、**41** 项浏览器检查（0 未捕获页面错误）、发布检查和 `git diff --check`。单元含四版真实边界与安全/发布回归，不把总数当作完整宿主验收数量。Task3 与跨任务最终独立审查均 PASS、无待修问题。
 - 本轮不连接/修改当前 GUI，不复制真实凭据，不发起模型请求或付费探测；日常 GUI 激活未验证，不是本次发布门禁。

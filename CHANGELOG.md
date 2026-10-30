@@ -2,7 +2,8 @@
 
 ## 1.3.1 当前验证（已发布）
 
-- 2026-10-30 公开发布 [v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，非草稿、非预发布；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae) 已推送 main，标签固定指向该提交。未升级日常 Harness 或替换插件安装。
+- 2026-10-30 公开发布 [v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，非草稿、非预发布；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae) 已推送 main，标签固定指向该提交。
+- 2026-10-30 经用户要求，通过官方 CLI 将本机日常 desktop profile 从 1.3.0 升级到 1.3.1（当前 DSH 0.2.1-rc.5）：安装归档 SHA256 与发布字节一致，`bundle` 顺序与 `cordis.patch.yml` 未变，重启 DSH 后加载；Harness 本身未升级。
 - 精确允许 DSH 0.2.1-rc.2、0.2.1-rc.4、0.2.1-rc.5、0.2.2-alpha.2，不使用宽泛版本范围。rc.5 是 2026-10-30 观测到的 latest/next。
 - 保留真实目录、选择和偏好语义；新增官方包边界矩阵、隔离完整 runtime 验证与安全回归。
 - 适配宿主输入栏 `--dsh-composer-model-text-display` / `--dsh-composer-model-icon-display`；紧凑图标保持完整可访问名称、主题颜色、Enter / Space 与宽栏恢复。

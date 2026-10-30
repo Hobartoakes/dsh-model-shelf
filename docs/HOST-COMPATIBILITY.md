@@ -2,7 +2,7 @@
 
 ## 1.3.1 当前验证（已发布）
 
-精确白名单：`0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2`。[v1.3.1 已公开发布](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，未安装到日常环境；未来版本必须重新验证，不授予版本豁免。
+精确白名单：`0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2`。[v1.3.1 已公开发布](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，并于 2026-10-30 安装到日常 desktop（DSH 0.2.1-rc.5，重启后加载）；未来版本必须重新验证，不授予版本豁免。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |

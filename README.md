@@ -8,7 +8,7 @@
 
 ## 1.3.1 当前验证（已发布）
 
-已公开发布 [GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)（非草稿、非预发布），**未升级 Harness、未替换日常插件安装**。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 核验的官方 latest/next 为 0.2.1-rc.5；不自动接受以后版本。
+已公开发布 [GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)（非草稿、非预发布），并于 2026-10-30 通过官方 CLI 安装到本机日常 desktop profile（DSH **0.2.1-rc.5**，重启 DSH 后加载）；Harness 本身未升级。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 核验的官方 latest/next 为 0.2.1-rc.5；不自动接受以后版本。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -68,7 +68,7 @@
 | 项目 | 已验证范围 |
 | --- | --- |
 | DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2**，仅精确四版 |
-| 实际环境 | 当前 1.3.1 隔离 Windows/Edge 验证层级见上表及验证报告；未安装到日常环境，不声明当前 GUI 验收 |
+| 实际环境 | 2026-10-30 已安装到日常 desktop profile（DSH 0.2.1-rc.5），重启 DSH 后生效；不声明当前 GUI 交互验收 |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
@@ -83,16 +83,16 @@
 
 ## 安装与卸载
 
-以下命令使用 **v1.3.0 已发布的公开归档 URL**。控制器已验证无登录下载 HTTP 200、归档哈希一致及官方 CLI 从该 URL 的隔离安装生命周期；详见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
+以下命令使用 **v1.3.1 已发布的公开归档 URL**。控制器已验证无登录下载 HTTP 200、归档哈希一致及官方 CLI 从该 URL 的隔离安装生命周期；详见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.0/dsh-model-shelf-1.3.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.3.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.3.1.tgz" --ignore-scripts
 ```
 
 安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。
@@ -202,7 +202,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## 发布状态
 
-- **当前 1.3.1：已公开发布，未安装到日常环境**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
+- **当前 1.3.1：已公开发布，已安装到本机日常 desktop profile（重启 DSH 后生效）**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过；2026-10-30 通过官方 CLI 从本地已验证归档升级日常 desktop（1.3.0 → 1.3.1，DSH 0.2.1-rc.5），安装后客户端哈希与发布字节一致，bundle 顺序与 cordis patch 未变。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
 
 - 作者：Hobartoakes。
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。

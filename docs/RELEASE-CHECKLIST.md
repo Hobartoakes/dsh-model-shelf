@@ -12,9 +12,10 @@
 - [x] Task3 与最终跨任务独立审查均 PASS、0 待修问题；32 个归档文件无 fixture/cache/凭据，源码与构建身份核验通过。
 - [x] [发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae) 已推送 main；[v1.3.1 Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) 非草稿、非预发布，上传的是上述已验证字节。
 - [x] 无登录公开下载 HTTP 200、297213 字节、SHA256 一致；[校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS) 亦通过匿名下载。公开 URL 在 rc.5 与 alpha.2 的隔离生命周期各 8/8、共 8 阶段零页面/控制台错误、24 个 owned 进程关闭。
-- [x] 发布后源码文档记录；不替换既有 1.3.0 / 1.3.1 归档或移动标签，不自动升级日常安装。
+- [x] 发布后源码文档记录；不替换既有 1.3.0 / 1.3.1 归档或移动标签。
+- [x] 2026-10-30 经用户明确要求，通过官方 CLI 将 v1.3.1 安装到本机日常 desktop profile（DSH 0.2.1-rc.5）：依赖行指向 1.3.1 归档、安装后版本与客户端哈希匹配发布字节，`bundle` 顺序与 `cordis.patch.yml` 未变；重启 DSH 后加载，Harness 未升级。
 
-完整 runtime 生命周期是停止/重启后验收，不是同一进程热卸载；偏好证据是同源 reload，不是跨端口保留。当前版本已发布但未安装到日常环境。最终归档 SHA256 为 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；本次仅补发布后源码记录，不重新打包，所以归档仍保留打包时的未发布文档。公开 URL 验证与发布不是发布检查器执行的行为。各层证据见[验证报告](VALIDATION.md)。
+完整 runtime 生命周期是停止/重启后验收，不是同一进程热卸载；偏好证据是同源 reload，不是跨端口保留。当前版本已发布，并已安装到日常 desktop（重启后生效）。最终归档 SHA256 为 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；本次仅补发布后源码记录，不重新打包，所以归档仍保留打包时的未发布文档。公开 URL 验证与发布不是发布检查器执行的行为。各层证据见[验证报告](VALIDATION.md)。
 
 ## 1.3.0 历史发布门禁
 

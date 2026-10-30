@@ -6,7 +6,20 @@
 >
 > 源码采用 MIT 公开。当前及历史预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm；dsh-market 收录当前状态本轮未核验，详见下方发布状态。
 
-## 1.3.0 · 手动整理与排序
+## 1.3.1 当前验证（未发布）
+
+本地发布候选，**未发布、未安装到日常环境**。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 官方 latest/next 为 0.2.1-rc.5；这只是当时观测，不自动接受以后版本。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+
+三层证据不可互相替代：真实边界加载官方发布的目录/slot/store/renderer；离线 UI 使用合成目录；完整 runtime 已以同一 pilot 在各版官方构建前端各 8/8 通过。文档完成后的重打包字节仍由控制器独立复核后重跑最终矩阵；表中 PASS 不冒充最终归档或日常 GUI 验收。详细限制和实际状态见[验证报告](docs/VALIDATION.md)。精确白名单拒绝 rc.3、rc.6、正式 0.2.1 / 0.2.2 及未知未来版本。
+
+## 1.3.0 · 手动整理与排序（历史发布证据）
 
 平铺收藏、服务商整组不常用 / 恢复、记住标签页、服务商与收藏手动拖动 / 键盘排序，并保留离线条目的顺序。已公开发布：[GitHub Release v1.3.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0)（非草稿、非预发布）。无登录公开下载、哈希校验与公开 URL 隔离安装验证已通过；实际 desktop 已升级，当前 GUI 激活 / 交互验收仍待鉴权。逐项证据见[发布检查清单](docs/RELEASE-CHECKLIST.md)。
 
@@ -54,15 +67,15 @@
 
 | 项目 | 已验证范围 |
 | --- | --- |
-| DSH 宿主 | **0.2.1-rc.2**，元数据暂限定这一版本 |
-| 实际环境 | 1.3.0 公开 URL 在 Windows 隔离 DSH_HOME 完成安装 / 禁用 / 重新启用 / 卸载；实际 desktop 已从 1.2.1 升级，现有 GUI 激活 / 交互验收仍待完成 |
+| DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2**，仅精确四版 |
+| 实际环境 | 当前 1.3.1 隔离 Windows/Edge 验证层级见上表及验证报告；未安装到日常环境，不声明当前 GUI 验收 |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
 | 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名按纯文本显示，不带宿主自带的 1017 徽标。理由见下文 |
 | 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
-尚未验证其他 DSH 版本、macOS 或 Linux。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
+仅允许上列四个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
 
 0.2.1 起，宿主自己也往这个座位里填一个官方选择器（priority `0`），并声明 `conversation.input.model.label` 子插槽给模型名加徽标。本插件以更低的 priority 胜出，因此整张座位（包括模型名的渲染）由本插件负责。
 
@@ -111,7 +124,7 @@ dsh plugin --profile desktop remove dsh-model-shelf
 - 也可用把手旁的 ↑ / ↓ 上移、下移到相邻可见条目，操作后保留同一条目的焦点并朗读新位置；首条不能上移，末条不能下移。
 - 搜索有内容时拖动与上下移均禁用；不支持跨列表拖放。切换标签、改变搜索或源条目离线会取消当前拖动，即使再切回也不会恢复旧拖动。
 - 顺序在当前浏览器刷新后保留。初次按当前目录顺序记录，新发现条目和新收藏追加末尾；取消后重新收藏也追加末尾。暂时离线的身份保留排序记录，恢复后回到保留的位置。整组移入/恢复时，该服务商追加到目标分类末尾，其他服务商相对顺序不变。
-- 本版已由控制器运行 42 项单元测试、40 项离线浏览器检查（0 个未捕获页面错误）；本地归档及公开 URL 的真实隔离 profile 集成检查均为 7/7 通过。实际 desktop 已通过官方 CLI 从 1.2.1 升级至 1.3.0，客户端哈希与源码构建产物一致；仅本插件 dependency 改变，bundle 顺序与 patch 不变。当前 GUI 浏览器返回 `authentication-required`，激活 / 交互验收仍待完成；详细边界及既有无关插件警告见[验证报告](docs/VALIDATION.md)。上方历史截图不代表本版界面。
+- **1.3.0 历史证据**：当时由控制器运行 42 项单元测试、40 项离线浏览器检查（0 个未捕获页面错误）；本地归档及公开 URL 的真实隔离 profile 集成检查均为 7/7 通过。实际 desktop 已通过官方 CLI 从 1.2.1 升级至 1.3.0，客户端哈希与源码构建产物一致；仅本插件 dependency 改变，bundle 顺序与 patch 不变。当前 GUI 浏览器返回 `authentication-required`，激活 / 交互验收仍待完成；详细边界及既有无关插件警告见[验证报告](docs/VALIDATION.md)。上方历史截图不代表本版界面。
 
 ### 收藏与账号备注（1.1.0）
 
@@ -181,13 +194,15 @@ pnpm pack --pack-destination dist-draft
 
 `test:browser` 使用离线 HTML 和模拟目录，不启动 DSH 服务器，也不发起真实模型调用。Windows 默认使用已安装的 Edge；其他平台默认尝试已安装的 Chrome。可通过 `DSH_TEST_BROWSER_EXECUTABLE` 指定浏览器程序路径；若当前环境不允许由测试自行拉起浏览器，可用 `DSH_TEST_CDP_URL=http://127.0.0.1:9222` 挂到已用 `--remote-debugging-port` 启动的浏览器上运行同一套检查。其他平台运行测试不等于已验证其 DSH 宿主集成。
 
-另有显式执行的 `pnpm run test:clean-profile`，在 Windows 上用独立 DSH_HOME 和随机本地端口启动临时测试宿主，验证安装 / 禁用 / 重新启用 / 卸载；不替换当前 GUI，结束后停止测试进程。详见 [验证报告](docs/VALIDATION.md)。
+另有显式执行的 `pnpm run test:clean-profile`：用 `DSH_TEST_CLI_ENTRY` + `DSH_TEST_NODE_EXECUTABLE` 指定预装官方 runtime，`DSH_TEST_EXPECTED_VERSION` 核对实际版本，`DSH_TEST_ACTIVE_ORIGIN` 保护日常 GUI。Windows Desktop 默认入口保留。每次隔离 DSH_HOME、DSH_AGENTS_HOME、cwd/user/configs，以 loopback:0/no-open 验证完整生命周期、原生回退、真实目录数据流与浏览器偏好；finally 等待进程退出并检查受保护文件。测试 provider 只有合成元数据，不调用模型。详见[验证报告](docs/VALIDATION.md)。
 
 React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复用 DSH 的 React，不附带第二份 React。
 
 构建是显式步骤，不设置安装期构建钩子。发布前必须重新构建、运行测试，并检查归档内容。
 
 ## 发布状态
+
+- **当前 1.3.1：未发布本地候选，未安装到日常环境**。控制器将独立复核、验证最终归档四版矩阵后发布精确字节，再验证公开 URL；下列 1.3.0 结果为不可改写的历史记录，不是 1.3.1 的发布证据。
 
 - 作者：Hobartoakes。
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
@@ -201,12 +216,14 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查发布文件；该检查本身不执行上传。本版发行渠道为 GitHub Release。**发布后记录**：已发布归档不可变，包含较早的打包时状态文字；本次源码文档更新不替换归档、不移动标签。不计划重新打包，因此最终 SHA256 可记录在源码文档中，不产生归档哈希自引用。当前 GUI 验收仍待鉴权，干净 profile 的集成验证记录见[验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。1.3.1 最终归档 SHA256 保留在包外报告，发布后再记录公开下载证据，避免自引用；历史 1.3.0 归档和标签不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
 
 ## English summary
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Version **1.3.0** adds flat Favorites, provider-wide Uncommon override/restore, remembered tabs, and manual drag/button-based keyboard sorting with offline order retention. [v1.3.0 is published](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0), non-draft and non-prerelease; release commit `42760acc4b47c0f392ec6ccf482dd594ac450761` was pushed to main and the tag. The controller passed 42 unit tests, 40 offline browser checks (zero uncaught page errors), and 7/7 isolated-profile lifecycle checks for both the local archive and public URL. Unauthenticated download returned HTTP 200 with the matching archive hash; desktop fingerprints stayed unchanged during isolated testing. The actual desktop was separately upgraded from 1.2.1 to 1.3.0 through the official CLI, with a matching client hash and only this plugin dependency changed (bundle order and patch unchanged). Live-GUI activation/interaction acceptance remains pending because the browser requires authentication. The published archive retains its packaging-time documentation: these post-release source-doc updates do not replace the archive or tag, and no repack is planned. See the [release checklist](docs/RELEASE-CHECKLIST.md). npm remains unpublished and is not the intended release channel.
+Version **1.3.1** is an **unpublished local candidate**, not installed into the daily profile. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5 and 0.2.2-alpha.2**. Native boundary tests, offline UI tests and full-runtime checks are distinct evidence tiers; see the current table and [validation report](docs/VALIDATION.md). New composer compact mode retains the complete accessible name and keyboard activation. No model calls, paid probes or real credentials are used. Independent review, final-byte runtime matrix, release and public-URL installation remain separate controller gates.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Host compatibility remains DSH **0.2.1-rc.2**; historical integration was tested on Windows and Microsoft Edge. Other host versions/platforms are unverified. Historical prebuilt packages are available through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. A market-listing PR was submitted historically; its current status has not been rechecked.
+**Historical 1.3.0 evidence:** Version **1.3.0** adds flat Favorites, provider-wide Uncommon override/restore, remembered tabs, and manual drag/button-based keyboard sorting with offline order retention. [v1.3.0 is published](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0), non-draft and non-prerelease; release commit `42760acc4b47c0f392ec6ccf482dd594ac450761` was pushed to main and the tag. The controller passed 42 unit tests, 40 offline browser checks (zero uncaught page errors), and 7/7 isolated-profile lifecycle checks for both the local archive and public URL. Unauthenticated download returned HTTP 200 with the matching archive hash; desktop fingerprints stayed unchanged during isolated testing. The actual desktop was separately upgraded from 1.2.1 to 1.3.0 through the official CLI, with a matching client hash and only this plugin dependency changed (bundle order and patch unchanged). Live-GUI activation/interaction acceptance remains pending because the browser requires authentication. The published archive retains its packaging-time documentation: these post-release source-doc updates do not replace the archive or tag, and no repack is planned. See the [release checklist](docs/RELEASE-CHECKLIST.md). npm remains unpublished and is not the intended release channel.
+
+Author: **Hobartoakes**. Licensed under **MIT**. Current admission is the exact four-version matrix above; historical 1.3.0 admission was only DSH **0.2.1-rc.2**. Integration is Windows/Microsoft Edge only; other platforms and unlisted host versions are unverified. Historical prebuilt packages are available through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. A market-listing PR was submitted historically; its current status has not been rechecked.

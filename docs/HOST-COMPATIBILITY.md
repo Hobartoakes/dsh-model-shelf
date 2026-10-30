@@ -1,4 +1,27 @@
-# DSH 0.2.0-rc.2 → 0.2.1-rc.2 宿主兼容性核对
+# 宿主兼容性核对
+
+## 1.3.1 当前验证（未发布）
+
+精确白名单：`0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2`。本地候选未发布、未安装到日常环境；未来版本必须重新验证，不授予版本豁免。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+
+真实边界运行各版官方发布的 model-selection / slots / store / renderer 包；下载固定官方 URL，校验 SHA-512 后执行未改写代码，拒绝损坏缓存和链接越界。rc.5 四包元数据于 2026-10-30 核对，peer Cordis 均为 `~4.0.5`，沿用已固定的 `4.0.5`；alpha 使用 `4.0.6-alpha.1`。RPC 和持久化投影在该层是测试数据，不冒充完整宿主。
+
+覆盖真实目录实例共享、完整 provider/model/effort 身份、失败重试、重连后的迟到结果、目录缺失/恢复、子代理限制、两种注册顺序、slot 声明/释放及会话释放。离线浏览器另验证两个 composer CSS 变量、完整可访问名称、Enter / Space、浅深主题及宽栏回退；它不代表各版本前端运行。
+
+完整 runtime 已以同一 pilot 归档各版 8/8 通过；重打包后的最终字节矩阵留给控制器独立复核后重跑，不混同两者。使用隔离的官方 CLI/内置前端与真实 RPC/目录/Session/slots；无凭据目录本来为空，因此仅外部 LLM adapter 的模型元数据可使用明确标记的 TEST ONLY fixture，stream fail-closed，不替换宿主或目录。禁用/启用是停止测试 server、修改隔离 patch、重启后的真实状态验收，不证明同一进程热卸载；偏好保持是同源 reload，不是换端口持久化。逐版实际结果、限制和复现命令见[验证报告](VALIDATION.md)。
+
+仍有意不声明 `conversation.input.model.label`；最低 priority `-100` 与原生 `0` 共存，禁用/卸载后回退原生。macOS/Linux、真实模型请求、WorkBuddy 付费探测和日常 GUI 激活均不是本轮验收。
+
+## 历史：DSH 0.2.0-rc.2 → 0.2.1-rc.2
+
+**以下至文末为当时迁移的历史原始记录，版本/安装/数字均不描述 1.3.1 当前状态。**
 
 本文记录把 dsh-model-shelf 从 DSH **0.2.0-rc.2** 迁到 **0.2.1-rc.2** 时逐项核对的契约，以及一处**有意不做**的适配。
 

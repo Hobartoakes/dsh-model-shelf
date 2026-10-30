@@ -1,6 +1,61 @@
 # 验证报告
 
+## 1.3.1 当前验证（未发布）
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+
+真实边界是各版固定完整性校验的官方目录/slots/store/renderer；RPC/投影边界合成。离线 UI 是相同插件构建物的模拟目录浏览器回归，并非四版前端。完整 runtime 已以**同一 pilot 归档**在各版官方 built frontend 各通过 **8/8**；16 个阶段页面/控制台错误均为 **0**，模型 stream 为 **0**。覆盖安装、禁用、重新启用、卸载、原生回退、真实选择/实时目录刷新、收藏备注/刷新保持、紧凑控制/键盘/宽栏恢复。先完成 rc.2，再扩展四版；失败诊断保留，不伪装跳过或成功。
+
+**归档身份边界：**上表证明经过验收的 pilot 与同一客户端构建物；本轮随后更新文档并重打包，因此最终归档字节不同，不冒称已验收最终归档。最终 SHA256、pilot SHA256、源码逐文件身份、逐版 evidence 路径和失败历史放在包外报告。控制器将在独立审查后重跑最终包四版矩阵，再发布精确字节和验证公开 URL。
+
 ## 范围与结果
+
+- 包：**dsh-model-shelf 1.3.1**，作者 Hobartoakes，MIT；本地候选**未发布、未安装到日常环境**。
+- 精确版本 rc.2 / rc.4 / rc.5 / alpha.2（完整版本号见上表）；未测版本不得绕过检查。
+- 2026-10-30 本轮构建通过；完整单元 **128/128**（0 跳过），离线浏览器 **41** 项、未捕获页面错误 **0**，发布文件检查和 `git diff --check` 通过。单元包含四版真实边界与安全/发布回归，不把总数当作四版完整宿主验收数量。
+- 本轮不连接/修改当前 GUI，不复制真实凭据，不发起模型请求或付费探测。日常 GUI 激活、公开发布/下载、公开 URL 安装均待控制器后续另行验证。
+- 当前构建物源自 Task1/2 已审查的 BASE `5ffa023ad88e64a579e58fbb24c3a305f5da7127` 加 Task3 工作树；最终包与 pilot 的具体身份仅存于包外报告，打包后不可假定为相同字节。
+
+### 本轮隔离方法
+
+完整 runtime 已预装在专用目录，不改日常 Harness。设置 `DSH_TEST_CLI_ENTRY`、`DSH_TEST_NODE_EXECUTABLE`、`DSH_TEST_EXPECTED_VERSION` 与 `DSH_TEST_ACTIVE_ORIGIN` 后运行 `node tests/clean-profile.mjs <archive>`。未指定显式 carrier 时保留 Windows Desktop 默认；两个入口参数必须一起给。可选 `DSH_TEST_INSTALL_DIR`、`DSH_TEST_BROWSER_EXECUTABLE`。版本来自真实 `--version`，显式 runtime 另校验 CLI/app-boot/web-app/frontend manifest。
+
+每次创建独立 DSH_HOME、DSH_AGENTS_HOME、user home、空 cwd、npm 配置、store、cache 和 tmp，环境从零 allowlist 建立。清除继承的 DSH/Node/Electron/代理/凭据；所有安装脚本禁用。Edge 的 Windows known-folder 查找必须保留实际 USERPROFILE，仅浏览器这一项例外，Host/CLI 仍完全隔离；浏览器使用显式新建 user-data-dir，CDP 核实路径，不接触个人浏览器资料。服务只绑定 loopback:0、no-open；启动认证 URL/token 留在内存并脱敏，不写入证据。
+
+无凭据 profile 的真实模型目录为空，所以测试仅插入标明 TEST ONLY 的外部 LlmAdapter 元数据，模型 stream 拒绝执行并计数，真实宿主目录/RPC/Session/slots 与官方前端保持原样。独立 Documents 配置防止默认工作区落入真实用户目录。**生命周期采用重启验收**：安装/卸载走官方 CLI；停止已拥有的测试 server 后写隔离 profile 的 disabled patch，再启动检查禁用/重新启用状态。每阶段使用新的随机 origin，不声称同一进程 live hot-unmount；收藏/备注和当前选择只验证同源页面 reload 保持，不把不同端口重新填写当成跨重启持久化。热生命周期的边界/离线测试是另一层证据。进程按 owned handle/PID/executable/创建时间/入口校验后关闭并等真实 exit/close，确认监听已关闭；finally 无论成功失败都检查日常 desktop manifest/patch 指纹。该证明仅覆盖这两个文件，不扩大为整个日常 profile 未变。
+
+### 本轮复现与发布边界
+
+先构建/打包，再按精确版本逐一运行。同一套环境参数适用于 `0.2.1-rc.2`、`0.2.1-rc.4`、`0.2.1-rc.5`、`0.2.2-alpha.2`。pnpm 11 `pack` 不接收 `--ignore-scripts` CLI 选项；通过 `npm_config_ignore_scripts=true` 禁止生命周期，使用明确 Node + pnpm.mjs。
+
+```powershell
+# working directory: C:/Users/13015/Documents/deepseek-harness/default-workspace/dsh-model-shelf
+$node = 'C:/Users/13015/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe'
+$pnpm = 'C:/Users/13015/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/pnpm/bin/pnpm.mjs'
+& $node scripts/build.mjs
+& $node --test tests/*.test.mjs
+& $node tests/browser.mjs
+$env:npm_config_ignore_scripts = 'true'
+& $node $pnpm pack --pack-destination dist-draft
+$env:DSH_TEST_CLI_ENTRY = 'C:/Users/13015/Documents/deepseek-harness/default-workspace/.model-shelf-compat/runtimes/0.2.1-rc.2/runtime-cli.mjs'
+$env:DSH_TEST_NODE_EXECUTABLE = $node
+$env:DSH_TEST_EXPECTED_VERSION = '0.2.1-rc.2'
+$env:DSH_TEST_ACTIVE_ORIGIN = 'http://127.0.0.1:59983'
+& $node tests/clean-profile.mjs dist-draft/dsh-model-shelf-1.3.1.tgz
+& $node scripts/check-release.mjs
+git diff --check
+```
+
+macOS/Linux、真实账号/模型请求、跨公开版本升级、npm/market 安装、日常 GUI 均未在本轮验证。独立审查后由控制器重跑最终字节的四版矩阵、发布、验证公开 URL，再写发布后状态。以下旧记录只证明对应历史版本。
+
+## 历史 1.3.0 范围与结果
+
+**以下至文末保留对应版本的历史证据与当时未完成项，不描述 1.3.1 当前状态。**
 
 - 包：**dsh-model-shelf 1.3.0**，作者 Hobartoakes，MIT；已公开发布 GitHub Release（非草稿、非预发布），完成公开下载校验、公开 URL 隔离安装生命周期验证及实际 desktop 升级。
 - DSH 兼容声明保持 **0.2.1-rc.2**，不扩大已声明范围；历史宿主核对见 [HOST-COMPATIBILITY.md](HOST-COMPATIBILITY.md)。

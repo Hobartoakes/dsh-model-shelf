@@ -1,13 +1,15 @@
 # 版本记录
 
-## 1.3.1 当前验证（未发布）
+## 1.3.1 当前验证（已发布）
 
-- 本地发布候选，未发布、未安装到日常环境；发布、公开下载与公开 URL 安装由控制器在独立审查后另行记录。
+- 2026-10-30 公开发布 [v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，非草稿、非预发布；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae) 已推送 main，标签固定指向该提交。未升级日常 Harness 或替换插件安装。
 - 精确允许 DSH 0.2.1-rc.2、0.2.1-rc.4、0.2.1-rc.5、0.2.2-alpha.2，不使用宽泛版本范围。rc.5 是 2026-10-30 观测到的 latest/next。
 - 保留真实目录、选择和偏好语义；新增官方包边界矩阵、隔离完整 runtime 验证与安全回归。
 - 适配宿主输入栏 `--dsh-composer-model-text-display` / `--dsh-composer-model-icon-display`；紧凑图标保持完整可访问名称、主题颜色、Enter / Space 与宽栏恢复。
 - 运行器支持显式 Node/CLI 入口，校验实际 runtime，隔离 DSH/agents/home/cwd/npm 配置，保护日常 GUI，finally 核对受保护指纹并等待 owned 进程退出；当前版收藏与备注不再被旧 1.1.0 条件跳过。
-- 构建、完整单元 128/128、离线浏览器 41 项/0 页面错误、发布检查与 diff 检查通过。四版同一 pilot 完整 runtime 各 8/8 通过，16 个阶段无页面/控制台错误，模型 stream 为 0；重打包后的最终字节矩阵待控制器独立复核后重跑。本轮结果按真实边界、离线 UI、完整 runtime 分层记录于[验证报告](docs/VALIDATION.md)，不继承下方 1.3.0 的发布、日常安装或验收结论。
+- 控制器独立复跑构建、128/128 单测、41 项浏览器检查（0 页面错误）、发布与 diff 检查；两项最终独立审查均通过，0 待修问题。最终归档四版完整 runtime 各 8/8 通过，16 个阶段无页面/控制台错误，模型 stream 为 0，48 个 owned 进程均退出关闭、保护文件指纹不变。
+- 公开归档 **297213 字节 / 32 个文件**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；不带 Authorization/Cookie 的公开下载 HTTP 200、大小与哈希一致。公开 URL 在 rc.5、alpha.2 的独立安装生命周期各 **8/8** 通过，非仅上传成功。
+- 本次为发布后的源码文档记录，不重新打包、替换归档或移动标签；归档中保留打包时的未发布状态。详细分层、身份及限制见[验证报告](docs/VALIDATION.md)，不继承下方 1.3.0 的日常安装或验收结论。
 
 ## 1.3.0 · 手动整理与排序
 

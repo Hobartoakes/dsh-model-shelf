@@ -24,7 +24,7 @@
 - 联网包仅从官方 registry 下载并校验 integrity；测试依赖安装关闭安装脚本。宿主临时启动只用于经确认的隔离测试，使用随机本地端口，不替换当前 GUI，退出时清理进程。
 - 各版本的实现、边界测试、完整隔离宿主、当前 GUI 验收、安装与发布分别记录；某一层未完成必须明确标注，不能放宽版本声明来绕过失败。
 
-## 已取得证据
+## 规划时取得的证据（2026-10-29 历史快照）
 
 - 本机 Desktop runtime 清单是 0.2.1-rc.2；已装模型书架 1.3.0 的 `engines.dsh` 精确限定 rc.2。
 - 2026-10-29 官方 npm dist-tags：latest=rc.2，next=rc.4，alpha=alpha.2；用户据此选择三版兼容。
@@ -74,23 +74,24 @@
 
 **Interfaces:** 消费 Task 1/2 的构建物；新增最新 rc.5 的真实边界和准入，再产出四版完整隔离报告和草稿包。
 
-- [ ] 复用既有真实边界框架，核对 rc.5 官方包与依赖、固定完整性；先观察 rc.5 准入 RED，再加入实际边界测试及准入。保留旧三版，拒绝未测 rc.6 等未来版本。
-- [ ] 将草稿版本更新为 1.3.1；`engines.dsh` 使用四版的显式 OR 白名单。发布检查逐一核对目标版本、打包文件和本轮文档，不把仅改声明当修复。
-- [ ] `tests/clean-profile.mjs` 允许通过 `DSH_TEST_CLI_ENTRY` 与 `DSH_TEST_NODE_EXECUTABLE` 指定隔离 CLI；未指定仍保留 Windows Desktop 默认。检测实际 runtime 版本，写入结果；拒绝使用当前 GUI 端口，全部进程 finally 关闭。
-- [ ] 复用已准备的原三版官方 runtime，另行准备 rc.5；不安装到当前 profile。每版单独 DSH_HOME 与 DSH_AGENTS_HOME、随机 loopback 端口、无凭据，验证安装/启动/禁用/重新启用/卸载、原生回退与真实目录数据流；先验证 rc.2，再扩展四版。
-- [ ] 如测试环境不允许完整宿主启动，停止宣称该层通过，保留代码和失败原因，向用户明确剩余验收，不自动给版本豁免。
-- [ ] 运行 `node scripts/build.mjs`、`node --test tests/*.test.mjs`、`node tests/browser.mjs`、四版隔离集成命令、`node scripts/check-release.mjs`、`git diff --check`。
-- [ ] 用 pnpm 打包至 `dist-draft/`，核对内容与 SHA256。文档按当时真实状态标注待发布/未安装到日常环境，区分四版证据层级。
-- [ ] 经所选执行方式完成独立复核，修复实证发现；lead 统一提交、推送到 Hobartoakes/dsh-model-shelf，发布 v1.3.1 GitHub Release 与预构建归档。
-- [ ] 验证无登录公开下载、SHA256 与发布归档一致、公开 URL 隔离安装；然后记录最终发布状态。不得覆盖既有 1.3.0 归档、移动旧标签或自动切换日常安装。
+- [x] 复用既有真实边界框架，核对 rc.5 官方包与依赖、固定完整性；先观察 rc.5 准入 RED，再加入实际边界测试及准入。保留旧三版，拒绝未测 rc.6 等未来版本。
+- [x] 将草稿版本更新为 1.3.1；`engines.dsh` 使用四版的显式 OR 白名单。发布检查逐一核对目标版本、打包文件和本轮文档，不把仅改声明当修复。
+- [x] `tests/clean-profile.mjs` 允许通过 `DSH_TEST_CLI_ENTRY` 与 `DSH_TEST_NODE_EXECUTABLE` 指定隔离 CLI；未指定仍保留 Windows Desktop 默认。检测实际 runtime 版本，写入结果；拒绝使用当前 GUI 端口，全部进程 finally 关闭。
+- [x] 复用已准备的原三版官方 runtime，另行准备 rc.5；不安装到当前 profile。每版单独 DSH_HOME 与 DSH_AGENTS_HOME、随机 loopback 端口、无凭据，验证安装/启动/禁用/重新启用/卸载、原生回退与真实目录数据流；先验证 rc.2，再扩展四版。
+- [x] 如测试环境不允许完整宿主启动，停止宣称该层通过，保留代码和失败原因，向用户明确剩余验收，不自动给版本豁免。
+- [x] 运行 `node scripts/build.mjs`、`node --test tests/*.test.mjs`、`node tests/browser.mjs`、四版隔离集成命令、`node scripts/check-release.mjs`、`git diff --check`。
+- [x] 用 pnpm 打包至 `dist-draft/`，核对内容与 SHA256。文档按当时真实状态标注待发布/未安装到日常环境，区分四版证据层级。
+- [x] 经所选执行方式完成独立复核，修复实证发现；lead 统一提交、推送到 Hobartoakes/dsh-model-shelf，发布 v1.3.1 GitHub Release 与预构建归档。
+- [x] 验证无登录公开下载、SHA256 与发布归档一致、公开 URL 隔离安装；然后记录最终发布状态。不得覆盖既有 1.3.0 归档、移动旧标签或自动切换日常安装。
 
 ## 交接与权限（2026-10-30 更新）
 
 - 用户已确认 C（三版目标）、B（委派实施/复核），追加全权负责、无需提问、文档更新和发布授权，并于 2026-10-30 明确要求继续。
-- 源码当前检查点：`compat/harness-matrix@5ffa023`；上游 main 仍为基线 `ed58827`，尚未推送或发布本次版本。
+- 发布代码固定于 [d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)，已推送 main 并发布 [v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)；后续仅补源码文档，不移动发布标签或重打包。
 - Task 1 已完成：`61933fe` 增加真实宿主边界和准入测试；`b0dacd1` 修复独立审查发现的 Windows 联接缓存越界。独立规格、质量复核均通过。
 - Task 2 已完成：`5ffa023` 实现折叠图标和完整可访问名称，独立规格、质量审查均通过。2026-10-29 lead 执行记录为构建通过、101/101 单测、41 项浏览器检查、0 页面错误。
-- 三版完整官方 runtime 已在隔离目录准备，CLI/版本检查 9/9 通过；这不是完整宿主安装验收。
-- Task 3 正在推进隔离安装矩阵、1.3.1 文档与归档；之后还有最终审查、推送、公开发布及公开 URL 安装验证。不能把上述边界/UI 证据当作这层已经完成。
-- 并行责任：集成成员独占 Task 3 产品文件，lead 维护本计划及本地交接、执行最终集成与发布；不重做已通过的任务。
+- Task 3 已补最新 rc.5，四版固定官方包边界与完整隔离 runtime 均通过；当前总单测 128/128、浏览器 41 项/0 错误。两个新的独立审查均 PASS、0 待修问题。
+- Lead 对最终 297213 字节归档独立复跑四版各 8/8，随后验证匿名 HTTP 200 下载及 SHA256 一致、公开 URL 在 rc.5/alpha.2 各 8/8。测试进程关闭，日常 desktop 两个保护文件指纹一致；没有自动升级日常环境。
+- 发布时 SSH22 与 Git HTTPS 不通，经只读检查确认无远端副作用；使用保留严格主机密钥验证的临时 SSH443 参数完成推送，未修改全局 Git/网络设置。
+- 所有实施和审查成员已结束；lead 保存分层交接及原始证据，负责发布后文档收尾。
 - 当前权限 danger-full-access、审批 never；不请求权限提升，不绕过拒绝。

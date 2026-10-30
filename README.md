@@ -6,9 +6,9 @@
 >
 > 源码采用 MIT 公开。当前及历史预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm；dsh-market 收录当前状态本轮未核验，详见下方发布状态。
 
-## 1.3.1 当前验证（未发布）
+## 1.3.1 当前验证（已发布）
 
-本地发布候选，**未发布、未安装到日常环境**。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 官方 latest/next 为 0.2.1-rc.5；这只是当时观测，不自动接受以后版本。
+已公开发布 [GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)（非草稿、非预发布），**未升级 Harness、未替换日常插件安装**。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 核验的官方 latest/next 为 0.2.1-rc.5；不自动接受以后版本。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -17,7 +17,7 @@
 | 0.2.1-rc.5 | PASS | PASS | PASS |
 | 0.2.2-alpha.2 | PASS | PASS | PASS |
 
-三层证据不可互相替代：真实边界加载官方发布的目录/slot/store/renderer；离线 UI 使用合成目录；完整 runtime 已以同一 pilot 在各版官方构建前端各 8/8 通过。文档完成后的重打包字节仍由控制器独立复核后重跑最终矩阵；表中 PASS 不冒充最终归档或日常 GUI 验收。详细限制和实际状态见[验证报告](docs/VALIDATION.md)。精确白名单拒绝 rc.3、rc.6、正式 0.2.1 / 0.2.2 及未知未来版本。
+三层证据不可互相替代：真实边界加载官方发布的目录/slot/store/renderer；离线 UI 使用合成目录；控制器已对**最终发布归档**在四版官方完整 runtime 各独立复跑 8/8 通过。公开 URL 另在 rc.5、alpha.2 各 8/8 通过，匿名下载大小与 SHA256 一致。表中 PASS 不代表日常 GUI 验收。详细限制和实际状态见[验证报告](docs/VALIDATION.md)。精确白名单拒绝 rc.3、rc.6、正式 0.2.1 / 0.2.2 及未知未来版本。
 
 ## 1.3.0 · 手动整理与排序（历史发布证据）
 
@@ -202,7 +202,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## 发布状态
 
-- **当前 1.3.1：未发布本地候选，未安装到日常环境**。控制器将独立复核、验证最终归档四版矩阵后发布精确字节，再验证公开 URL；下列 1.3.0 结果为不可改写的历史记录，不是 1.3.1 的发布证据。
+- **当前 1.3.1：已公开发布，未安装到日常环境**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
 
 - 作者：Hobartoakes。
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
@@ -216,13 +216,13 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。1.3.1 最终归档 SHA256 保留在包外报告，发布后再记录公开下载证据，避免自引用；历史 1.3.0 归档和标签不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。当前源码已记录 1.3.1 公开下载与安装证据；不重新打包，归档仍保留打包时文档，避免自引用。1.3.0 / 1.3.1 归档和标签均不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
 
 ## English summary
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Version **1.3.1** is an **unpublished local candidate**, not installed into the daily profile. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5 and 0.2.2-alpha.2**. Native boundary tests, offline UI tests and full-runtime checks are distinct evidence tiers; see the current table and [validation report](docs/VALIDATION.md). New composer compact mode retains the complete accessible name and keyboard activation. No model calls, paid probes or real credentials are used. Independent review, final-byte runtime matrix, release and public-URL installation remain separate controller gates.
+Version **1.3.1** is [publicly released](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1), but has **not** replaced the daily installation. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5 and 0.2.2-alpha.2**. Both final independent reviews passed. The controller verified 128 unit/boundary tests, 41 offline browser checks, and the exact final archive on all four official runtimes (8/8 each). Unauthenticated public download matched its size and SHA256; public-URL lifecycle checks additionally passed on rc.5 and alpha.2 (8/8 each). These are distinct evidence tiers, not daily-GUI acceptance; see the [validation report](docs/VALIDATION.md). Compact mode retains the complete accessible name and keyboard activation. No model calls, paid probes or real credentials are used. Published bytes and tag are immutable; the archive retains packaging-time documentation while these source documents record the later verification.
 
 **Historical 1.3.0 evidence:** Version **1.3.0** adds flat Favorites, provider-wide Uncommon override/restore, remembered tabs, and manual drag/button-based keyboard sorting with offline order retention. [v1.3.0 is published](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0), non-draft and non-prerelease; release commit `42760acc4b47c0f392ec6ccf482dd594ac450761` was pushed to main and the tag. The controller passed 42 unit tests, 40 offline browser checks (zero uncaught page errors), and 7/7 isolated-profile lifecycle checks for both the local archive and public URL. Unauthenticated download returned HTTP 200 with the matching archive hash; desktop fingerprints stayed unchanged during isolated testing. The actual desktop was separately upgraded from 1.2.1 to 1.3.0 through the official CLI, with a matching client hash and only this plugin dependency changed (bundle order and patch unchanged). Live-GUI activation/interaction acceptance remains pending because the browser requires authentication. The published archive retains its packaging-time documentation: these post-release source-doc updates do not replace the archive or tag, and no repack is planned. See the [release checklist](docs/RELEASE-CHECKLIST.md). npm remains unpublished and is not the intended release channel.
 

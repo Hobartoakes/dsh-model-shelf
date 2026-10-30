@@ -1,8 +1,8 @@
 # 宿主兼容性核对
 
-## 1.3.1 当前验证（未发布）
+## 1.3.1 当前验证（已发布）
 
-精确白名单：`0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2`。本地候选未发布、未安装到日常环境；未来版本必须重新验证，不授予版本豁免。
+精确白名单：`0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2`。[v1.3.1 已公开发布](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)，未安装到日常环境；未来版本必须重新验证，不授予版本豁免。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -15,7 +15,7 @@
 
 覆盖真实目录实例共享、完整 provider/model/effort 身份、失败重试、重连后的迟到结果、目录缺失/恢复、子代理限制、两种注册顺序、slot 声明/释放及会话释放。离线浏览器另验证两个 composer CSS 变量、完整可访问名称、Enter / Space、浅深主题及宽栏回退；它不代表各版本前端运行。
 
-完整 runtime 已以同一 pilot 归档各版 8/8 通过；重打包后的最终字节矩阵留给控制器独立复核后重跑，不混同两者。使用隔离的官方 CLI/内置前端与真实 RPC/目录/Session/slots；无凭据目录本来为空，因此仅外部 LLM adapter 的模型元数据可使用明确标记的 TEST ONLY fixture，stream fail-closed，不替换宿主或目录。禁用/启用是停止测试 server、修改隔离 patch、重启后的真实状态验收，不证明同一进程热卸载；偏好保持是同源 reload，不是换端口持久化。逐版实际结果、限制和复现命令见[验证报告](VALIDATION.md)。
+完整 runtime 先以同一 pilot 各版 8/8 通过；最终重打包后，控制器对发布归档独立复跑四版也各 8/8，通过审查后发布完全相同的字节。公开 URL 在 rc.5、alpha.2 另各 8/8 通过，不把 pilot 代替最终包或公开安装。使用隔离的官方 CLI/内置前端与真实 RPC/目录/Session/slots；无凭据目录本来为空，因此仅外部 LLM adapter 的模型元数据使用明确标记的 TEST ONLY fixture，stream fail-closed，不替换宿主或目录。禁用/启用是停止测试 server、修改隔离 patch、重启后的真实状态验收，不证明同一进程热卸载；偏好保持是同源 reload，不是换端口持久化。逐版实际结果、限制和复现命令见[验证报告](VALIDATION.md)。
 
 仍有意不声明 `conversation.input.model.label`；最低 priority `-100` 与原生 `0` 共存，禁用/卸载后回退原生。macOS/Linux、真实模型请求、WorkBuddy 付费探测和日常 GUI 激活均不是本轮验收。
 

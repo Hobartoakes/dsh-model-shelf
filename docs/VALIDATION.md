@@ -1,6 +1,6 @@
 # 验证报告
 
-## 1.3.1 当前验证（未发布）
+## 1.3.1 当前验证（已发布）
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -9,17 +9,29 @@
 | 0.2.1-rc.5 | PASS | PASS | PASS |
 | 0.2.2-alpha.2 | PASS | PASS | PASS |
 
-真实边界是各版固定完整性校验的官方目录/slots/store/renderer；RPC/投影边界合成。离线 UI 是相同插件构建物的模拟目录浏览器回归，并非四版前端。完整 runtime 已以**同一 pilot 归档**在各版官方 built frontend 各通过 **8/8**；16 个阶段页面/控制台错误均为 **0**，模型 stream 为 **0**。覆盖安装、禁用、重新启用、卸载、原生回退、真实选择/实时目录刷新、收藏备注/刷新保持、紧凑控制/键盘/宽栏恢复。先完成 rc.2，再扩展四版；失败诊断保留，不伪装跳过或成功。
+真实边界是各版固定完整性校验的官方目录/slots/store/renderer；RPC/投影边界合成。离线 UI 是相同插件构建物的模拟目录浏览器回归，并非四版前端。先完成 rc.2 pilot，再扩展四版；随后控制器对**最终发布归档**在四版官方 built frontend 独立复跑，各 **8/8**。最终矩阵 16 个阶段页面/控制台错误均为 **0**、stream 为 **0**，48 个 owned 进程退出关闭、浏览器关闭、保护文件指纹一致。覆盖安装、禁用、重新启用、卸载、原生回退、真实选择/实时目录刷新、收藏备注/刷新保持、紧凑控制/键盘/宽栏恢复；失败诊断保留，不伪装跳过或成功。
 
-**归档身份边界：**上表证明经过验收的 pilot 与同一客户端构建物；本轮随后更新文档并重打包，因此最终归档字节不同，不冒称已验收最终归档。最终 SHA256、pilot SHA256、源码逐文件身份、逐版 evidence 路径和失败历史放在包外报告。控制器将在独立审查后重跑最终包四版矩阵，再发布精确字节和验证公开 URL。
+**归档身份边界：**pilot SHA256 为 `13917e93b91ff295e8c47ad8f39d92ca26d8fe01295b489cf9f9dbf558f13643`；最终归档 SHA256 为 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`，**297213 字节 / 32 个普通文件**。两者没有混用。最终包经两个独立审查、控制器四版矩阵后发布；本次发布后文档不重新打包、不替换已发布字节，所以归档保留打包时的未发布状态，最新结论以源码文档和 Release 为准。
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.3.1**，作者 Hobartoakes，MIT；本地候选**未发布、未安装到日常环境**。
+- 包：**dsh-model-shelf 1.3.1**，作者 Hobartoakes，MIT；[GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) 于 2026-10-30 09:43:41（Asia/Shanghai）公开发布，非草稿、非预发布，**未安装到日常环境**。
 - 精确版本 rc.2 / rc.4 / rc.5 / alpha.2（完整版本号见上表）；未测版本不得绕过检查。
-- 2026-10-30 本轮构建通过；完整单元 **128/128**（0 跳过），离线浏览器 **41** 项、未捕获页面错误 **0**，发布文件检查和 `git diff --check` 通过。单元包含四版真实边界与安全/发布回归，不把总数当作四版完整宿主验收数量。
-- 本轮不连接/修改当前 GUI，不复制真实凭据，不发起模型请求或付费探测。日常 GUI 激活、公开发布/下载、公开 URL 安装均待控制器后续另行验证。
-- 当前构建物源自 Task1/2 已审查的 BASE `5ffa023ad88e64a579e58fbb24c3a305f5da7127` 加 Task3 工作树；最终包与 pilot 的具体身份仅存于包外报告，打包后不可假定为相同字节。
+- 控制器独立复跑构建、**128/128** 单测（0 跳过）、**41** 项浏览器检查（0 未捕获页面错误）、发布检查和 `git diff --check`。单元含四版真实边界与安全/发布回归，不把总数当作完整宿主验收数量。Task3 与跨任务最终独立审查均 PASS、无待修问题。
+- 本轮不连接/修改当前 GUI，不复制真实凭据，不发起模型请求或付费探测；日常 GUI 激活未验证，不是本次发布门禁。
+- [发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae) 已推送 main，`v1.3.1` 标签固定于该提交。源码和构建身份已独立核对；客户端 SHA256 为 `7b0164d922b7871f06f14683c28dcc4e0bd7601d5b51d01476f8c3584e5a5fe7`。
+
+### 发布后的公开验证
+
+- 对[公开归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz)使用独立 Node fetch，不发送 Authorization/Cookie：HTTP **200**、**297213 字节**、SHA256 与本地最终包一致。[SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS) 也匿名下载成功并逐字匹配；GitHub asset digest 同样一致。
+- 官方 CLI 直接从公开 URL 安装，在 **rc.5 与 alpha.2 各 8/8** 通过，覆盖全部四个重启式生命周期阶段；8 阶段零页面/控制台错误、stream 0、24 个 owned 进程及浏览器全部关闭、保护指纹不变。rc.2/rc.4 的证明是相同归档的本地安装矩阵，不冒称这两版也重复跑了公开 URL。
+- 本地原始证据不随包或仓库发布，保留路径如下；公开可核对的身份见 Release 及校验文件。
+
+```text
+最终包四版：.superpowers/sdd/2026-10-29-harness-compatibility/lead-final-matrix-1793323267085.json
+匿名下载：tests/artifacts/public-release-1793324714812/download-verification.json
+公开URL两版：.superpowers/sdd/2026-10-29-harness-compatibility/lead-public-matrix-1793324813871.json
+```
 
 ### 本轮隔离方法
 
@@ -51,7 +63,7 @@ $env:DSH_TEST_ACTIVE_ORIGIN = 'http://127.0.0.1:59983'
 git diff --check
 ```
 
-macOS/Linux、真实账号/模型请求、跨公开版本升级、npm/market 安装、日常 GUI 均未在本轮验证。独立审查后由控制器重跑最终字节的四版矩阵、发布、验证公开 URL，再写发布后状态。以下旧记录只证明对应历史版本。
+macOS/Linux、真实账号/模型请求、跨公开版本升级、npm/market 安装、日常 GUI 均未在本轮验证。最终字节矩阵、公开发布、匿名下载与上述两版公开 URL 验证已经分别完成；本节为发布后的源码记录，不改变归档或标签。以下旧记录只证明对应历史版本。
 
 ## 历史 1.3.0 范围与结果
 

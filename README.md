@@ -1,12 +1,27 @@
 # 模型书架 · DSH Model Shelf
 
+## 1.4.0 当前验证（未发布）
+
+当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；公开发布尚未执行。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+
+
 更大的模型选择面板、可折叠的服务商分组，以及**完全由用户手动整理**的“不常用”列表。
 
 > 作者：[Hobartoakes](https://github.com/Hobartoakes) · 许可证：[MIT](LICENSE) · [问题反馈](https://github.com/Hobartoakes/dsh-model-shelf/issues)
 >
 > 源码采用 MIT 公开。当前及历史预构建安装包见 [GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases)。本项目尚未发布 npm；dsh-market 收录当前状态本轮未核验，详见下方发布状态。
 
-## 1.3.1 当前验证（已发布）
+
+2026-11-01：自动测试覆盖四版官方目录边界，离线模拟 UI 检查 44 项通过；同一候选归档在 Windows 四版真实隔离宿主分别完成安装、禁用、重新启用和卸载。rc.2 与 rc.4 的早期运行曾在进程树清理时报错，之后带诊断的完整重跑通过；rc.5 曾有一次同类失败及一次通过。独立 CLI 测试仅额外加入专用 pnpm 路径，未继承用户环境；受保护桌面文件指纹不变。先前候选在实际 DSH 界面验证紧凑行、展开、搜索与收藏页；当前回退方案在本机界面确认紧凑行及默认图标。未发送模型请求。
+
+## 1.3.1 历史验证（已发布）
 
 已公开发布 [GitHub Release v1.3.1](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1)（非草稿、非预发布），并于 2026-10-30 通过官方 CLI 安装到本机日常 desktop profile（DSH **0.2.1-rc.5**，重启 DSH 后加载）；Harness 本身未升级。保留现有选择/偏好/排序逻辑，适配新版输入栏的文字/图标折叠变量，紧凑模式仍提供完整可访问名称与 Enter / Space 操作。2026-10-30 核验的官方 latest/next 为 0.2.1-rc.5；不自动接受以后版本。
 
@@ -61,7 +76,9 @@
 - **逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部按模型选择 `300K` / `1M` 等它声明的容量，并显示“当前生效”；未打补丁时该控件不出现（1.2.0）。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
 
-模型 ID 是服务商目录提供的调用标识。若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**，不会猜测或额外标注未经验证的模型厂商。
+**本工作树尚未发布的变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
+
+模型 ID 是服务商目录提供的调用标识。当前默认图标不区分服务商或模型系列；若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**。
 
 ## 兼容性
 
@@ -72,14 +89,14 @@
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
-| 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名按纯文本显示，不带宿主自带的 1017 徽标。理由见下文 |
+| 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名文字不带宿主自带的 1017 徽标；工作树可在名称旁单独显示本地图标。理由见下文 |
 | 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
 仅允许上列四个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
 
 0.2.1 起，宿主自己也往这个座位里填一个官方选择器（priority `0`），并声明 `conversation.input.model.label` 子插槽给模型名加徽标。本插件以更低的 priority 胜出，因此整张座位（包括模型名的渲染）由本插件负责。
 
-同一个子插槽键只能被声明一次，而 `renderSlot` 只为声明了 `children` 的条目合成。本插件**有意不声明**它：一旦声明，宿主自己的模型选择插件会在每次加载时抛 `slot "…" is already declared`（已实测，且与注册先后顺序无关）。那是把宿主插件搞坏，不是外观损失，因此书架内的模型名按纯文本显示，不带 1017 徽标；原生座位与宿主自带插件完全不受影响。完整的逐项契约核对见 [docs/HOST-COMPATIBILITY.md](docs/HOST-COMPATIBILITY.md)。
+同一个子插槽键只能被声明一次，而 `renderSlot` 只为声明了 `children` 的条目合成。本插件**有意不声明**它：一旦声明，宿主自己的模型选择插件会在每次加载时抛 `slot "…" is already declared`（已实测，且与注册先后顺序无关）。那是把宿主插件搞坏，不是外观损失，因此书架内模型名文字不带 1017 徽标；本地图标是单独实现的视觉提示。原生座位与宿主自带插件完全不受影响。完整的逐项契约核对见 [docs/HOST-COMPATIBILITY.md](docs/HOST-COMPATIBILITY.md)。
 
 ## 安装与卸载
 

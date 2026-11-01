@@ -1,5 +1,6 @@
 import { modelKey, groupKey, toggleKey, partitionModels, favoriteRows, isUncommon, orderedKeys, reorderKeys, setProviderUncommon, setFavorite, createPreferenceStore, providerNote } from './preferences.js';
 import { isWorkBuddyProvider, loadProbeStatus, requestProbe, probeStateFor, effortSourceFor, contextWindowFor, formatCapacity, requestContextWindow } from './workbuddy-probe.js';
+import { providerIcon, modelIcon } from './icons.js';
 
 // React and ReactDOM come from the running DSH client, never a second React copy.
 const React = require('react');
@@ -443,6 +444,14 @@ export function makeModelPicker(preferences) {
       h('div', { className: 'dmo-note-buttons' },
         h('button', { type: 'button', className: 'dmo-tab', onClick: saveNote }, '保存备注'),
         h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setEditingNote(null); search.current?.focus(); } }, '取消')));
+    // Icons reflect catalog labels, not verification of the actual route.
+    const icon = (kind, key) => {
+      const selected = Object.hasOwn(ICON_DATA, key) ? key : 'default';
+      const props = { className: `dmo-${kind}-icon dmo-icon`, 'data-icon': selected, 'aria-hidden': true };
+      return selected !== 'default'
+        ? h('img', { ...props, src: ICON_DATA[selected], alt: '', draggable: false })
+        : h('span', { ...props }, '◈');
+    };
     const renderRow = (g, m) => {
       const key = modelKey(g.id, m.id);
       const archived = prefs.uncommonProviders.includes(g.id);
@@ -451,7 +460,7 @@ export function makeModelPicker(preferences) {
       return h('div', { className: 'dmo-row', key, 'data-model-key': key, 'data-provider-id': g.id, 'data-highlighted': activeRow?.key === key, ...(list === 'favorites' ? dropProps(key) : {}) },
         list === 'favorites' && orderControls(key, `${g.id} / ${m.id}`),
         h('div', { role: 'button', tabIndex: 0, className: 'dmo-select', 'aria-disabled': busy, 'aria-label': `选择 ${g.name || g.id} 的 ${m.name || m.id}，模型 ID ${m.id}${providerNote(prefs, g.id) ? '，账号备注 ' + providerNote(prefs, g.id) : ''}`, 'aria-pressed': selected, onClick: () => { if (!busy) choose({ provider: g.id, model: m.id }); }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!busy) choose({ provider: g.id, model: m.id }); } } },
-          h('span', { className: 'dmo-check', 'aria-hidden': true }, selected ? '✓' : ''),
+          h('span', { className: 'dmo-icon-wrap' }, icon('model', modelIcon(m.id)), selected && h('span', { className: 'dmo-icon-selected', 'aria-hidden': true }, '✓')),
           h('span', { className: 'dmo-copy' }, h('span', { className: 'dmo-name' }, m.name || m.id), ...identity(g, m))),
         h('div', { className: 'dmo-row-actions' },
           h('button', { type: 'button', className: 'dmo-favorite', 'aria-pressed': prefs.favorites.includes(key), 'aria-label': `${prefs.favorites.includes(key) ? '取消收藏' : '收藏'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleFavorite(g.id, m.id) }, prefs.favorites.includes(key) ? '★ 已收藏' : '☆ 收藏'),
@@ -484,13 +493,16 @@ export function makeModelPicker(preferences) {
       h('div', { className: 'dmo-list', id: `${popupId}-list`, role: 'tabpanel', 'aria-labelledby': `${popupId}-${list}`, 'aria-busy': state.status === 'loading' || busy },
         state.status === 'loading' && h('p', { className: 'dmo-empty', role: 'status' }, '正在加载模型…'),
         list === 'favorites' ? flatFavorites.map(({ group, model }) => renderRow(group, model)) : shown.map((g) => h('section', { className: 'dmo-group', key: g.id, 'data-provider-id': g.id, ...dropProps(g.id) },
-          h('div', { className: 'dmo-group-top' }, orderControls(g.id, g.id), h('div', { role: 'button', tabIndex: 0, className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), 'aria-disabled': searching, onClick: () => {
+          h('div', { className: 'dmo-group-top', 'data-collapsed': !expanded(g.id) }, orderControls(g.id, g.id), h('div', { role: 'button', tabIndex: 0, className: 'dmo-group-heading', 'aria-expanded': expanded(g.id), 'aria-disabled': searching, onClick: () => {
             if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) }));
           }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!searching) preferences.update((p) => ({ ...p, collapsed: toggleKey(p.collapsed, groupKey(list, g.id)) })); } } },
             h('span', { 'aria-hidden': true }, expanded(g.id) ? '▾' : '▸'),
-            h('span', { className: 'dmo-group-title' }, g.name || g.id,
-              providerNote(prefs, g.id) && h('span', { className: 'dmo-account' }, `账号备注：${providerNote(prefs, g.id)}`),
-              h('span', { className: 'dmo-identity' }, `服务商 ID：${g.id}`)),
+            icon('provider', providerIcon(g.id)),
+            h('span', { className: 'dmo-group-title', title: `${g.name || g.id} · 服务商 ID：${g.id}${providerNote(prefs, g.id) ? ` · 账号备注：${providerNote(prefs, g.id)}` : ''}` },
+              expanded(g.id) ? g.name || g.id : h('span', { className: 'dmo-group-name' }, g.name || g.id),
+              expanded(g.id)
+                ? [providerNote(prefs, g.id) && h('span', { className: 'dmo-account', key: 'note' }, `账号备注：${providerNote(prefs, g.id)}`), h('span', { className: 'dmo-identity', key: 'id' }, `服务商 ID：${g.id}`)]
+                : h('span', { className: 'dmo-identity dmo-group-details' }, `服务商 ID：${g.id}${providerNote(prefs, g.id) ? ` · 账号备注：${providerNote(prefs, g.id)}` : ''}`)),
             h('span', { className: 'dmo-count' }, `${g.models.length} 款`)),
             h('div', { className: 'dmo-provider-actions' }, noteAction(g), providerAction(g))),
           expanded(g.id) && g.models.map(m => renderRow(g, m)))),
@@ -524,6 +536,7 @@ export function makeModelPicker(preferences) {
           contextRow.effective !== undefined && h('span', { className: 'dmo-effort-source dmo-context-note' }, `当前生效 ${formatCapacity(contextRow.effective)}`)),
         probeBlock,
         h('div', { className: 'dmo-identity' }, '分类、收藏、备注及折叠偏好保存在当前浏览器；不会自动分类。'),
+        h('div', { className: 'dmo-identity' }, '图标依据目录标识，不验证实际上游。'),
         (localError || state.status === 'error' || state.failures?.length > 0) && h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setLocalError(null); Promise.resolve().then(load).catch((e) => setLocalError(String(e.message ?? e))); } }, '重新加载')));
     return h(React.Fragment, null,
       h('div', { ref: trigger, role: 'button', tabIndex: 0, className: 'dmo-trigger', 'aria-label': `${title} · ${currentText}${labelEffort ? ` · ${labelEffort}` : ''}`, 'aria-disabled': locked, 'aria-haspopup': 'dialog', 'aria-expanded': open, 'aria-controls': open ? popupId : undefined, title: `${currentText}${labelEffort ? ` · ${labelEffort}` : ''}`, onClick: () => { if (!locked) toggle(); }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!locked) toggle(); } } },

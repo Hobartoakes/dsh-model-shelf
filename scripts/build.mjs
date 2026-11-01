@@ -2,7 +2,10 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const preferences = (await readFile(new URL('src/preferences.js', root), 'utf8')).replace(/^export /gm, '');
 const probe = (await readFile(new URL('src/workbuddy-probe.js', root), 'utf8')).replace(/^export /gm, '');
-const client = (await readFile(new URL('src/client.js', root), 'utf8')).replace(/^import .* from '\.\/preferences\.js';\r?\n/m, '').replace(/^import .* from '\.\/workbuddy-probe\.js';\r?\n/m, '').replace(/^export /gm, '');
+const icons = (await readFile(new URL('src/icons.js', root), 'utf8')).replace(/^export /gm, '');
+const iconFiles = {};
+const iconData = Object.fromEntries(await Promise.all(Object.entries(iconFiles).map(async ([key, file]) => [key, 'data:image/svg+xml;base64,' + (await readFile(new URL(`src/assets/${file}`, root))).toString('base64')])));
+const client = (await readFile(new URL('src/client.js', root), 'utf8')).replace(/^import .* from '\.\/preferences\.js';\r?\n/m, '').replace(/^import .* from '\.\/workbuddy-probe\.js';\r?\n/m, '').replace(/^import .* from '\.\/icons\.js';\r?\n/m, '').replace(/^export /gm, '');
 const css = await readFile(new URL('src/style.css', root), 'utf8');
 const styledClient = client.replace('function apply(ctx) {', `function apply(ctx) {
   ctx.effect(() => {
@@ -17,6 +20,8 @@ const bundle = `window.__ModuleLoader__.load({
   factory: (require) => {
 ${preferences}
 ${probe}
+${icons}
+const ICON_DATA = ${JSON.stringify(iconData)};
 ${styledClient}
 return { apply, inject, makeModelPicker };
   }

@@ -72,6 +72,87 @@ try {
   const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const rowKeys = () => page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
   const groupIds = () => page.locator('.dmo-group').evaluateAll(rows => rows.map(row => row.dataset.providerId));
+  // Icons are local, decorative, and preserve provider/model identities.
+  await reset();
+  assert.ok(await page.getByText('图标依据目录标识，不验证实际上游。', { exact: true }).isVisible());
+  const iconNetworkRequests = [];
+  const onIconRequest = req => { if (req.resourceType() === 'image' && /^https?:/i.test(req.url())) iconNetworkRequests.push(req.url()); };
+  page.on('request', onIconRequest);
+  await page.evaluate(() => setState({ groups: [{ id: 'deepseek-official', name: 'DeepSeek', models: [{ id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash' }] }], current: { provider: 'deepseek-official', model: 'deepseek-v4.1-flash' } }));
+  const iconGroup = page.locator('.dmo-group[data-provider-id="deepseek-official"]');
+  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  assert.equal(await iconGroup.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  assert.equal(await iconGroup.locator('.dmo-model-icon').getAttribute('aria-hidden'), 'true');
+  await iconGroup.locator('.dmo-group-heading').click();
+  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  await iconGroup.locator('.dmo-group-heading').click();
+  await iconGroup.locator('.dmo-favorite').click();
+  await page.getByRole('tab', { name: /^收藏/ }).click();
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  await page.evaluate(() => setState({ groups: [{ id: 'relay', name: 'Relay', models: [{ id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash' }] }] }));
+  await page.getByRole('tab', { name: /^主列表/ }).click();
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  await page.evaluate(() => setState({ groups: [
+    { id: 'workbuddy', name: 'WorkBuddy', models: [{ id: 'claude-sonnet-4-5', name: 'Claude' }] },
+    { id: 'openai-codex', name: 'ChatGPT', models: [{ id: 'gpt-6.1-terra', name: 'GPT' }] }
+  ] }));
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 2);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 2);
+  for (const img of await page.locator('.dmo-list img.dmo-icon').all()) {
+    await img.evaluate(el => el.decode());
+    assert.ok(await img.evaluate(el => el.naturalWidth > 0));
+  }
+  assert.deepEqual(iconNetworkRequests, []);
+  page.off('request', onIconRequest);
+  ok('provider and model icons appear offline with stable identities');
+  // Collapsed provider cards keep every organization control in a compact row.
+  await reset({ providerNotes: { 'provider-one': '工作账号' } });
+  const compactGroup = page.locator('.dmo-group[data-provider-id="provider-one"]');
+  await compactGroup.locator('.dmo-group-heading').click();
+  assert.equal(await compactGroup.locator('.dmo-group-heading').getAttribute('aria-expanded'), 'false');
+  const compactLayout = await compactGroup.evaluate(group => {
+    const rect = selector => group.querySelector(selector).getBoundingClientRect();
+    const drag = rect('.dmo-drag'), up = rect('.dmo-order-up'), down = rect('.dmo-order-down');
+    const note = rect('.dmo-note-action'), action = rect('.dmo-provider-action'), bounds = group.getBoundingClientRect();
+    return { orderRow: Math.abs(drag.y - up.y) < 2 && Math.abs(up.y - down.y) < 2,
+      actionRow: Math.abs(note.y - action.y) < 2, height: bounds.height, text: group.innerText };
+  });
+  assert.ok(compactLayout.orderRow, 'drag/up/down must share a row');
+  assert.ok(compactLayout.actionRow, 'note and archive buttons must share a row');
+  assert.ok(compactLayout.height <= 72, `collapsed card must be compact: ${compactLayout.height}px`);
+  for (const text of ['服务商甲', 'provider-one', '工作账号', '16 款']) assert.ok(compactLayout.text.includes(text));
+  ok('collapsed provider card fits organization controls on compact rows');
+  // Long notes remain discoverable and narrow cards keep controls inside their bounds.
+  const longNote = '长备注'.repeat(40);
+  await reset({ providerNotes: { 'provider-one': longNote } });
+  // Keep this case focused on the card: a long note for the current model also
+  // exposes an unrelated pre-existing footer overflow at small viewport heights.
+  await page.evaluate(() => setState({ current: { provider: 'provider-two', model: 'another-id' } }));
+  await page.setViewportSize({ width: 320, height: 600 });
+  await compactGroup.locator('.dmo-group-heading').click(); await settle();
+  assert.ok((await compactGroup.locator('.dmo-group-title').getAttribute('title')).includes(longNote));
+  await compactGroup.locator('.dmo-group-heading').focus();
+  const detailsMetrics = await compactGroup.locator('.dmo-group-details').evaluate(el => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, whiteSpace: getComputedStyle(el).whiteSpace, active: document.activeElement?.className }));
+  assert.ok(detailsMetrics.scrollWidth <= detailsMetrics.clientWidth && detailsMetrics.scrollHeight <= detailsMetrics.clientHeight, `keyboard focus must reveal full ID and note: ${JSON.stringify(detailsMetrics)}`);
+  for (const selector of ['.dmo-drag', '.dmo-order-up', '.dmo-order-down', '.dmo-note-action', '.dmo-provider-action']) {
+    const contained = await compactGroup.locator(selector).evaluate(el => {
+      const a = el.getBoundingClientRect(), b = el.closest('.dmo-group').getBoundingClientRect();
+      return a.left >= b.left && a.right <= b.right;
+    });
+    assert.ok(contained, `${selector} must remain inside a narrow card`);
+  }
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await reset({ providerNotes: { 'provider-one': '工作账号' } });
+  await compactGroup.locator('.dmo-group-heading').click();
+  await compactGroup.locator('.dmo-provider-action').click();
+  await page.getByRole('tab', { name: /^不常用/ }).click();
+  const archived = page.locator('.dmo-group[data-provider-id="provider-one"]');
+  if (await archived.locator('.dmo-group-heading').getAttribute('aria-expanded') === 'true') await archived.locator('.dmo-group-heading').click();
+  assert.ok(await archived.getByRole('button', { name: '恢复服务商：provider-one' }).isVisible());
+  assert.ok(await archived.locator('.dmo-note-action').isVisible());
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  ok('long notes and archived provider controls remain usable in narrow cards');
   // The composer owns these inherited variables; exercise the actual built trigger.
   await reset({ providerNotes: { 'provider-one': '工作账号' } });
   await page.keyboard.press('Escape'); await settle();

@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-shelf",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "latest" },
   "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",
@@ -16,7 +16,7 @@
   "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },
   "files": [
     "lib", "src", "scripts/build.mjs", "scripts/check-release.mjs", "tests/*.mjs",
-    "docs/images/*.png", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
+    "docs/images/*.png", "docs/ICON-ATTRIBUTIONS.md", "docs/research/2026-11-01-brand-icon-permissions.md", "docs/research/2026-11-01-icon-performance.md", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
     "cordis.patch.yml", "README.md", "CHANGELOG.md", "LICENSE"
   ],
   "scripts": {

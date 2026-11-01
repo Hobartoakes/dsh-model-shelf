@@ -1,8 +1,10 @@
 # 模型书架 · DSH Model Shelf
 
-## 1.4.0 当前验证（未发布）
+## 1.4.0 当前验证（已发布）
 
-当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；公开发布尚未执行。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
+当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；[v1.4.0 GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.4.0) 已公开。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
+
+最终发布归档 312350 字节，SHA-256 `d9e0e9c5406f21d60e96319d8b946ada96f13de0def3c7217242d090cbaef542`；匿名下载大小与哈希一致。最终归档在四版隔离宿主分别通过完整生命周期。本机安装的是此前候选归档，客户端哈希与发布归档一致；文档有所不同。发布归档保留打包时状态，不替换已发布文件。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -76,7 +78,7 @@
 - **逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部按模型选择 `300K` / `1M` 等它声明的容量，并显示“当前生效”；未打补丁时该控件不出现（1.2.0）。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
 
-**本工作树尚未发布的变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
+**1.4.0 的变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
 
 模型 ID 是服务商目录提供的调用标识。当前默认图标不区分服务商或模型系列；若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**。
 
@@ -100,16 +102,16 @@
 
 ## 安装与卸载
 
-以下命令使用 **v1.3.1 已发布的公开归档 URL**。控制器已验证无登录下载 HTTP 200、归档哈希一致及官方 CLI 从该 URL 的隔离安装生命周期；详见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
+以下命令使用 **v1.4.0 已发布的公开归档 URL**。已验证匿名下载和哈希一致；最终归档的本地安装生命周期已在四版宿主验证，未对公开 URL 复跑安装；详见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.4.0/dsh-model-shelf-1.4.0.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.3.1.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.4.0.tgz" --ignore-scripts
 ```
 
 安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。

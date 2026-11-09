@@ -7,8 +7,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const docs = ['README.md', 'CHANGELOG.md', 'docs/VALIDATION.md', 'docs/RELEASE-CHECKLIST.md', 'docs/HOST-COMPATIBILITY.md'];
-const whitelist = '0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2';
-const current = '## 1.3.1 当前验证（未发布）\n\n| DSH | 真实边界 | 离线 UI | 完整 runtime |\n| --- | --- | --- | --- |\n| 0.2.1-rc.2 | PASS | PASS | PASS |\n| 0.2.1-rc.4 | PASS | PASS | PASS |\n| 0.2.1-rc.5 | PASS | PASS | PASS |\n| 0.2.2-alpha.2 | PASS | PASS | PASS |\n\n未安装到日常环境。\n';
+const whitelist = '0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2 || 0.2.2-rc.1';
+const current = '## 1.3.1 当前验证（未发布）\n\n| DSH | 真实边界 | 离线 UI | 完整 runtime |\n| --- | --- | --- | --- |\n| 0.2.1-rc.2 | PASS | PASS | PASS |\n| 0.2.1-rc.4 | PASS | PASS | PASS |\n| 0.2.1-rc.5 | PASS | PASS | PASS |\n| 0.2.2-alpha.2 | PASS | PASS | PASS |\n| 0.2.2-rc.1 | PASS | PASS | PASS |\n\n未安装到日常环境。\n';
 async function fixture(fn) {
   const root = await mkdtemp(join(tmpdir(), 'shelf-release-'));
   try {

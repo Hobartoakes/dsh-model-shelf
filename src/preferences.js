@@ -4,7 +4,7 @@ export const modelKey = (provider, model) => JSON.stringify([provider, model]);
 export const groupKey = (list, provider) => JSON.stringify([list, provider]);
 export const emptyPreferences = () => ({
   version: 1, uncommon: [], favorites: [], providerNotes: {}, collapsed: [],
-  uncommonProviders: [], providerOrder: { main: [], uncommon: [] }, favoriteOrder: [], lastList: null
+  uncommonProviders: [], providerOrder: { main: [], uncommon: [] }, favoriteOrder: [], lastList: null, iconNetwork: false
 });
 const stringKeys = (values) => [...new Set((Array.isArray(values) ? values : []).filter((key) => typeof key === 'string'))];
 export const normalizeNote = (value) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 120) : '';
@@ -24,7 +24,8 @@ export function normalizePreferences(value) {
     uncommonProviders: stringKeys(value.uncommonProviders),
     providerOrder: { main: stringKeys(value.providerOrder?.main), uncommon: stringKeys(value.providerOrder?.uncommon) },
     favoriteOrder: keys(value.favoriteOrder),
-    lastList: ['main', 'uncommon', 'favorites'].includes(value.lastList) ? value.lastList : null
+    lastList: ['main', 'uncommon', 'favorites'].includes(value.lastList) ? value.lastList : null,
+    iconNetwork: value.iconNetwork === true
   };
 }
 

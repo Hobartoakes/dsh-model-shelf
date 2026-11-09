@@ -18,7 +18,7 @@ try {
 for (const path of ['lib/index.js', 'lib/client.js', 'docs/images/main-list.png', 'docs/images/uncommon-list.png', 'docs/images/dark-list.png']) {
   try { await access(new URL(path, root)); } catch { issues.push(`缺少发布文件：${path}`); }
 }
-const SUPPORTED_DSH = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2'];
+const SUPPORTED_DSH = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1'];
 const exactMatrix = SUPPORTED_DSH.join(' || ');
 if (pkg.engines?.dsh !== exactMatrix) issues.push(`engines.dsh 必须是精确白名单 ${exactMatrix}；不接受未测试版本或范围。`);
 

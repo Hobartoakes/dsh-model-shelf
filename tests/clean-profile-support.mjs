@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { connect } from 'node:net';
 
-export const runtimeVersions = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2'];
+export const runtimeVersions = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1'];
 export function selectCarrier(ambient) {
   const { DSH_TEST_CLI_ENTRY: entry, DSH_TEST_NODE_EXECUTABLE: node } = ambient;
   assert.equal(Boolean(entry), Boolean(node), 'Set both DSH_TEST_CLI_ENTRY and DSH_TEST_NODE_EXECUTABLE');

@@ -29,7 +29,7 @@ test('provider override keeps favorites and original model classification', () =
 
 test('ordering normalizes old data and keeps offline identity', () => {
   const old = { version: 1, uncommon: ['["one","other"]'], favorites: ['["one","same"]'], providerNotes: { one: 'account' }, collapsed: ['["main","one"]'] };
-  const defaults = { uncommonProviders: [], providerOrder: { main: [], uncommon: [] }, favoriteOrder: [], lastList: null };
+  const defaults = { uncommonProviders: [], providerOrder: { main: [], uncommon: [] }, favoriteOrder: [], lastList: null, iconNetwork: false };
   assert.deepEqual(normalizePreferences(old), { ...old, ...defaults });
   const p = normalizePreferences({ ...old, uncommonProviders: ['one', 2, 'one'], providerOrder: { main: ['two', 'offline', 'one', 'two', null], uncommon: false }, favoriteOrder: ['["one","same"]', 'bad', 1, '["one","same"]', '["offline","m"]'], lastList: 'bogus' });
   assert.deepEqual(p.uncommonProviders, ['one']);

@@ -11,6 +11,9 @@ import { selectCarrier, createIsolation, browserEnvironment, normalizeArchive, a
 // Opt-in Windows integration against the official built frontend; never the daily GUI.
 const root = fileURLToPath(new URL('../', import.meta.url));
 const carrier = selectCarrier(process.env);
+const iconNetworkTest = process.env.DSH_TEST_ICON_NETWORK === '1';
+const fixtureProviderId = iconNetworkTest ? 'huggingface' : 'shelf-fixture';
+const iconURL = 'https://unpkg.com/@lobehub/icons-static-png@1.97.0/light/huggingface-color.png';
 const packageVersion = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
 const archive = normalizeArchive(process.argv[2] ?? join(root, 'dist-draft', `dsh-model-shelf-${packageVersion}.tgz`), root);
 const expectedVersion = process.env.DSH_TEST_EXPECTED_VERSION;
@@ -67,13 +70,13 @@ async function prepareProvider() {
   const llmFile = req ? req.resolve('@deepseek-ai/dsh-llm') : join(dirname(carrier.args[1]), '../../dsh-llm/lib/index.js');
   await writeFile(providerStats, JSON.stringify({ listModels: 0, resolveModel: 0, streams: 0 }));
   await writeFile(catalogFile, JSON.stringify(['fixture-a', 'fixture-b']));
-  await writeFile(providerFile, `// TEST ONLY: fake provider metadata; all actual model calls fail closed.\nimport { LlmAdapter } from ${JSON.stringify(pathToFileURL(llmFile).href)};\nimport { readFileSync, writeFileSync, watchFile, unwatchFile } from 'node:fs';\nconst statsFile = ${JSON.stringify(providerStats)};\nconst catalogFile = ${JSON.stringify(catalogFile)};\nconst count = key => { const stats = JSON.parse(readFileSync(statsFile)); stats[key]++; writeFileSync(statsFile, JSON.stringify(stats)); };\nclass FixtureAdapter extends LlmAdapter {\n  providerInfo(provider) { return { id: provider, name: 'Model Shelf TEST ONLY' }; }\n  async listModels(provider) { count('listModels'); return JSON.parse(readFileSync(catalogFile)).map(id => ({ provider, id, name: 'TEST ONLY ' + id })); }\n  async resolveModel(provider, model) { count('resolveModel'); return { provider, id: model, name: 'TEST ONLY ' + model, context: { contextWindow: 10000 }, reasoning: { defaultEffort: 'low', efforts: [{ id: 'low', name: 'Low' }, { id: 'high', name: 'High' }] } }; }\n  async *stream() { count('streams'); throw Error('MODEL CALL FORBIDDEN in compatibility fixture'); }\n}\nexport const inject = ['llm'];\nexport function apply(ctx) {\n  ctx.llm.registerAdapter(['shelf-fixture'], new FixtureAdapter());\n  const changed = () => ctx.emit('llm/adapters-updated');\n  watchFile(catalogFile, { interval: 200 }, changed);\n  ctx.effect(() => () => unwatchFile(catalogFile, changed));\n}\n`);
+  await writeFile(providerFile, `// TEST ONLY: fake provider metadata; all actual model calls fail closed.\nimport { LlmAdapter } from ${JSON.stringify(pathToFileURL(llmFile).href)};\nimport { readFileSync, writeFileSync, watchFile, unwatchFile } from 'node:fs';\nconst statsFile = ${JSON.stringify(providerStats)};\nconst catalogFile = ${JSON.stringify(catalogFile)};\nconst count = key => { const stats = JSON.parse(readFileSync(statsFile)); stats[key]++; writeFileSync(statsFile, JSON.stringify(stats)); };\nclass FixtureAdapter extends LlmAdapter {\n  providerInfo(provider) { return { id: provider, name: 'Model Shelf TEST ONLY' }; }\n  async listModels(provider) { count('listModels'); return JSON.parse(readFileSync(catalogFile)).map(id => ({ provider, id, name: 'TEST ONLY ' + id })); }\n  async resolveModel(provider, model) { count('resolveModel'); return { provider, id: model, name: 'TEST ONLY ' + model, context: { contextWindow: 10000 }, reasoning: { defaultEffort: 'low', efforts: [{ id: 'low', name: 'Low' }, { id: 'high', name: 'High' }] } }; }\n  async *stream() { count('streams'); throw Error('MODEL CALL FORBIDDEN in compatibility fixture'); }\n}\nexport const inject = ['llm'];\nexport function apply(ctx) {\n  ctx.llm.registerAdapter([${JSON.stringify(fixtureProviderId)}], new FixtureAdapter());\n  const changed = () => ctx.emit('llm/adapters-updated');\n  watchFile(catalogFile, { interval: 200 }, changed);\n  ctx.effect(() => () => unwatchFile(catalogFile, changed));\n}\n`);
   result.providerFixture = 'TEST ONLY fake LlmAdapter metadata; native host directory/RPC/session/slots untouched';
 }
 const onboardingPatch = [
   { id: 'ui-settings-models', config: { credentialOnboarding: false } },
   { id: 'workspace-controller', config: { documentsDirectory: join(runRoot, 'documents'), documentsLookupTimeoutMs: 10000 } },
-  { id: 'agent-default-model', config: { provider: 'shelf-fixture', model: 'fixture-b' } },
+  { id: 'agent-default-model', config: { provider: fixtureProviderId, model: 'fixture-b' } },
   { insert: [{ id: 'shelf-test-provider', name: providerFile }] },
 ];
 async function writePatch(disabled) {
@@ -104,6 +107,7 @@ async function checkBoot(label, expected) {
   await context.route('**/*', route => {
     const requestURL = new URL(route.request().url());
     if (requestURL.origin === url.origin) return route.continue();
+    if (iconNetworkTest && requestURL.href === iconURL) { phase.iconRequests = (phase.iconRequests ?? 0) + 1; return route.continue(); }
     phase.blockedExternalRequests.push(requestURL.origin); return route.abort();
   });
   const page = await context.newPage();
@@ -137,6 +141,18 @@ async function checkBoot(label, expected) {
       const trigger = page.locator('.dmo-trigger');
       await trigger.waitFor({ state: 'visible', timeout: 30000 }); await trigger.click();
       await page.locator('.dmo-panel').waitFor({ state: 'visible', timeout: 10000 });
+      if (iconNetworkTest && label === 'installed') {
+        assert.equal(phase.iconRequests ?? 0, 0, 'No icon request without opt-in');
+        await page.getByRole('checkbox', { name: /联网下载缺失图标/ }).check();
+        await page.locator('.dmo-provider-icon[data-icon="huggingface"]').waitFor({ state: 'visible', timeout: 30000 });
+        assert.equal(phase.iconRequests, 1);
+        await page.getByRole('checkbox', { name: /联网下载缺失图标/ }).uncheck();
+        await page.reload();
+        await page.locator('.dmo-trigger').waitFor({ state: 'visible', timeout: 30000 });
+        await page.locator('.dmo-trigger').click();
+        await page.locator('.dmo-provider-icon[data-icon="huggingface"]').waitFor({ state: 'visible', timeout: 30000 });
+        assert.equal(phase.iconRequests, 1, 'Cached icon reload must be offline');
+      }
       assert.ok((await page.locator('.dmo-title').textContent()).includes('Model Shelf'));
       await page.locator('.dmo-row').first().waitFor({ state: 'visible', timeout: 30000 });
       assert.ok((await page.locator('.dmo-panel').innerText()).includes('Model Shelf TEST ONLY'));
@@ -164,11 +180,21 @@ async function checkBoot(label, expected) {
       await page.locator('.dmo-panel').screenshot({ path: join(evidenceDir, `${label}.png`) });
       await page.keyboard.press('Escape');
       const fullName = await trigger.getAttribute('aria-label');
-      await page.setViewportSize({ width: 390, height: 800 });
+      // Use a fixture width proven to overflow native and shelf expanded controls.
+      // The host decides compact mode by measured fit, not a fixed 390px breakpoint.
+      await page.setViewportSize({ width: 320, height: 800 });
+      await page.waitForFunction(() => {
+        const element = document.querySelector('.dmo-trigger');
+        if (!element?.closest('[data-model-compact]')) return false;
+        const style = getComputedStyle(element);
+        return style.getPropertyValue('--dsh-composer-model-text-display').trim() === 'none' && style.getPropertyValue('--dsh-composer-model-icon-display').trim() === 'block';
+      }, null, { timeout: 10000 });
       await trigger.locator('.dmo-trigger-copy').waitFor({ state: 'hidden' });
       await trigger.locator('svg').waitFor({ state: 'visible' });
-      phase.compact = await trigger.evaluate(element => ({ textVariable: getComputedStyle(element).getPropertyValue('--dsh-composer-model-text-display').trim(), iconVariable: getComputedStyle(element).getPropertyValue('--dsh-composer-model-icon-display').trim() }));
+      phase.compact = await trigger.evaluate(element => ({ viewportWidth: innerWidth, hostCompact: Boolean(element.closest('[data-model-compact]')), textVariable: getComputedStyle(element).getPropertyValue('--dsh-composer-model-text-display').trim(), iconVariable: getComputedStyle(element).getPropertyValue('--dsh-composer-model-icon-display').trim() }));
+      assert.equal(phase.compact.hostCompact, true, 'Official composer owns the compact decision');
       assert.equal(phase.compact.textVariable, 'none', 'Official composer requests compact text');
+      assert.equal(phase.compact.iconVariable, 'block', 'Official composer requests compact icon');
       assert.equal(await trigger.locator('.dmo-trigger-copy').isVisible(), false);
       assert.equal(await trigger.locator('svg').isVisible(), true);
       assert.equal(await trigger.getAttribute('aria-label'), fullName);
@@ -176,6 +202,8 @@ async function checkBoot(label, expected) {
       await page.setViewportSize({ width: 1280, height: 1000 });
       await trigger.locator('.dmo-trigger-copy').waitFor({ state: 'visible' });
       assert.equal(await trigger.locator('.dmo-trigger-copy').isVisible(), true, 'Wide composer restores the full text after layout settles');
+      await trigger.locator('.dmo-trigger-icon').waitFor({ state: 'hidden' });
+      assert.equal(await trigger.locator('.dmo-trigger-icon').isVisible(), false, 'Wide composer restores icon-hidden state');
       phase.preferencesAndSelection = true;
     } else {
       const nativePicker = page.getByRole('button', { name: /^选择模型，当前|^请选择模型$|^Select model/ }).first();

@@ -66,8 +66,8 @@ test('relative archive is made absolute before isolated child cwd changes', () =
 
 test('runtime identity rejects mismatches and every version outside the exact matrix', () => {
   const identity = api('assertRuntimeVersion');
-  for (const v of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2']) assert.equal(identity(v + '\n', v), v);
-  for (const v of ['0.2.0-rc.2', '0.2.1-rc.3', '0.2.1-rc.6', '0.2.1', '0.2.2-alpha.1', '0.2.2', '0.3.0']) assert.throws(() => identity(v, v), /untested/i);
+  for (const v of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1']) assert.equal(identity(v + '\n', v), v);
+  for (const v of ['0.2.0-rc.2', '0.2.1-rc.3', '0.2.1-rc.6', '0.2.1', '0.2.2-alpha.1', '0.2.2-rc.2', '0.2.2', '0.3.0']) assert.throws(() => identity(v, v), /untested/i);
   assert.throws(() => identity('0.2.1-rc.2', '0.2.1-rc.4'), /mismatch/i);
   assert.throws(() => identity('warning\n0.2.1-rc.2'), /version/i);
 });

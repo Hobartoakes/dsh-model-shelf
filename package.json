@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-shelf",
-  "version": "1.4.0",
+  "version": "1.5.1-local.2",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "latest" },
   "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",
@@ -9,14 +9,14 @@
   "repository": { "type": "git", "url": "git+https://github.com/Hobartoakes/dsh-model-shelf.git" },
   "homepage": "https://github.com/Hobartoakes/dsh-model-shelf#readme",
   "bugs": { "url": "https://github.com/Hobartoakes/dsh-model-shelf/issues" },
-  "engines": { "dsh": "0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2" },
+  "engines": { "dsh": "0.2.1-rc.2 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-alpha.2 || 0.2.2-rc.1" },
   "keywords": ["dsh-plugin", "deepseek-harness", "model-picker", "model-management", "ui"],
   "type": "module",
   "main": "lib/index.js",
   "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },
   "files": [
     "lib", "src", "scripts/build.mjs", "scripts/check-release.mjs", "tests/*.mjs",
-    "docs/images/*.png", "docs/ICON-ATTRIBUTIONS.md", "docs/research/2026-11-01-brand-icon-permissions.md", "docs/research/2026-11-01-icon-performance.md", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
+    "docs/images/*.png", "docs/ICON-ATTRIBUTIONS.md", "docs/research/2026-11-01-brand-icon-permissions.md", "docs/research/2026-11-09-retained-brand-distribution.md", "docs/research/2026-11-01-icon-performance.md", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
     "cordis.patch.yml", "README.md", "CHANGELOG.md", "LICENSE"
   ],
   "scripts": {
@@ -37,6 +37,7 @@
   "devDependencies": {
     "cordis-rc": "npm:@deepseek-ai/cordis@4.0.5",
     "cordis-alpha": "npm:@deepseek-ai/cordis@4.0.6-alpha.1",
+    "cordis-current": "npm:@deepseek-ai/cordis@4.1.0",
     "playwright-core": "^1.63.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",

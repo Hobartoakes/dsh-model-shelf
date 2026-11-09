@@ -5,6 +5,7 @@
 浏览器 localStorage 键 `dsh-model-shelf.preferences.v1` 保存：
 
 - `version`：偏好格式版本。
+- `iconNetwork`：是否允许联网下载缺失图标，默认关闭。
 - `uncommon`：用户手动移入不常用列表的 `(provider ID, model ID)`。
 - `collapsed`：用户折叠的 `(列表类型, provider ID)`。
 - `favorites`（1.1.0）：手动收藏的 `(provider ID, model ID)`，独立于主列表 / 不常用分类。
@@ -22,7 +23,7 @@
 
 ## 网络与宿主行为
 
-插件不新增外部网络请求。模型目录加载、模型切换以及思考强度修改使用 DSH 原有接口。宿主或服务商可能有自己的网络请求、分析或日志策略；本插件不控制或取代这些策略。
+联网补充默认关闭；开启后，当书架显示已识别但未预置和未缓存的图标时，请求 `https://unpkg.com/@lobehub/icons-static-png@1.97.0/light/` 下固定清单中的 PNG。服务商只会收到标准图标文件名、IP 等网络请求信息，不发送完整目录、原始模型 ID、账号备注或凭据；请求不携带 Cookie、认证头或 Referer。下载后的 PNG 放在浏览器当前 origin 的 `dsh-model-shelf.icons.v1` 中，最多 32 个、单个最多 128 KiB；存储失败时仅本次页面使用。关闭联网不会删除已缓存图标，也会中止进行中的下载。模型目录加载、模型切换以及思考强度修改使用 DSH 原有接口。宿主或服务商可能有自己的网络请求、分析或日志策略；本插件不控制或取代这些策略。
 
 ## 保存范围
 
@@ -30,7 +31,7 @@
 
 ## 重置与卸载
 
-卸载插件不会主动清空偏好。若需单独重置，可在当前 DSH 页面的浏览器开发者工具中，删除 `dsh-model-shelf.preferences.v1`；若曾使用旧原型，也删除 `dsh-model-organizer.preferences.v1`，避免首次读取时再次导入旧偏好，然后刷新页面。不要为了重置本插件而清空全部站点数据，以免同时影响登录状态和其他插件。
+卸载插件不会主动清空偏好。若需单独重置，可在当前 DSH 页面的浏览器开发者工具中，删除 `dsh-model-shelf.preferences.v1` 和图标缓存 `dsh-model-shelf.icons.v1`；若曾使用旧原型，也删除 `dsh-model-organizer.preferences.v1`，避免首次读取时再次导入旧偏好，然后刷新页面。不要为了重置本插件而清空全部站点数据，以免同时影响登录状态和其他插件。
 
 ## 公开演示素材
 

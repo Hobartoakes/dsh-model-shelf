@@ -19,6 +19,13 @@ const packageNames = {
 // Published npm dist.integrity, captured 2026-10-29. These are deliberately
 // checked in: a moved dist-tag or modified cache must never change the matrix.
 const pins = {
+  // Official npm metadata verified 2026-11-07; rc.1 peers require Cordis ~4.1.0.
+  '0.2.2-rc.1': {
+    modelSelection: 'sha512-F+Unm70Uy/zvRenqBh/pfcvZI2UkOC7UqKseuxpTTNk1Ly0L39qiHHhIOQUNDN0m4U1ocPFzDXD2ybm8GRnk6w==',
+    slots: 'sha512-asUGj3a5vSvUht/mBhFalFcad/YBwF9HWdY1XuIDZ7+Dx1mVrPPVG8JlIKnLZX51BnCNGr52VsjsJoErRaD3bg==',
+    store: 'sha512-qMqkH1udz0pBjYi/S+KxEb4C70y6akJjdXxldXIy86h7fH+nAnzOC8+ooV8soz3tidCFtgS6MKcKOm1rvPmFSg==',
+    renderer: 'sha512-99uRdt3Zf6SUmMSFrXKM8XsBJWwDKLt5S1n8Yb523520JZL/bhBUV4XTPnVQkQx76wMtDuK77Sh0JcHQRWngvA==',
+  },
   '0.2.1-rc.2': {
     modelSelection: 'sha512-vQ/MfeWbhR8kEjKDxWnJ9Wf5RgltngVnq+8TAnfx5cA/4PDlUD/Fm4K3/KWAgUMz7pS+x4yno4ri3SHSsksb5g==',
     slots: 'sha512-/DroOBXeQzFczr07RkMh2FolFL8yW8GTryc7fvaM7QPiFvwHv8oWoBGESQ3AaVQHY9TgpYhJ5X8JuMtaYovE4A==',
@@ -145,7 +152,7 @@ export async function loadHostPackages(version, { cacheDirectory = cacheRoot, fe
   const packages = {};
   // Fail before starting another fetch; a failed test never leaves hidden work.
   for (const key of Object.keys(packageNames)) packages[key] = await packageAt(version, key, cacheDirectory, request);
-  const cordis = await import(version === '0.2.2-alpha.2' ? 'cordis-alpha' : 'cordis-rc');
+  const cordis = await import(version === '0.2.2-rc.1' ? 'cordis-current' : version === '0.2.2-alpha.2' ? 'cordis-alpha' : 'cordis-rc');
   const slots = await import(pathToFileURL(join(packages.slots.root, 'lib/index.js')).href);
   const store = await import(pathToFileURL(join(packages.store.root, 'lib/index.js')).href);
   const modules = {

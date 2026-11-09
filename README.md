@@ -1,6 +1,50 @@
 # 模型书架 · DSH Model Shelf
 
-## 1.4.0 当前验证（已发布）
+## 1.5.1-local.2 当前验证（未发布）
+
+在 local.1 兼容补丁上仅增加展开模型行的局部 CSS：`.dmo-group>.dmo-row>.dmo-select{padding-left:2px;padding-right:14px}`。1280/390/320px × 深浅色专项 6/6 通过，图文左移 6px，点击框、行高、文本宽度、收起卡片及平铺收藏几何不变；保留图标、业务和偏好。
+
+2026-11-10：当前候选真实边界 84/84、离线 UI 45/45、五版完整宿主安装/禁用/重新启用/卸载通过；未重跑其余单元测试，local.1 的 150/151 仍只作历史记录。2026-11-09 已经官方管理器安装启用日常 desktop，并核对其他依赖、加载顺序及 patch 不变；日常界面/偏好人工验收仍待完成。尚未公开发布。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+| 0.2.2-rc.1 | PASS | PASS | PASS |
+
+**范围限制：** 离线 UI 是共享合成目录，不是逐版日常桌面验收。alpha.2 的通过环境将六个 vendor 选为官方发布标签中的 alpha.1；原普通 npm 解析到 alpha.2 的 vendor 时，未安装书架也会启动失败。此处不是原失败环境已修复、全部 alpha.2 依赖组合已覆盖或官方完整锁定构建复现的声明。详细版本、证据与归档绑定见[验证报告](docs/VALIDATION.md)。这些结果绑定已测归档，不自动认证今后重新打包的归档。
+
+图标按用户选择保留。版权许可、商标条件与合同适用范围分别核对，不能把未找到单独授权等同禁止，也不能把 MIT 视为全部品牌权利许可；现行 OpenAI 全文及若干条件的适用性仍待确认。参见[最新品牌分发研究](docs/research/2026-11-09-retained-brand-distribution.md)。技术检查通过不等于分发结论、最终审查或公开发布已经完成。
+
+## 1.5.1-local.1 历史验证（未发布）
+
+2026-11-07：桌面版 DSH 0.2.2-rc.1 本地兼容补丁，以已安装 1.5.0 为基线，仅扩展精确宿主白名单，保留运行时代码、图标与偏好。新增官方固定版四包及 Cordis 4.1.0 的 11 项真实接口测试通过，离线 UI 45 项通过、未捕获页面错误 0。离线 UI 是合成目录，不代表桌面端端到端验收。完整生命周期及公开发布尚未验收。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PENDING |
+| 0.2.1-rc.4 | PASS | PASS | PENDING |
+| 0.2.1-rc.5 | PASS | PASS | PENDING |
+| 0.2.2-alpha.2 | PASS | PASS | PENDING |
+| 0.2.2-rc.1 | PASS | PASS | PENDING |
+
+## 1.5.0 历史候选验证（未发布）
+
+预置 DeepSeek、OpenAI、Cline、Qwen、Qoder 与 TRAE 图标；开启联网补充后，匹配到 OpenRouter、Hugging Face 时从固定版本 Lobe Icons 下载 PNG 并保存本地。其他未覆盖或使用条件不适用的品牌显示默认图标。联网补充默认关闭；图标表示目录标签，不验证实际上游或官方关系。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.4 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.5 | 待复测 | 待复测 | 待复测 |
+| 0.2.2-alpha.2 | 待复测 | 待复测 | 待复测 |
+
+
+2026-11-01：新增 Cline 图标及型号匹配前的候选归档曾在四版 Windows 隔离宿主完成安装、禁用、重新启用和卸载，浏览器检查 45 项通过；rc.5 额外验证了下载和缓存。新增内容后的最终归档尚待复测。本机安装的是更早的候选，实际界面已观察到 DeepSeek、OpenAI 图标和关闭的联网开关。
+
+## 1.4.0 历史验证（已发布）
 
 当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；[v1.4.0 GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.4.0) 已公开。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
 
@@ -78,7 +122,7 @@
 - **逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部按模型选择 `300K` / `1M` 等它声明的容量，并显示“当前生效”；未打补丁时该控件不出现（1.2.0）。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
 
-**1.4.0 的变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
+**1.4.0 的历史变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
 
 模型 ID 是服务商目录提供的调用标识。当前默认图标不区分服务商或模型系列；若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**。
 
@@ -86,15 +130,15 @@
 
 | 项目 | 已验证范围 |
 | --- | --- |
-| DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2**，仅精确四版 |
-| 实际环境 | 2026-10-30 已安装到日常 desktop profile（DSH 0.2.1-rc.5），重启 DSH 后生效；不声明当前 GUI 交互验收 |
+| DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2 / 0.2.2-rc.1**，仅精确五版；验证层级见顶部当前章节 |
+| 实际环境 | 2026-11-07 核对桌面宿主为 DSH 0.2.2-rc.1；此本地补丁等待共享 desktop 安装窗口，尚未安装或完成日常 GUI 验收 |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
 | 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名文字不带宿主自带的 1017 徽标；工作树可在名称旁单独显示本地图标。理由见下文 |
 | 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
-仅允许上列四个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
+仅允许上列五个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
 
 0.2.1 起，宿主自己也往这个座位里填一个官方选择器（priority `0`），并声明 `conversation.input.model.label` 子插槽给模型名加徽标。本插件以更低的 priority 胜出，因此整张座位（包括模型名的渲染）由本插件负责。
 
@@ -197,7 +241,7 @@ WorkBuddy 原本只有**一个全局开关**（“使用最大上下文窗口”
 - **目前不跨设备同步，也不纳入 DSH profile 备份。**
 - 浏览器存储不可用时显示警告，当前页面仍可操作，但刷新后可能丢失偏好。
 - 卸载不主动清空浏览器偏好，便于重装后恢复。
-- **不发起任何外部网络请求**；除宿主已有的模型目录与切换接口外，仅在已安装 `dsh-workbuddy-connect` 且当前模型属于它时，向该插件在本机监听的同源路由读取思考强度与容量状态，并在你确认后请它发起探测或写入你选择的容量。插件不读取该插件的私有文件，也不代它绕过授权。
+- 图标联网补充默认关闭；用户开启后，仅对已识别且允许下载的图标请求固定版本资源。除此以外，在已安装 `dsh-workbuddy-connect` 且当前模型属于它时，向该插件在本机监听的同源路由读取思考强度与容量状态，并在你确认后请它发起探测或写入你选择的容量。插件不读取该插件的私有文件，也不代它绕过授权。
 
 详见 [隐私说明](docs/PRIVACY.md)。
 
@@ -221,7 +265,9 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## 发布状态
 
-- **当前 1.3.1：已公开发布，已安装到本机日常 desktop profile（重启 DSH 后生效）**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过；2026-10-30 通过官方 CLI 从本地已验证归档升级日常 desktop（1.3.0 → 1.3.1，DSH 0.2.1-rc.5），安装后客户端哈希与发布字节一致，bundle 顺序与 cordis patch 未变。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
+- **当前 1.5.1-local.2：仅本地兼容与缩进修正候选，未安装、未公开发布**。本版六组合缩进专项通过；完整套件未重跑，完整生命周期与真实桌面验收未完成，发布门槛尚未满足。
+
+- **历史 1.3.1：当时已公开发布并安装到本机日常 desktop profile**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过；2026-10-30 通过官方 CLI 从本地已验证归档升级日常 desktop（1.3.0 → 1.3.1，DSH 0.2.1-rc.5），安装后客户端哈希与发布字节一致，bundle 顺序与 cordis patch 未变。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
 
 - 作者：Hobartoakes。
 - GitHub 仓库：[Hobartoakes/dsh-model-shelf](https://github.com/Hobartoakes/dsh-model-shelf)。
@@ -235,7 +281,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。当前源码已记录 1.3.1 公开下载与安装证据；不重新打包，归档仍保留打包时文档，避免自引用。1.3.0 / 1.3.1 归档和标签均不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。当前候选是 1.5.1-local.2；下述 1.3.1 公开下载与安装证据属于历史，不描述本次安装状态。旧发布归档保留打包时文档，避免自引用。1.3.0 / 1.3.1 归档和标签均不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
 
 ## English summary
 

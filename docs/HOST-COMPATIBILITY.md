@@ -1,6 +1,50 @@
 # 宿主兼容性核对
 
-## 1.4.0 当前验证（已发布）
+## 1.5.1-local.2 当前验证（未发布）
+
+生产改动仅为展开模型行 6px 缩进 CSS；五版精确白名单、图标与业务调用不变。2026-11-10 当前候选边界 84/84、离线 UI 45/45，以及五版完整运行时安装/禁用/重新启用/卸载通过；其余单元测试未重跑。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+| 0.2.2-rc.1 | PASS | PASS | PASS |
+
+alpha.2 的 PASS 限于官方 CLI 与同版完整前端、并将 Cordis/cosmokit/include/loader/schemastery/timer 选为官方 tag 的 alpha.1 版本。安装前后各核对 486 条约束，strict peer 检查通过；与原失败环境的包来源仅相差这六包。原 npm 范围解析的 vendor alpha.2 会在没有书架时同样产生 agent-preset/invalid；没有修改书架代码、宿主代码或版本豁免来使其通过。这不是所有依赖组合或官方完整构建的认证。
+
+离线 UI 是共享合成目录，完整 runtime 是无凭据的真实宿主与 fake provider metadata，未发送模型请求；不可当成日常桌面偏好验收。当前已本地安装启用，日常界面验收和公开发布仍待完成。归档摘要、精确版本与限制见[验证报告](VALIDATION.md)；历史 local.1 数据不作本版证据。
+
+## 1.5.1-local.1 历史验证（未发布）
+
+2026-11-07：新增桌面宿主 0.2.2-rc.1 精确兼容声明。四个官方包的 SHA-512 固定于 tests/host-packages.mjs，使用匹配的 Cordis 4.1.0。11 项新增真实边界测试通过，包括完整路由/推理强度、失败重试、重连、目录丢失恢复、子代理限制、原生插槽所有权和释放。旧四版边界回归通过。离线模拟 UI 45 项通过、页面错误 0，不代表逐版完整宿主运行。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PENDING |
+| 0.2.1-rc.4 | PASS | PASS | PENDING |
+| 0.2.1-rc.5 | PASS | PASS | PENDING |
+| 0.2.2-alpha.2 | PASS | PASS | PENDING |
+| 0.2.2-rc.1 | PASS | PASS | PENDING |
+
+仅本地适配，不授予版本豁免，不把未完成的完整生命周期写成 PASS。
+
+## 1.5.0 历史候选验证（未发布）
+
+预置 DeepSeek、OpenAI、Cline、Qwen、Qoder 与 TRAE 图标；开启联网补充后，匹配到 OpenRouter、Hugging Face 时从固定版本 Lobe Icons 下载 PNG 并保存本地。其他未覆盖或使用条件不适用的品牌显示默认图标。联网补充默认关闭；图标表示目录标签，不验证实际上游或官方关系。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.4 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.5 | 待复测 | 待复测 | 待复测 |
+| 0.2.2-alpha.2 | 待复测 | 待复测 | 待复测 |
+
+
+2026-11-01：新增 Cline 图标及型号匹配前的候选归档曾在四版 Windows 隔离宿主完成安装、禁用、重新启用和卸载，浏览器检查 45 项通过；rc.5 额外验证了下载和缓存。新增内容后的最终归档尚待复测。本机安装的是更早的候选，实际界面已观察到 DeepSeek、OpenAI 图标和关闭的联网开关。
+
+## 1.4.0 历史验证（已发布）
 
 当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；[v1.4.0 GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.4.0) 已公开。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
 

@@ -32,6 +32,7 @@ const fetchCalls=[]; window.fetchCalls=fetchCalls; window.wbGroups=wbGroups;
 const jsonResponse=(body,ok=true,status=200)=>({ok,status,json:async()=>body});
 window.publishEfforts=()=>setState({groups:wbGroups.map(g=>g.id!=='workbuddy-ai'?g:{...g,models:g.models.map(m=>m.id==='wb-flash'?{...m,reasoning:{defaultEffort:'medium',efforts:[{id:'low',name:'低'},{id:'medium',name:'中'},{id:'high',name:'高'}]}}:m)})});
 window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:options??{}});
+ if(String(url).includes('/huggingface-color.png')) return new Response(Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+i4V8AAAAASUVORK5CYII='),c=>c.charCodeAt(0)),{headers:{'content-type':'image/png'}});
  if(String(url).endsWith('/ai/status')){const doc={status:'signed-in',probeKey:'test-key',contextWindowPatch:'0.7.1-ctxpatch.1',contextWindowOverrides:{...wbOverrides},probe:{...wbProbe,results:wbProbe.results.map(r=>({...r}))},models:wbModels.map(m=>({...m,contextWindow:wbOverrides[m.id]??m.contextWindow}))};
   if(localStorage.getItem('wbStock')==='1'){delete doc.contextWindowPatch;delete doc.contextWindowOverrides;for(const m of doc.models)delete m.supportedContextWindows;}
   return jsonResponse(doc);}
@@ -72,6 +73,21 @@ try {
   const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const rowKeys = () => page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
   const groupIds = () => page.locator('.dmo-group').evaluateAll(rows => rows.map(row => row.dataset.providerId));
+  // Download is opt-in; the fixed identity, not a raw model label, is sent.
+  await reset();
+  await page.evaluate(() => { fetchCalls.length=0; setState({groups:[{id:'huggingface',name:'Hugging Face',models:[{id:'demo',name:'Demo'}]}]}); });
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.evaluate(() => fetchCalls.filter(x=>x.url.includes('unpkg.com')).length), 0);
+  await page.getByRole('checkbox',{name:/联网下载缺失图标/}).check();
+  await page.locator('.dmo-provider-icon[data-icon="huggingface"]').waitFor();
+  await page.locator('.dmo-provider-icon[data-icon="huggingface"]').evaluate(img=>img.decode());
+  assert.equal(await page.evaluate(() => fetchCalls.filter(x=>x.url.includes('unpkg.com')).length), 1);
+  await page.getByRole('checkbox',{name:/联网下载缺失图标/}).uncheck();
+  await page.reload(); await open();
+  await page.evaluate(() => setState({groups:[{id:'huggingface',name:'Hugging Face',models:[{id:'demo',name:'Demo'}]}]}));
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="huggingface"]').count(),1);
+  assert.equal(await page.evaluate(() => fetchCalls.filter(x=>x.url.includes('unpkg.com')).length),0);
+  ok('icon downloads require opt-in and cached icons work after offline reload');
   // Icons are local, decorative, and preserve provider/model identities.
   await reset();
   assert.ok(await page.getByText('图标依据目录标识，不验证实际上游。', { exact: true }).isVisible());
@@ -80,29 +96,44 @@ try {
   page.on('request', onIconRequest);
   await page.evaluate(() => setState({ groups: [{ id: 'deepseek-official', name: 'DeepSeek', models: [{ id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash' }] }], current: { provider: 'deepseek-official', model: 'deepseek-v4.1-flash' } }));
   const iconGroup = page.locator('.dmo-group[data-provider-id="deepseek-official"]');
-  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
-  assert.equal(await iconGroup.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="deepseek"]').count(), 1);
+  assert.equal(await iconGroup.locator('.dmo-model-icon[data-icon="deepseek"]').count(), 1);
   assert.equal(await iconGroup.locator('.dmo-model-icon').getAttribute('aria-hidden'), 'true');
   await iconGroup.locator('.dmo-group-heading').click();
-  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  assert.equal(await iconGroup.locator('.dmo-provider-icon[data-icon="deepseek"]').count(), 1);
   await iconGroup.locator('.dmo-group-heading').click();
   await iconGroup.locator('.dmo-favorite').click();
   await page.getByRole('tab', { name: /^收藏/ }).click();
-  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="deepseek"]').count(), 1);
   await page.evaluate(() => setState({ groups: [{ id: 'relay', name: 'Relay', models: [{ id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash' }] }] }));
   await page.getByRole('tab', { name: /^主列表/ }).click();
   assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
-  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="deepseek"]').count(), 1);
   await page.evaluate(() => setState({ groups: [
     { id: 'workbuddy', name: 'WorkBuddy', models: [{ id: 'claude-sonnet-4-5', name: 'Claude' }] },
     { id: 'openai-codex', name: 'ChatGPT', models: [{ id: 'gpt-6.1-terra', name: 'GPT' }] }
   ] }));
-  assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 2);
-  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 2);
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="openai"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="default"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="openai"]').count(), 1);
   for (const img of await page.locator('.dmo-list img.dmo-icon').all()) {
     await img.evaluate(el => el.decode());
     assert.ok(await img.evaluate(el => el.naturalWidth > 0));
   }
+  await page.evaluate(() => setState({ groups: [{ id: 'cline', name: 'Cline', models: [{ id: 'gpt-6.1-sol', name: 'GPT' }] }] }));
+  assert.equal(await page.locator('.dmo-provider-icon[data-icon="cline"]').count(), 1);
+  assert.equal(await page.locator('.dmo-model-icon[data-icon="openai"]').count(), 1);
+  for (const img of await page.locator('.dmo-list img.dmo-icon').all()) {
+    await img.evaluate(el => el.decode());
+    assert.ok(await img.evaluate(el => el.naturalWidth > 0));
+  }
+  await page.evaluate(() => setState({ groups: [
+    { id: 'qoder', name: 'Qoder', models: [{ id: 'qmodel', name: 'Qwen' }] },
+    { id: 'other-provider', name: 'Other', models: [{ id: 'qmodel', name: 'Other' }] }
+  ] }));
+  assert.equal(await page.locator('.dmo-group[data-provider-id="qoder"] .dmo-model-icon[data-icon="qwen"]').count(), 1);
+  assert.equal(await page.locator('.dmo-group[data-provider-id="other-provider"] .dmo-model-icon[data-icon="default"]').count(), 1);
   assert.deepEqual(iconNetworkRequests, []);
   page.off('request', onIconRequest);
   ok('provider and model icons appear offline with stable identities');

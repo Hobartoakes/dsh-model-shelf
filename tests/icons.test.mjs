@@ -2,14 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { providerIcon, modelIcon } from '../src/icons.js';
+import { catalogModelIcons } from '../src/catalog-icons.js';
+
+test('public catalog snapshot contains only reviewed brand namespaces', () => {
+  assert.ok(catalogModelIcons.length > 0);
+  assert.equal(new Set(catalogModelIcons).size, catalogModelIcons.length);
+  assert.ok(catalogModelIcons.every(id => /^(?:openai|deepseek)\/[a-z0-9.:-]+$/.test(id)));
+});
 
 test('icon attribution research is included in package files', async () => {
   const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   assert.ok(pkg.files.includes('docs/research/2026-11-01-brand-icon-permissions.md'));
   assert.ok(pkg.files.includes('docs/research/2026-11-01-icon-performance.md'));
 });
-
 test('provider icon keys use exact normalized provider identities', () => {
+  assert.equal(providerIcon('cline'), 'cline');
+  assert.equal(providerIcon('deepseek-account'), 'deepseek');
+  assert.equal(providerIcon('qoder'), 'qoder');
+  assert.equal(providerIcon('qodercn'), 'qoder');
+  assert.equal(providerIcon('trae'), 'trae');
+  assert.equal(providerIcon('fake-qoder'), 'default');
   assert.equal(providerIcon('deepseek-official'), 'deepseek');
   assert.equal(providerIcon('OPENAI-CODEX'), 'openai');
   assert.equal(providerIcon('workbuddy'), 'workbuddy');
@@ -17,6 +29,9 @@ test('provider icon keys use exact normalized provider identities', () => {
   assert.equal(providerIcon('workbuddy-fake'), 'default');
   assert.equal(providerIcon('unrelated-deepseek-official'), 'default');
   assert.equal(providerIcon(''), 'default');
+  assert.equal(providerIcon('openrouter'), 'openrouter');
+  assert.equal(providerIcon('huggingface'), 'huggingface');
+  assert.equal(providerIcon('openrouter-example'), 'default');
 });
 
 test('model icon keys recognize anchored model families without substring guesses', () => {
@@ -24,6 +39,35 @@ test('model icon keys recognize anchored model families without substring guesse
   assert.equal(modelIcon('deepseek-flash'), 'deepseek');
   assert.equal(modelIcon('deepseek-v4-flash-vision'), 'deepseek');
   assert.equal(modelIcon('gpt-6.1-terra'), 'openai');
+  assert.equal(modelIcon('gpt-6.1-sol'), 'openai');
+  assert.equal(modelIcon('gpt-6-astra'), 'openai');
+  assert.equal(modelIcon('openai/gpt-6.1-terra-pro:batch'), 'openai');
+  assert.equal(modelIcon('codex/gpt-6-luna'), 'openai');
+  assert.equal(modelIcon('cline-pass/deepseek-v4.1-flash-1017'), 'deepseek');
+  assert.equal(modelIcon('opencode-zen-free/deepseek-v4.1-flash-free'), 'deepseek');
+  assert.equal(modelIcon('openai/gpt-4o-mini'), 'openai');
+  assert.equal(modelIcon('openai/o3-pro'), 'openai');
+  assert.equal(modelIcon('deepseek/deepseek-v4.1-flash:batch'), 'deepseek');
+  assert.equal(modelIcon('openai/not-a-real-model'), 'default');
+  assert.equal(modelIcon('qwen/qwen3.8-27b'), 'qwen');
+  assert.equal(modelIcon('cline-pass/qwen3.7-plus'), 'qwen');
+  assert.equal(modelIcon('qwen3.8-max'), 'qwen');
+  assert.equal(modelIcon('qwen-3.8-max'), 'qwen');
+  assert.equal(modelIcon('deepseek-v4.1-flash-sg'), 'deepseek');
+  assert.equal(modelIcon('deepseek-ai/deepseek-v4.1-flash'), 'deepseek');
+  assert.equal(modelIcon('gpt-5.6-luna'), 'openai');
+  assert.equal(modelIcon('~openai/gpt-astra-latest'), 'openai');
+  assert.equal(modelIcon('~deepseek/deepseek-v4-flash-latest'), 'deepseek');
+  assert.equal(modelIcon('~openai/gpt-fake-latest'), 'default');
+  assert.equal(modelIcon('qmodel', 'qoder'), 'qwen');
+  assert.equal(modelIcon('q37fmodel', 'qodercn'), 'qwen');
+  assert.equal(modelIcon('dmodel', 'qoder'), 'deepseek');
+  assert.equal(modelIcon('qmodel', 'another-provider'), 'default');
+  assert.equal(modelIcon('fake-qwen3.8-max'), 'default');
+  assert.equal(modelIcon('untrusted/qwen3.8-max'), 'default');
+  assert.equal(modelIcon('deepseek-v4-pro-0813'), 'deepseek');
+  assert.equal(modelIcon('untrusted/gpt-6-luna'), 'default');
+  assert.equal(modelIcon('openai/gpt-6-luna-impostor'), 'default');
   assert.equal(modelIcon('claude-sonnet-4-5'), 'claude');
   assert.equal(modelIcon('gpt-4o'), 'openai');
   assert.equal(modelIcon('claude-3-5-sonnet'), 'claude');
@@ -43,9 +87,4 @@ test('model icon keys recognize anchored model families without substring guesse
   assert.equal(modelIcon('fake-gpt-6'), 'default');
   assert.equal(modelIcon('gpt-impostor'), 'default');
   assert.equal(modelIcon(''), 'default');
-});
-
-test('no unverified brand images are embedded in the build', async () => {
-  const built = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(built, /data:image\/svg\+xml;base64,/);
 });

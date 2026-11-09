@@ -1,6 +1,7 @@
 import { modelKey, groupKey, toggleKey, partitionModels, favoriteRows, isUncommon, orderedKeys, reorderKeys, setProviderUncommon, setFavorite, createPreferenceStore, providerNote } from './preferences.js';
 import { isWorkBuddyProvider, loadProbeStatus, requestProbe, probeStateFor, effortSourceFor, contextWindowFor, formatCapacity, requestContextWindow } from './workbuddy-probe.js';
-import { providerIcon, modelIcon } from './icons.js';
+import { providerIcon, modelIcon, DOWNLOADABLE_ICONS } from './icons.js';
+import { createIconStore } from './icon-cache.js';
 
 // React and ReactDOM come from the running DSH client, never a second React copy.
 const React = require('react');
@@ -31,10 +32,11 @@ function withCatalogOrder(prefs, groups) {
   return { ...prefs, providerOrder: { main, uncommon }, favoriteOrder: favorites };
 }
 
-export function makeModelPicker(preferences) {
+export function makeModelPicker(preferences, iconStore) {
   return function ModelPicker({ locked, available, directory, load, select }) {
     const state = useSyncExternalStore(directory.subscribe.bind(directory), directory.getSnapshot.bind(directory));
     const prefs = useSyncExternalStore(preferences.subscribe, preferences.getSnapshot);
+    useSyncExternalStore(iconStore.subscribe, iconStore.getSnapshot);
     const [open, setOpen] = useState(false);
     const [list, setList] = useState('main');
     const [query, setQuery] = useState('');
@@ -76,6 +78,12 @@ export function makeModelPicker(preferences) {
     const expanded = (id) => searching || !prefs.collapsed.includes(groupKey(list, id));
     const flatFavorites = favoriteRows(groups, prefs, query);
     const visible = list === 'favorites' ? flatFavorites : shown.flatMap((g) => expanded(g.id) ? g.models.map((m) => ({ group: g, model: m, key: modelKey(g.id, m.id) })) : []);
+    const neededIcons = [...new Set([...shown.map(g => providerIcon(g.id)), ...visible.map(row => modelIcon(row.model.id, row.group.id))])].sort().join(',');
+    useEffect(() => {
+      iconStore.setEnabled(open && prefs.iconNetwork);
+      if (open && prefs.iconNetwork) for (const key of neededIcons.split(',')) void iconStore.load(key);
+      return () => iconStore.setEnabled(false);
+    }, [open, prefs.iconNetwork, neededIcons]);
     useEffect(() => {
       // Discovery is not consent to replace unreadable storage or clear its warning.
       if (!preferences.getError() && withCatalogOrder(prefs, groups) !== prefs) preferences.update(p => withCatalogOrder(p, groups));
@@ -446,10 +454,11 @@ export function makeModelPicker(preferences) {
         h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setEditingNote(null); search.current?.focus(); } }, '取消')));
     // Icons reflect catalog labels, not verification of the actual route.
     const icon = (kind, key) => {
-      const selected = Object.hasOwn(ICON_DATA, key) ? key : 'default';
+      const source = iconStore.get(key);
+      const selected = source ? key : 'default';
       const props = { className: `dmo-${kind}-icon dmo-icon`, 'data-icon': selected, 'aria-hidden': true };
       return selected !== 'default'
-        ? h('img', { ...props, src: ICON_DATA[selected], alt: '', draggable: false })
+        ? h('img', { ...props, src: source, alt: '', draggable: false, onError: () => iconStore.discard(key) })
         : h('span', { ...props }, '◈');
     };
     const renderRow = (g, m) => {
@@ -460,7 +469,7 @@ export function makeModelPicker(preferences) {
       return h('div', { className: 'dmo-row', key, 'data-model-key': key, 'data-provider-id': g.id, 'data-highlighted': activeRow?.key === key, ...(list === 'favorites' ? dropProps(key) : {}) },
         list === 'favorites' && orderControls(key, `${g.id} / ${m.id}`),
         h('div', { role: 'button', tabIndex: 0, className: 'dmo-select', 'aria-disabled': busy, 'aria-label': `选择 ${g.name || g.id} 的 ${m.name || m.id}，模型 ID ${m.id}${providerNote(prefs, g.id) ? '，账号备注 ' + providerNote(prefs, g.id) : ''}`, 'aria-pressed': selected, onClick: () => { if (!busy) choose({ provider: g.id, model: m.id }); }, onKeyDown: (e) => { if (e.nativeEvent?.isComposing || e.keyCode === 229) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!busy) choose({ provider: g.id, model: m.id }); } } },
-          h('span', { className: 'dmo-icon-wrap' }, icon('model', modelIcon(m.id)), selected && h('span', { className: 'dmo-icon-selected', 'aria-hidden': true }, '✓')),
+          h('span', { className: 'dmo-icon-wrap' }, icon('model', modelIcon(m.id, g.id)), selected && h('span', { className: 'dmo-icon-selected', 'aria-hidden': true }, '✓')),
           h('span', { className: 'dmo-copy' }, h('span', { className: 'dmo-name' }, m.name || m.id), ...identity(g, m))),
         h('div', { className: 'dmo-row-actions' },
           h('button', { type: 'button', className: 'dmo-favorite', 'aria-pressed': prefs.favorites.includes(key), 'aria-label': `${prefs.favorites.includes(key) ? '取消收藏' : '收藏'}：${g.name || g.id} / ${m.id}${accountSuffix}`, onClick: () => toggleFavorite(g.id, m.id) }, prefs.favorites.includes(key) ? '★ 已收藏' : '☆ 收藏'),
@@ -536,6 +545,7 @@ export function makeModelPicker(preferences) {
           contextRow.effective !== undefined && h('span', { className: 'dmo-effort-source dmo-context-note' }, `当前生效 ${formatCapacity(contextRow.effective)}`)),
         probeBlock,
         h('div', { className: 'dmo-identity' }, '分类、收藏、备注及折叠偏好保存在当前浏览器；不会自动分类。'),
+        h('label', { className: 'dmo-icon-setting' }, h('input', { type: 'checkbox', checked: prefs.iconNetwork, onChange: e => preferences.update(p => ({ ...p, iconNetwork: e.target.checked })) }), '联网下载缺失图标（仅请求图标名称，下载后保存在本地）'),
         h('div', { className: 'dmo-identity' }, '图标依据目录标识，不验证实际上游。'),
         (localError || state.status === 'error' || state.failures?.length > 0) && h('button', { type: 'button', className: 'dmo-tab', onClick: () => { setLocalError(null); Promise.resolve().then(load).catch((e) => setLocalError(String(e.message ?? e))); } }, '重新加载')));
     return h(React.Fragment, null,
@@ -551,8 +561,9 @@ export function apply(ctx) {
   let storage;
   try { storage = window.localStorage; } catch { storage = { getItem() { throw new Error('storage unavailable'); }, setItem() { throw new Error('storage unavailable'); } }; }
   const preferences = createPreferenceStore(storage, window);
-  ctx.effect(() => () => preferences.dispose());
-  const ModelPicker = makeModelPicker(preferences);
+  const iconStore = createIconStore({ storage, bundled: ICON_DATA, registry: DOWNLOADABLE_ICONS, fetcher: (...args) => window.fetch(...args) });
+  ctx.effect(() => () => { preferences.dispose(); iconStore.dispose(); });
+  const ModelPicker = makeModelPicker(preferences, iconStore);
   ctx.slots.inject('conversation.input.model', () => ctx.slots.register({
     name: 'conversation.input.model', priority: -100,
     inject: (sessionId) => {

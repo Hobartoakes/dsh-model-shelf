@@ -1,6 +1,94 @@
 # 验证报告
 
-## 1.4.0 当前验证（已发布）
+## 1.5.1-local.2 当前验证（未发布）
+
+2026-11-07 缩进实现阶段只移植一条局部 CSS 并使用未修改的 [build.mjs](../scripts/build.mjs) 生成客户端。[indent-layout.mjs](../tests/indent-layout.mjs) 重用原合成 host HTML；该阶段未执行原完整 UI 套件。RED 六例均因左内边距 8px 而非 2px 失败；GREEN 在 1280/390/320px × 深浅色六例通过，左右 2px/14px，图文 X 坐标均 -6px；点击框、行高、文本宽度、收起卡片、平铺收藏几何不变，页面错误和外部网络请求均为 0。无真实模型调用。
+
+本轮生成客户端 SHA-256：`59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db`。原始记录在工作副本 tests/artifacts/indent-local2-red/geometry.json 和 tests/artifacts/indent-local2-green/geometry.json；六张绿色截图与输入摘要保留，不放入安装归档。
+
+2026-11-10，发布准备阶段补齐当前候选真实边界 84/84、离线 UI 45/45（未捕获页面错误 0）与五版完整宿主四阶段。仅运行缺少当前候选证据的两个入口，其余单元测试未重跑；下列 local.1 的 150/151 仍是历史，不声明新的完整单元套件通过。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PASS |
+| 0.2.1-rc.4 | PASS | PASS | PASS |
+| 0.2.1-rc.5 | PASS | PASS | PASS |
+| 0.2.2-alpha.2 | PASS | PASS | PASS |
+| 0.2.2-rc.1 | PASS | PASS | PASS |
+
+**alpha.2 的环境限定：** 官方 CLI/app-boot/web-app/frontend 均为 `0.2.2-alpha.2`。完整生命周期的通过环境选择官方 [dsh-v0.2.2-alpha.2 标签](https://github.com/deepseek-ai/deepseek-harness/tree/f3803c96974ad4a94195fb97e5c637e9c2a3afe3)中的六个 vendor：Cordis `4.0.6-alpha.1`、cosmokit `1.8.7-alpha.1`、include `1.0.11-alpha.1`、loader `1.0.7-alpha.1`、schemastery `3.18.6-alpha.1`、timer `1.1.8-alpha.1`。安装前后各 486 条约束通过，并启用 strict peer 检查。两份 npm lock 的来源差异仅这六包；四个 DSH 包的归档 SRI 不变。
+
+普通 npm 范围解析选中上述 vendor 的 alpha.2 时，未安装书架的 control 也在 agent-preset 创建时报 `Cannot read properties of undefined (reading 'parent')`。选择 tag vendor family 后，同一无书架 control 和未改断言的完整四阶段分别通过。原失败保留，未改宿主源码、书架生产代码、版本豁免或发布断言。这证明当前依赖选择对该复现的影响，不证明某一个 vendor 独自是原因，也不等同全部第三方依赖闭包/官方二进制重建或所有 alpha.2 组合都通过。
+
+完整 runtime 使用无凭据的隔离完整宿主，仅 LLM adapter 提供测试 metadata；真实原生目录、RPC、会话及 slot 均运行。每版 installed/disabled/reenabled/uninstalled 共 8 项通过，provider streams=0、page/console errors 为空、browserClosed=true、owned processes=0、真实 desktop manifest/patch 指纹不变。启用阶段在宿主确实进入 compact 的 320px 场景检查完整 aria-label、键盘操作及宽屏恢复；390px 不是固定契约断点。离线 UI 是同一真实客户端上的共享合成目录，不代表逐版日常桌面验收。
+
+原始证据在维护者工作区保留，不放入安装归档；以下摘要可核对，发行侧记须继续绑定具体归档：
+
+| 宿主/层 | 工作区证据 | SHA-256 / 结果 |
+| --- | --- | --- |
+| rc.2 runtime | [result](../tests/artifacts/clean-0.2.1-rc.2-1794248959531-39ab1043/result.json) | `f9969dd515b2b897fb5b89add7a1234e203eb5be474f7bb9552fad1c895cc1ff` |
+| rc.4 runtime | [result](../tests/artifacts/clean-0.2.1-rc.4-1794249107285-c070f975/result.json) | `044dfc9c6df37cc38d6b50dde50fa40d384b2a1701a9912c5556c7e2d92e121d` |
+| rc.5 runtime | [result](../tests/artifacts/clean-0.2.1-rc.5-1794249158242-078d2df4/result.json) | `8bd2ef3e103616f394e6ffccf39b65dd4977abf1cf6afe4ae1e07f700643e271` |
+| alpha.2 tag-family runtime | [result](../tests/artifacts/clean-0.2.2-alpha.2-1794251239336-845df8e7/result.json) | `6b27acfe62e9eb43ee31b63f98368d07d29b4f981e3e2995ad475f90deb3f6d3` |
+| rc.1 runtime | [result](../tests/artifacts/clean-0.2.2-rc.1-1794248133933-880ec10d/result.json) | `41edf971a2858257ac3fbc899c716d347aaca4cf7d831e17d7e8f7a9c9318771` |
+| alpha.2 对照与来源差异 | [verification](../alpha2-selection-result-20261110.json) | `c99ffe6dd09e3837b201e69b85475d1dd7c1ced47a880bbfddb4038872ab525c` |
+| 真实边界 | [log](../boundary-local2-20261110.log) | 84/84，fail/cancelled/skipped 均 0 |
+| 离线 UI | [log](../offline-local2-20261110.log) | `c14b374df7c27f7dfac6bfbed79f7c4b2f58b193cb44bb31e3a0bc50be967e2b`，45/45 |
+
+## 范围与结果
+
+- 包：**dsh-model-shelf 1.5.1-local.2**。
+- 已测不可变归档：[reviewed local.2](../dist-local2-6px-reviewed/dsh-model-shelf-1.5.1-local.2.tgz)，SHA-256 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2`；client SHA-256 `59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db`。
+- 当前源码中的验收脚本和发行文档已有后续修正，与该旧归档不完全相同。生产客户端、CSS、图标不变；不能把旧归档 source-binding 当作当前全部文件匹配，也不能把当前结果自动算给未来重打包版本。新归档必须另外核对、验收及最终审查，旧归档不可原位覆盖。
+- 2026-11-09 官方管理器已本地安装启用；真实日常界面/偏好验收尚待可访问的已登录入口。完整隔离宿主证据不能替代它。
+- 尚未公开发布。GitHub Release 是授权渠道，不进行 npm 发布。品牌现行规则/适用性、最终发行增量审查及新归档绑定仍未完成，见[发布清单](RELEASE-CHECKLIST.md)。
+
+## 1.5.1-local.1 历史验证（未发布）
+
+2026-11-07：以 desktop 当前安装的 1.5.0 为基线制作兼容补丁。基线完整测试 137/138 通过；唯一原有失败是发布文档未满足完整生命周期门槛。新增 rc.1 的 11 项真实边界测试通过；离线模拟 UI 45 项通过、页面错误 0。无真实模型调用。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | PASS | PASS | PENDING |
+| 0.2.1-rc.4 | PASS | PASS | PENDING |
+| 0.2.1-rc.5 | PASS | PASS | PENDING |
+| 0.2.2-alpha.2 | PASS | PASS | PENDING |
+| 0.2.2-rc.1 | PASS | PASS | PENDING |
+
+离线 UI 的 PASS 指同一合成目录测试，不代表逐版桌面端验收。真实接口测试运行官方包并校验归档，RPC/会话投影使用测试数据。日常 desktop 安装与界面验收结果另记于本地 COMPATIBILITY-NOTES.md；不将发布检查失败隐藏或改成通过。
+
+## local.1 历史范围与结果
+
+- 包：**dsh-model-shelf 1.5.1-local.1**，本地兼容补丁，未公开发布。仅新增 0.2.2-rc.1 精确白名单及对应验证；运行时代码和偏好格式不变。
+
+## 1.5.0 历史候选验证（未发布）
+
+预置 DeepSeek、OpenAI、Cline、Qwen、Qoder 与 TRAE 图标；开启联网补充后，匹配到 OpenRouter、Hugging Face 时从固定版本 Lobe Icons 下载 PNG 并保存本地。其他未覆盖或使用条件不适用的品牌显示默认图标。联网补充默认关闭；图标表示目录标签，不验证实际上游或官方关系。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.4 | 待复测 | 待复测 | 待复测 |
+| 0.2.1-rc.5 | 待复测 | 待复测 | 待复测 |
+| 0.2.2-alpha.2 | 待复测 | 待复测 | 待复测 |
+
+
+2026-11-01：新增 Cline 图标及型号匹配前的候选归档曾在四版 Windows 隔离宿主完成安装、禁用、重新启用和卸载，浏览器检查 45 项通过；rc.5 额外验证了下载和缓存。新增内容后的最终归档尚待复测。本机安装的是更早的候选，实际界面已观察到 DeepSeek、OpenAI 图标和关闭的联网开关。
+
+补充核对：真实书架包含主列表和不常用列表，Cline 一组有 460 个模型。通过桌面界面已发现带命名空间的模型 ID，但尚未逐项核对完整目录。不能将本次检查称为全部图标覆盖验收。
+
+原生 `dsh_model/list` 连接桥接 Web 配置，只返回 5 个服务商，和桌面书架不一致，不能作为桌面目录证据。委托 DSH 调查桌面只读接口的单次任务在提交后发生 TRANSPORT 连接错误，终态未知；未重放。公开 Cline 目录只是辅助资料，不能证明桌面目录的完整性。
+
+补充宿主验收：候选归档 SHA-256 `64d492b0a3b6331a759549c2911ad2fd41ac6c024b45b404a95d49b5a4617caf` 在 0.2.1-rc.2、rc.4、rc.5 和 0.2.2-alpha.2 的隔离 profile 均完成安装、禁用、重新启用、卸载，退出码为 0；rc.5 还通过联网下载和缓存检查。测试使用虚构目录，未发起模型请求，受保护 desktop 文件指纹不变。这些结果仅适用于该归档，不代表桌面目录全量核对或后续归档已完成验收。
+
+上述候选已使用官方 CLI 安装到 desktop profile，安装后客户端文件哈希与候选构建相同；除本插件 dependency 外，manifest 其余字段与 patch 与安装前一致。运行中的桌面窗口有未发送输入，因此未刷新或重启；当前进程是否加载新候选仍未验证。CLI 报告了其他已安装插件的既有版本兼容警告，未修改这些插件或授予豁免。
+
+## 1.5.0 历史范围与结果
+
+- 包：**dsh-model-shelf 1.5.0**，未发布候选；新增图标后的最终归档及本机 GUI 验收待完成。
+
+
+## 1.4.0 历史验证（已发布）
 
 当前品牌图形使用条件未确认，显示中性默认图标；增加紧凑服务商卡片。候选包已安装本机 desktop 并交互验收；[v1.4.0 GitHub Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.4.0) 已公开。当前所有品牌均因适用条件未确认而显示同一默认图标，因此不提供品牌识别效果。
 
@@ -16,7 +104,7 @@
 
 2026-11-01：自动测试覆盖四版官方目录边界，离线模拟 UI 检查 44 项通过；同一候选归档在 Windows 四版真实隔离宿主分别完成安装、禁用、重新启用和卸载。rc.2 与 rc.4 的早期运行曾在进程树清理时报错，之后带诊断的完整重跑通过；rc.5 曾有一次同类失败及一次通过。独立 CLI 测试仅额外加入专用 pnpm 路径，未继承用户环境；受保护桌面文件指纹不变。先前候选在实际 DSH 界面验证紧凑行、展开、搜索与收藏页；当前回退方案在本机界面确认紧凑行及默认图标。未发送模型请求。
 
-## 范围与结果
+## 1.4.0 历史范围与结果
 
 - 包：**dsh-model-shelf 1.4.0**，已发布；最终归档已在四版隔离宿主验证。
 

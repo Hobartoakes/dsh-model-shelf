@@ -66,8 +66,8 @@ test('relative archive is made absolute before isolated child cwd changes', () =
 
 test('runtime identity rejects mismatches and every version outside the exact matrix', () => {
   const identity = api('assertRuntimeVersion');
-  for (const v of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1']) assert.equal(identity(v + '\n', v), v);
-  for (const v of ['0.2.0-rc.2', '0.2.1-rc.3', '0.2.1-rc.6', '0.2.1', '0.2.2-alpha.1', '0.2.2-rc.2', '0.2.2', '0.3.0']) assert.throws(() => identity(v, v), /untested/i);
+  for (const v of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3']) assert.equal(identity(v + '\n', v), v);
+  for (const v of ['0.2.0-rc.2', '0.2.1-rc.3', '0.2.1-rc.6', '0.2.1', '0.2.2-alpha.1', '0.2.2-rc.2', '0.2.2-rc.4', '0.2.2', '0.3.0']) assert.throws(() => identity(v, v), /untested/i);
   assert.throws(() => identity('0.2.1-rc.2', '0.2.1-rc.4'), /mismatch/i);
   assert.throws(() => identity('warning\n0.2.1-rc.2'), /version/i);
 });
@@ -107,3 +107,15 @@ test('owned timeout and failure cleanup wait for actual child exit', () => tempo
     assert.ok(owner.receipts.every(row => row.exited && row.closed));
   } finally { await owner.closeAll(); }
 }));
+
+test('tree terminator nonzero waits for delayed actual close but never accepts a live process or identity mismatch', async () => {
+  const wait = api('waitOwnedTreeTermination');
+  const item = { receipt: { closed: false } };
+  item.done = new Promise(resolve => setImmediate(() => { item.receipt.closed = true; resolve(item); }));
+  await wait(item, { receipt: { code: 1 }, output: 'descendant exited during taskkill' }, 1000);
+  assert.equal(item.receipt.closed, true);
+  const live = { receipt: { closed: false }, done: new Promise(() => {}) };
+  await assert.rejects(wait(live, { receipt: { code: 1 }, output: 'failed' }, 10), /termination failed/i);
+  await assert.rejects(wait(live, { receipt: { code: 0 }, output: '' }, 10), /did not exit/i);
+  await assert.rejects(wait(item, { receipt: { code: 91 }, output: 'Owned process identity mismatch' }, 10), /identity mismatch/i);
+});

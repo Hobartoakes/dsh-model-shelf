@@ -1,4 +1,5 @@
 import { readFile, access } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 const root = new URL('../', import.meta.url);
 const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
 const issues = [];
@@ -18,7 +19,17 @@ try {
 for (const path of ['lib/index.js', 'lib/client.js', 'docs/images/main-list.png', 'docs/images/uncommon-list.png', 'docs/images/dark-list.png']) {
   try { await access(new URL(path, root)); } catch { issues.push(`缺少发布文件：${path}`); }
 }
-const SUPPORTED_DSH = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1'];
+const SUPPORTED_DSH = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3'];
+const CURRENT_DSH = '0.2.2-rc.3';
+const BASELINE_COMMIT = 'c6835819f86f9a24ed9514b718f97681198ee82f';
+const BASELINE_ARCHIVE = '2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22';
+// A targeted compatibility update does not re-certify the historical archives.
+// Historical tiers remain allowed only while the entire executable stays identical.
+const BASELINE_CLIENT = '59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db';
+try {
+  const digest = createHash('sha256').update(await readFile(new URL('lib/client.js', root))).digest('hex');
+  if (digest !== BASELINE_CLIENT) issues.push('生产客户端字节已变；不得继承历史宿主证据，须重新确定验证范围。');
+} catch { issues.push('无法核对生产客户端历史基线字节。'); }
 const exactMatrix = SUPPORTED_DSH.join(' || ');
 if (pkg.engines?.dsh !== exactMatrix) issues.push(`engines.dsh 必须是精确白名单 ${exactMatrix}；不接受未测试版本或范围。`);
 
@@ -49,10 +60,12 @@ for (const path of docs) {
 }
 for (const path of ['README.md', 'docs/VALIDATION.md', 'docs/HOST-COMPATIBILITY.md']) {
   const section = currentSections.get(path) ?? '';
+  if (!section.includes(BASELINE_COMMIT) || !section.includes(BASELINE_ARCHIVE)) issues.push(`${path} 历史证据缺少精确源码提交或公开归档校验绑定。`);
   for (const runtime of SUPPORTED_DSH) {
     const row = section.split(/\r?\n/).find(line => line.split('|')[1]?.trim() === runtime);
     const cells = row?.split('|').slice(2, 5).map(cell => cell.trim());
-    if (!cells || cells.length !== 3 || cells.some(cell => cell !== 'PASS')) issues.push(`${path} 缺少 ${runtime} 的真实边界 / 离线 UI / 完整 runtime 三层 PASS；不得用旧版或低层证据替代。`);
+    const expected = runtime === CURRENT_DSH ? 'PASS' : 'HISTORICAL';
+    if (!cells || cells.length !== 3 || cells.some(cell => cell !== expected)) issues.push(`${path} 缺少 ${runtime} 的真实边界 / 离线 UI / 完整 runtime 三层 ${expected}；当前目标不得借用历史或低层证据。`);
   }
 }
 // 3. VALIDATION 的"范围与结果"必须指向当前版本，而不是上一个。

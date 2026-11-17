@@ -1,6 +1,34 @@
 # 宿主兼容性核对
 
-## 1.5.1-local.2 当前验证（未发布）
+## 1.5.2-local.1 当前验证（未发布）
+
+目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
+
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.4 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.5 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-alpha.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.1 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.3 | PASS | PASS | PASS |
+
+历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。日常已安装旧候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不混同。
+
+
+
+
+### 目标身份和接口
+
+官方安装器：`deepseek-harness-0.2.2-rc.3-win-x64.exe`，299595752 字节，SHA-512(base64) `GiJf8kx+C7eoiZ0xQSYBcTyh5xmXQl+vh63U6uSm963McK1AkMgB8PydzuekWdUY7hyURvhVMHANM4pn+tCKzQ==`。官方源码标签提交 `38a6a5c965aa99ab525161efb7cc5cf1fe62fced`。
+
+发行载荷实际包：`@deepseek-ai/dsh-desktop`、`@deepseek-ai/dsh`、`@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-frontend`、`@deepseek-ai/dsh-client-ui-model-selection`、`@deepseek-ai/dsh-client-ui-renderer`、`@deepseek-ai/dsh-plugin-manager`、`@deepseek-ai/dsh-desktop-host` 均是 `0.2.2-rc.3`；Cordis 是 `4.1.0`。接口边界另用 integrity 固定的官方 model-selection/renderer/slots/store `0.2.2-rc.3` 包测试；不存在把桌面版本当作单独稳定 Plugin API 编号的假设。桌面内部分组件内联，未谎称每个测试包都独立安装在 ASAR 顶层。
+
+`inject` 的 remote.session、ModelDirectoryResolver.directoryFor / store / load / select / resetConnected、session/modelCatalog 与 session.selectModel、具名 conversation.input.model seat 的优先级与生命周期仍满足原契约。slot 标签声明仍归宿主所有；禁用和卸载恢复原生选择器。npm 标签查询时 latest=rc.1、next=rc.3、alpha=alpha.3，仅作包源信息，不用于选择桌面目标。
+
+## 1.5.1-local.2 历史归档记录（打包时未发布，现已公开）
 
 生产改动仅为展开模型行 6px 缩进 CSS；五版精确白名单、图标与业务调用不变。2026-11-10 当前候选边界 84/84、离线 UI 45/45，以及五版完整运行时安装/禁用/重新启用/卸载通过；其余单元测试未重跑。
 

@@ -1,6 +1,16 @@
 # 版本记录
 
-## 1.5.1-local.2 当前验证（未发布）
+## 1.5.2-local.1 当前验证（未发布）
+
+目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
+
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+
+本次只验证新目标，不重建旧版本完整 runtime 矩阵。新包不自动获得发布、日常安装或重启授权。
+
+
+
+## 1.5.1-local.2 历史归档记录（打包时未发布，现已公开）
 
 - 只补入展开模型行 `.dmo-group>.dmo-row>.dmo-select` 左 2px / 右 14px；图文左移 6px，不改变点击框及平铺收藏。
 - 保留 local.1 的精确兼容声明、图标、业务和偏好；专项六种视口/主题 RED→GREEN 通过。

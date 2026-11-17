@@ -6,6 +6,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright-core';
 import assert from 'node:assert/strict';
+import { assertShelfGeometry, assertFlatFavoritesUnchanged } from './host-layout-checks.mjs';
 import { selectCarrier, createIsolation, browserEnvironment, normalizeArchive, assertRuntimeVersion, parseStartupURL, redact, withFingerprintGuard, createProcessOwner, assertListenerClosed } from './clean-profile-support.mjs';
 
 // Opt-in Windows integration against the official built frontend; never the daily GUI.
@@ -21,14 +22,15 @@ const protectedOrigins = ['http://127.0.0.1:59983', 'http://127.0.0.1:19387', pr
 const runId = `${expectedVersion ?? 'desktop'}-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const evidenceDir = join(root, 'tests', 'artifacts', `clean-${runId}`);
 await mkdir(evidenceDir, { recursive: true });
-const runRoot = await mkdtemp(join(tmpdir(), 'model-shelf-clean-'));
+// Keep Windows profile operation paths short and within an explicitly chosen test root.
+const runRoot = await mkdtemp(join(process.env.DSH_TEST_RUN_ROOT ?? tmpdir(), 'model-shelf-clean-'));
 const fixture = await createIsolation(runRoot, carrier.command, process.env);
 if (carrier.electron) fixture.env.ELECTRON_RUN_AS_NODE = '1';
 const owner = createProcessOwner(fixture);
 const profileName = 'shelf-validation';
 const profileDir = join(fixture.env.DSH_HOME, 'profiles', profileName);
 const patch = join(profileDir, 'cordis.patch.yml');
-const desktopFiles = ['package.json', 'cordis.patch.yml'].map(name => join(homedir(), '.dsh', 'profiles', 'desktop', name));
+const desktopFiles = ['package.json', 'cordis.patch.yml', 'pnpm-lock.yaml', 'node_modules/dsh-model-shelf/package.json', 'node_modules/dsh-model-shelf/lib/client.js'].map(name => join(homedir(), '.dsh', 'profiles', 'desktop', name));
 const secrets = [];
 const safe = text => redact(text, secrets).replaceAll(homedir(), '[user-home]');
 const sha = data => createHash('sha256').update(data).digest('hex');
@@ -157,32 +159,58 @@ async function checkBoot(label, expected) {
       await page.locator('.dmo-row').first().waitFor({ state: 'visible', timeout: 30000 });
       assert.ok((await page.locator('.dmo-panel').innerText()).includes('Model Shelf TEST ONLY'));
       const arrived = `fixture-arrival-${label}`;
-      await writeFile(catalogFile, JSON.stringify(['fixture-a', 'fixture-b', arrived]));
+      await writeFile(catalogFile, JSON.stringify(['fixture-a', 'fixture-b', arrived, 'deepseek-chat', 'gpt-4o']));
       await page.locator('.dmo-row').filter({ hasText: arrived }).waitFor({ state: 'visible', timeout: 15000 });
       phase.liveCatalogRefresh = true;
+      for (const icon of ['deepseek', 'openai']) {
+        const branded = page.locator(`.dmo-model-icon[data-icon="${icon}"]`).first();
+        await branded.waitFor({ state: 'visible' });
+        const image = await branded.evaluate(el => ({ tag: el.tagName, src: el.currentSrc, complete: el.complete, naturalWidth: el.naturalWidth, width: el.getBoundingClientRect().width }));
+        assert.equal(image.tag, 'IMG'); assert.match(image.src, /^data:image\/png;base64,/);
+        assert.equal(image.complete, true); assert.ok(image.naturalWidth > 0); assert.equal(image.width, 24);
+      }
+      phase.bundledBrandIcons = true;
+      phase.geometry = await assertShelfGeometry(page);
       await page.locator('.dmo-note-action').first().click();
       await page.locator('.dmo-note-input').fill('隔离测试账号'); await page.locator('.dmo-note-input').press('Enter');
       const first = page.locator('.dmo-row').first();
       const selectedKey = await first.getAttribute('data-model-key');
       await first.locator('.dmo-favorite').click();
-      await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
-      assert.equal(await page.locator('.dmo-row').count(), 1);
-      await page.locator('.dmo-select').click();
+      const second = page.locator('.dmo-row').nth(1);
+      const secondKey = await second.getAttribute('data-model-key');
+      await second.locator('.dmo-favorite').click();
+      await page.getByRole('tab', { name: '收藏 (2)', exact: true }).click();
+      assert.equal(await page.locator('.dmo-row').count(), 2);
+      await page.locator('.dmo-order-down').first().focus(); await page.keyboard.press('Space');
+      phase.favoriteOrder = await page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
+      assert.deepEqual(phase.favoriteOrder, [secondKey, selectedKey]);
+      await assertFlatFavoritesUnchanged(page);
+      await page.locator('.dmo-select').last().click();
       await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
       assert.ok((await trigger.getAttribute('aria-label')).includes('隔离测试账号'));
       phase.selectedKey = selectedKey;
       await page.reload({ waitUntil: 'domcontentloaded' });
       await trigger.waitFor({ state: 'visible', timeout: 30000 }); await trigger.click();
-      await page.getByRole('tab', { name: '收藏 (1)', exact: true }).click();
-      assert.equal(await page.locator('.dmo-row').getAttribute('data-model-key'), selectedKey);
-      assert.ok((await page.locator('.dmo-row').innerText()).includes('账号备注：隔离测试账号'));
-      assert.equal(await page.locator('.dmo-select').getAttribute('aria-pressed'), 'true', 'Native session selection survives reload');
+      await page.getByRole('tab', { name: '收藏 (2)', exact: true }).click();
+      assert.deepEqual(await page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey)), phase.favoriteOrder, 'Keyboard order survives reload');
+      assert.equal(await page.locator('.dmo-row').last().getAttribute('data-model-key'), selectedKey);
+      assert.ok((await page.locator('.dmo-row').last().innerText()).includes('账号备注：隔离测试账号'));
+      assert.equal(await page.locator('.dmo-select').last().getAttribute('aria-pressed'), 'true', 'Native session selection survives reload');
       await page.locator('.dmo-panel').screenshot({ path: join(evidenceDir, `${label}.png`) });
       await page.keyboard.press('Escape');
       const fullName = await trigger.getAttribute('aria-label');
+      assert.ok(fullName.includes(fixtureProviderId)); assert.ok(fullName.includes('fixture-a')); assert.ok(fullName.includes('隔离测试账号'));
+      phase.fullAccessibleName = fullName;
       // Use a fixture width proven to overflow native and shelf expanded controls.
       // The host decides compact mode by measured fit, not a fixed 390px breakpoint.
-      await page.setViewportSize({ width: 320, height: 800 });
+      phase.compactCandidates = [];
+      for (const width of [390, 360, 320]) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        const state = await trigger.evaluate(el => ({ viewportWidth: innerWidth, hostCompact: Boolean(el.closest('[data-model-compact]')), textVariable: getComputedStyle(el).getPropertyValue('--dsh-composer-model-text-display').trim(), iconVariable: getComputedStyle(el).getPropertyValue('--dsh-composer-model-icon-display').trim() }));
+        phase.compactCandidates.push(state);
+        if (state.hostCompact && state.textVariable === 'none' && state.iconVariable === 'block') break;
+      }
       await page.waitForFunction(() => {
         const element = document.querySelector('.dmo-trigger');
         if (!element?.closest('[data-model-compact]')) return false;
@@ -204,6 +232,8 @@ async function checkBoot(label, expected) {
       assert.equal(await trigger.locator('.dmo-trigger-copy').isVisible(), true, 'Wide composer restores the full text after layout settles');
       await trigger.locator('.dmo-trigger-icon').waitFor({ state: 'hidden' });
       assert.equal(await trigger.locator('.dmo-trigger-icon').isVisible(), false, 'Wide composer restores icon-hidden state');
+      phase.wide = await trigger.evaluate(el => ({ hostCompact: Boolean(el.closest('[data-model-compact]')), textVariable: getComputedStyle(el).getPropertyValue('--dsh-composer-model-text-display').trim(), iconVariable: getComputedStyle(el).getPropertyValue('--dsh-composer-model-icon-display').trim() }));
+      assert.equal(phase.wide.hostCompact, false);
       phase.preferencesAndSelection = true;
     } else {
       const nativePicker = page.getByRole('button', { name: /^选择模型，当前|^请选择模型$|^Select model/ }).first();

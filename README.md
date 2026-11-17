@@ -1,6 +1,25 @@
 # 模型书架 · DSH Model Shelf
 
-## 1.5.1-local.2 当前验证（未发布）
+## 1.5.2-local.1 当前验证（未发布）
+
+目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
+
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.4 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.5 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-alpha.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.1 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.3 | PASS | PASS | PASS |
+
+历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。日常已安装旧候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不混同。
+
+
+
+## 1.5.1-local.2 历史归档记录（打包时未发布，现已公开）
 
 在 local.1 兼容补丁上仅增加展开模型行的局部 CSS：`.dmo-group>.dmo-row>.dmo-select{padding-left:2px;padding-right:14px}`。1280/390/320px × 深浅色专项 6/6 通过，图文左移 6px，点击框、行高、文本宽度、收起卡片及平铺收藏几何不变；保留图标、业务和偏好。
 

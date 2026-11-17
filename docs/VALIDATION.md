@@ -1,6 +1,37 @@
 # 验证报告
 
-## 1.5.1-local.2 当前验证（未发布）
+## 1.5.2-local.1 当前验证（未发布）
+
+目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
+
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+
+| DSH | 真实边界 | 离线 UI | 完整 runtime |
+| --- | --- | --- | --- |
+| 0.2.1-rc.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.4 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.1-rc.5 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-alpha.2 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.1 | HISTORICAL | HISTORICAL | HISTORICAL |
+| 0.2.2-rc.3 | PASS | PASS | PASS |
+
+历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。日常已安装旧候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不混同。
+
+
+
+
+### 本次实测与边界
+
+- 真实 rc.3 接口边界 11/11；新增准入断言已先红后绿。官方桌面载荷中的 model-selection 与固定 npm 工厂仅 CSS Modules 标识不同，renderer 工厂逐字节相同；没有用替代变量或修改后的宿主代码造通过。
+- 本次完整单元/契约测试 167/167（0 失败、0 跳过，包含固定包边界单测但不重建旧宿主 runtime）；离线 UI 45/45、未捕获页面错误 0；完整 rc.3 官方桌面 Host 的安装、禁用、重新启用、卸载及原生回退全部通过。使用测试适配器仅返回合成目录，真实目录/RPC/session/slot 不替换；stream 调用数 0。
+- 实际宿主验证品牌 PNG 已解码、收藏/键盘排序/备注/模型选择及刷新持久化；6px 图文左移精确成立，点击框、行高、文本宽度、收起卡片、平铺收藏不变。通过宿主 data-model-compact 和两个继承变量验证紧凑状态：该 fixture 390/360px 未进入，320px 进入；恢复 1280px 后文字恢复。宽度只是采样，不是契约。
+- 已执行原构建脚本。此次 checkout 的 93 个 CRLF 行结尾使重建客户端 SHA-256 为 `40689b2e9cd45b31d59d667f3238866dd15d9d29ac0f9939652e937161d06f42`；与公开客户端按换行归一化后完全相等。为不重复改动旧实现，保留原生产客户端字节 `59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db`，新包仍另做实际安装验证。源码、CSS、图标及版权说明未改。
+- 测试工具修正：提供明确的短路径 workspace 隔离根；Windows taskkill 的非零回执与实际 close 回调存在先后竞态，新增先红后绿的确定性测试，改为有时限等待真实 close。仍拒绝活进程、身份不符、超时和未关闭监听端口；没有放宽关键断言。
+- 测试准备阶段的 TEMP 写入拒绝、过长路径和旧测试错误地把 img 当 background-image 的失败均保留证据，不计为通过。没有修改 Windows 权限或运行版本豁免。原日常 profile 的 manifest、patch、锁文件与已安装生产包在最终验证中做指纹保护。
+- 当前监听 63562 的 Host PID 36400 指向本机已安装桌面程序；其安装归档记录桌面/核心 0.2.2-rc.1。官方更新源是独立证据，不从 npm latest 或旧会话推导“最新”或用户是否更新。
+- 未验证：macOS/Linux、旧版本新归档完整 runtime 重测、真实付费模型调用、日常 profile 更新后的人工验收。未公开发布、未安装日常 profile、未重启日常 DSH。既有品牌说明保留，不新增全部授权结论。
+
+## 1.5.1-local.2 历史归档记录（打包时未发布，现已公开）
 
 2026-11-07 缩进实现阶段只移植一条局部 CSS 并使用未修改的 [build.mjs](../scripts/build.mjs) 生成客户端。[indent-layout.mjs](../tests/indent-layout.mjs) 重用原合成 host HTML；该阶段未执行原完整 UI 套件。RED 六例均因左内边距 8px 而非 2px 失败；GREEN 在 1280/390/320px × 深浅色六例通过，左右 2px/14px，图文 X 坐标均 -6px；点击框、行高、文本宽度、收起卡片、平铺收藏几何不变，页面错误和外部网络请求均为 0。无真实模型调用。
 
@@ -36,6 +67,12 @@
 | 离线 UI | [log](../offline-local2-20261110.log) | `c14b374df7c27f7dfac6bfbed79f7c4b2f58b193cb44bb31e3a0bc50be967e2b`，45/45 |
 
 ## 范围与结果
+
+- 包：**dsh-model-shelf 1.5.2-local.1**。仅官方 Windows x64 桌面 0.2.2-rc.3 是本次新目标；最终归档成员与校验值由外置校验记录绑定。
+- 本次实际：目标边界、单元、离线 UI 与隔离生命周期结果见当前验证段及本次证据。历史段只描述其自己的旧归档。
+- 未公开发布、未安装日常 profile、未重启 DSH；不调用真实模型。
+
+## local.2 历史范围与结果
 
 - 包：**dsh-model-shelf 1.5.1-local.2**。
 - 已测不可变归档：[reviewed local.2](../dist-local2-6px-reviewed/dsh-model-shelf-1.5.1-local.2.tgz)，SHA-256 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2`；client SHA-256 `59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db`。

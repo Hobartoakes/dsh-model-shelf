@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { connect } from 'node:net';
 
-export const runtimeVersions = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1'];
+export const runtimeVersions = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3'];
 export function selectCarrier(ambient) {
   const { DSH_TEST_CLI_ENTRY: entry, DSH_TEST_NODE_EXECUTABLE: node } = ambient;
   assert.equal(Boolean(entry), Boolean(node), 'Set both DSH_TEST_CLI_ENTRY and DSH_TEST_NODE_EXECUTABLE');
@@ -101,6 +101,18 @@ const bounded = async (promise, ms, message) => {
   finally { clearTimeout(timer); }
 };
 
+// taskkill can report an already-exiting descendant before ChildProcess emits close.
+// Keep the same ownership gate and bounded actual-close requirement; never infer exit from a kill receipt.
+export async function waitOwnedTreeTermination(item, killer, timeout = 15000) {
+  if (killer.receipt.code === 91) throw Error('Owned process identity mismatch: ' + redact(killer.output));
+  try { await bounded(item.done, timeout, 'Owned process did not exit; handle retained for finally cleanup'); }
+  catch (error) {
+    if (killer.receipt.code !== 0) throw Error('Owned process-tree termination failed: ' + redact(killer.output), { cause: error });
+    throw error;
+  }
+  assert.equal(item.receipt.closed, true, 'Owned process close must be observed');
+}
+
 export function createProcessOwner({ env, cwd }) {
   const owned = new Set(), receipts = [];
   function launch(command, args) {
@@ -127,7 +139,7 @@ export function createProcessOwner({ env, cwd }) {
         const script = `$p=Get-CimInstance Win32_Process -Filter 'ProcessId=${item.child.pid}'; if ($null -eq $p) { exit 0 }; if ($p.ExecutablePath -ne ${quote(expected)} -or ([DateTimeOffset]$p.CreationDate).ToUnixTimeMilliseconds() -lt ${startedFloor(item.receipt.started)} -or -not $p.CommandLine.Contains(${quote(marker)})) { Write-Error 'Owned process identity mismatch'; exit 91 }; & taskkill.exe /PID ${item.child.pid} /T /F; exit $LASTEXITCODE`;
         const killer = launch(join(env.SystemRoot ?? 'C:/Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'), ['-NoProfile', '-NonInteractive', '-Command', script]);
         await bounded(killer.done, 30000, 'Owned process-tree terminator timed out');
-        if (killer.receipt.code !== 0 && !item.receipt.closed) throw Error('Owned process-tree termination failed: ' + redact(killer.output));
+        await waitOwnedTreeTermination(item, killer);
       } else item.child.kill('SIGKILL');
     }
     await bounded(item.done, 15000, 'Owned process did not exit; handle retained for finally cleanup');

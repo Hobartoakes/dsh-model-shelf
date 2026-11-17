@@ -1,6 +1,10 @@
 # 验证报告
 
-## 1.5.2-local.1 当前验证（未发布）
+## 1.5.3 当前验证（未发布）
+
+1.5.3 承接已发布的 1.5.2-local.1，仅提升版本并更新发布记录；生产代码、偏好和图标保持原样。本节为出包前验证快照，后续公开状态以 [GitHub Release v1.5.3](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 为准。
+
+本轮用户确认 GitHub 正式版并设为 Latest，不发布 npm，不更改日常安装、不重启 DSH。1.5.3 候选已通过官方 rc.3 的隔离安装、禁用、重启用、卸载和原生回退；最终归档还需逐成员校验并再次完成同一生命周期，外置完整性记录绑定最终校验值。
 
 目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
 
@@ -68,7 +72,7 @@
 
 ## 范围与结果
 
-- 包：**dsh-model-shelf 1.5.2-local.1**。仅官方 Windows x64 桌面 0.2.2-rc.3 是本次新目标；最终归档成员与校验值由外置校验记录绑定。
+- 包：**dsh-model-shelf 1.5.3**。本轮重测官方 Windows x64 桌面 0.2.2-rc.3；最终归档成员、源码提交与校验值由本版外置完整性记录绑定。
 - 本次实际：目标边界、单元、离线 UI 与隔离生命周期结果见当前验证段及本次证据。历史段只描述其自己的旧归档。
 - 未公开发布、未安装日常 profile、未重启 DSH；不调用真实模型。
 

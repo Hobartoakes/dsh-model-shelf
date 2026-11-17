@@ -1,12 +1,16 @@
 # 发布检查清单
 
-## 1.5.2-local.1 当前验证（未发布）
+## 1.5.3 当前验证（未发布）
+
+1.5.3 承接已发布的 1.5.2-local.1，仅提升版本并更新发布记录；生产代码、偏好和图标保持原样。本节为出包前验证快照，后续公开状态以 [GitHub Release v1.5.3](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 为准。
+
+本轮用户确认 GitHub 正式版并设为 Latest，不发布 npm，不更改日常安装、不重启 DSH。1.5.3 候选已通过官方 rc.3 的隔离安装、禁用、重启用、卸载和原生回退；最终归档还需逐成员校验并再次完成同一生命周期，外置完整性记录绑定最终校验值。
 
 目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
 
 根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
 
-本次只验证新目标，不重建旧版本完整 runtime 矩阵。新包不自动获得发布、日常安装或重启授权。
+本轮仅重测官方 Windows x64 0.2.2-rc.3，不重建旧版本完整 runtime 矩阵。正式发布与 Latest 已获用户确认，日常安装和重启不在本轮范围。
 
 
 

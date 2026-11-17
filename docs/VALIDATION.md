@@ -1,14 +1,18 @@
 # 验证报告
 
-## 1.5.3 当前验证（未发布）
+## 1.5.3 当前验证（已发布）
 
-1.5.3 承接已发布的 1.5.2-local.1，仅提升版本并更新发布记录；生产代码、偏好和图标保持原样。本节为出包前验证快照，后续公开状态以 [GitHub Release v1.5.3](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 为准。
+[1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 
-本轮用户确认 GitHub 正式版并设为 Latest，不发布 npm，不更改日常安装、不重启 DSH。1.5.3 候选已通过官方 rc.3 的隔离安装、禁用、重启用、卸载和原生回退；最终归档还需逐成员校验并再次完成同一生命周期，外置完整性记录绑定最终校验值。
+1.5.3 承接 1.5.2-local.1 的兼容更新，保留生产代码、收藏排序、备注、品牌图标、偏好与 6px 局部布局。最终归档为 **433958 字节 / 51 个文件**，SHA-256 `934f9368f5c34fc6e66b987784b2bdda9da966d3ea35d13f0c6e9bbc912acc96`，源码提交 [5a8d72f](https://github.com/Hobartoakes/dsh-model-shelf/commit/5a8d72f741c770cc55cdf379fc120f8412a4c798)。
+
+最终归档已通过官方 Windows x64 DSH 0.2.2-rc.3 的隔离安装、禁用、重新启用、卸载和原生回退；发布前完整单元/契约测试 167/167、离线 UI 45/45，页面错误 0，远端三份附件已下载并核对 SHA-256。本版未执行日常安装升级或 GUI 人工验收，未重启日常 DSH，未发布 npm。
+
+本次发布后文档修正不重打包、不移动 v1.5.3 标签、不替换任何 Release 附件。归档内保留出包时文档快照；当前发布说明以本仓库默认分支和上述 Release 为准。
 
 目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
 
-根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。1.5.3 最终归档已完成本次隔离生命周期和归档校验；下方历史结果只对应各自旧归档，不自动认证未来重打包版本。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -19,7 +23,7 @@
 | 0.2.2-rc.1 | HISTORICAL | HISTORICAL | HISTORICAL |
 | 0.2.2-rc.3 | PASS | PASS | PASS |
 
-历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。日常已安装旧候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不混同。
+历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。历史本地候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不作为当前日常安装状态的声明。
 
 
 
@@ -32,8 +36,8 @@
 - 已执行原构建脚本。此次 checkout 的 93 个 CRLF 行结尾使重建客户端 SHA-256 为 `40689b2e9cd45b31d59d667f3238866dd15d9d29ac0f9939652e937161d06f42`；与公开客户端按换行归一化后完全相等。为不重复改动旧实现，保留原生产客户端字节 `59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db`，新包仍另做实际安装验证。源码、CSS、图标及版权说明未改。
 - 测试工具修正：提供明确的短路径 workspace 隔离根；Windows taskkill 的非零回执与实际 close 回调存在先后竞态，新增先红后绿的确定性测试，改为有时限等待真实 close。仍拒绝活进程、身份不符、超时和未关闭监听端口；没有放宽关键断言。
 - 测试准备阶段的 TEMP 写入拒绝、过长路径和旧测试错误地把 img 当 background-image 的失败均保留证据，不计为通过。没有修改 Windows 权限或运行版本豁免。原日常 profile 的 manifest、patch、锁文件与已安装生产包在最终验证中做指纹保护。
-- 当前监听 63562 的 Host PID 36400 指向本机已安装桌面程序；其安装归档记录桌面/核心 0.2.2-rc.1。官方更新源是独立证据，不从 npm latest 或旧会话推导“最新”或用户是否更新。
-- 未验证：macOS/Linux、旧版本新归档完整 runtime 重测、真实付费模型调用、日常 profile 更新后的人工验收。未公开发布、未安装日常 profile、未重启日常 DSH。既有品牌说明保留，不新增全部授权结论。
+- 隔离验证使用已核验的官方 rc.3 桌面载荷；不以旧会话的端口、PID 或 npm latest 推断当前日常宿主版本及是否已加载新插件。
+- 未验证：macOS/Linux、旧版本新归档完整 runtime 重测、真实付费模型调用、日常 GUI 人工验收。1.5.3 已正式公开发布；未在本次发布中升级日常 profile 或重启日常 DSH。既有品牌说明保留，不新增全部授权结论。
 
 ## 1.5.1-local.2 历史归档记录（打包时未发布，现已公开）
 
@@ -74,7 +78,7 @@
 
 - 包：**dsh-model-shelf 1.5.3**。本轮重测官方 Windows x64 桌面 0.2.2-rc.3；最终归档成员、源码提交与校验值由本版外置完整性记录绑定。
 - 本次实际：目标边界、单元、离线 UI 与隔离生命周期结果见当前验证段及本次证据。历史段只描述其自己的旧归档。
-- 未公开发布、未安装日常 profile、未重启 DSH；不调用真实模型。
+- 已正式公开发布为 GitHub Latest；本次发布未升级日常 profile、未重启 DSH，不调用真实模型。
 
 ## local.2 历史范围与结果
 

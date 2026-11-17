@@ -1,16 +1,20 @@
 # 发布检查清单
 
-## 1.5.3 当前验证（未发布）
+## 1.5.3 当前验证（已发布）
 
-1.5.3 承接已发布的 1.5.2-local.1，仅提升版本并更新发布记录；生产代码、偏好和图标保持原样。本节为出包前验证快照，后续公开状态以 [GitHub Release v1.5.3](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 为准。
+[1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 
-本轮用户确认 GitHub 正式版并设为 Latest，不发布 npm，不更改日常安装、不重启 DSH。1.5.3 候选已通过官方 rc.3 的隔离安装、禁用、重启用、卸载和原生回退；最终归档还需逐成员校验并再次完成同一生命周期，外置完整性记录绑定最终校验值。
+1.5.3 承接 1.5.2-local.1 的兼容更新，保留生产代码、收藏排序、备注、品牌图标、偏好与 6px 局部布局。最终归档为 **433958 字节 / 51 个文件**，SHA-256 `934f9368f5c34fc6e66b987784b2bdda9da966d3ea35d13f0c6e9bbc912acc96`，源码提交 [5a8d72f](https://github.com/Hobartoakes/dsh-model-shelf/commit/5a8d72f741c770cc55cdf379fc120f8412a4c798)。
+
+最终归档已通过官方 Windows x64 DSH 0.2.2-rc.3 的隔离安装、禁用、重新启用、卸载和原生回退；发布前完整单元/契约测试 167/167、离线 UI 45/45，页面错误 0，远端三份附件已下载并核对 SHA-256。本版未执行日常安装升级或 GUI 人工验收，未重启日常 DSH，未发布 npm。
+
+本次发布后文档修正不重打包、不移动 v1.5.3 标签、不替换任何 Release 附件。归档内保留出包时文档快照；当前发布说明以本仓库默认分支和上述 Release 为准。
 
 目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
 
-根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。1.5.3 最终归档已完成本次隔离生命周期和归档校验；下方历史结果只对应各自旧归档，不自动认证未来重打包版本。
 
-本轮仅重测官方 Windows x64 0.2.2-rc.3，不重建旧版本完整 runtime 矩阵。正式发布与 Latest 已获用户确认，日常安装和重启不在本轮范围。
+1.5.3 的本轮完整 runtime 重测仅覆盖官方 Windows x64 0.2.2-rc.3，未重建旧版本完整 runtime 矩阵。正式发布与 Latest 已完成，日常安装和人工验收未执行。
 
 
 
@@ -167,11 +171,13 @@ npm 尚未发布，且**不是本版计划发行渠道**；不把 npm 发布列�
 | `package.json` | `version`；兼容宿主变化时改 `engines.dsh`；新增文档要加进 `files` 白名单 |
 | `scripts/check-release.mjs` | `SUPPORTED_DSH` 常量与对应断言（扩大兼容范围时） |
 | `CHANGELOG.md` | 新增当前版本的条目（`check:release` 会校验 `## <version>` 存在） |
-| `README.md` | 「兼容性」表的宿主版本、正文的版本说明；如需可补角标/缺口说明 |
+| `README.md` | 当前发布状态、安装 URL 与本地包名、兼容性表、中文介绍和英文摘要必须与当前版本一致；历史小节须明确标注 |
 | `docs/VALIDATION.md` | 「范围与结果」的**包版本行**（`check:release` 锚定这一行）；文末新增该版本小节 |
 | `docs/RELEASE-CHECKLIST.md` | 版本相关待办的勾选与新增；「尚未验证」随实测范围更新 |
 | `docs/HOST-COMPATIBILITY.md` | 宿主版本变化时逐项核对并更新；标题的迁移方向 |
 
-[发布检查器](../scripts/check-release.mjs) 会核对精确四版 OR 白名单、五份文档当前版本的「当前验证（未发布/已发布）」段落、README / HOST-COMPATIBILITY / VALIDATION 的逐版本三层 PASS 表、VALIDATION 包版本行和文档打包白名单。历史出现同一版本号不能代替当前段落；PENDING 不会被放行。**改完文档跑一次 `pnpm run check:release`**；这只是准备门禁，不执行测试、提交或发布，也不能凭文档文字自行证明真实验收。
+[发布检查器](../scripts/check-release.mjs) 会核对精确六版 OR 白名单、五份文档当前版本的「当前验证（未发布/已发布）」段落、README / HOST-COMPATIBILITY / VALIDATION 的逐版本三层证据表（当前目标 PASS，旧版本 HISTORICAL）、VALIDATION 包版本行和文档打包白名单。历史出现同一版本号不能代替当前段落；PENDING 不会被放行。**改完文档跑一次 `pnpm run check:release`**；这只是准备门禁，不执行测试、提交或发布，也不能凭文档文字自行证明真实验收。
+
+发布后还要将已发布源码及发布后文档以非强制推送同步到默认分支，回读仓库首页核对版本、安装 URL、兼容范围和英文摘要；只推标签不代表默认分支文档已更新。保持已发布标签和附件不可变；如需修改安装包内的文档，应另发新版本，而非覆盖旧包。
 
 历史小节（已发布版本的验证记录、CHANGELOG 旧条目）不要改写，按项目约定历史文本是证据；要改的是"描述当前状态"的那些位置。

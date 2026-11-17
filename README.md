@@ -1,14 +1,18 @@
 # 模型书架 · DSH Model Shelf
 
-## 1.5.3 当前验证（未发布）
+## 1.5.3 当前验证（已发布）
 
-1.5.3 承接已发布的 1.5.2-local.1，仅提升版本并更新发布记录；生产代码、偏好和图标保持原样。本节为出包前验证快照，后续公开状态以 [GitHub Release v1.5.3](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 为准。
+[1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 
-本轮用户确认 GitHub 正式版并设为 Latest，不发布 npm，不更改日常安装、不重启 DSH。1.5.3 候选已通过官方 rc.3 的隔离安装、禁用、重启用、卸载和原生回退；最终归档还需逐成员校验并再次完成同一生命周期，外置完整性记录绑定最终校验值。
+1.5.3 承接 1.5.2-local.1 的兼容更新，保留生产代码、收藏排序、备注、品牌图标、偏好与 6px 局部布局。最终归档为 **433958 字节 / 51 个文件**，SHA-256 `934f9368f5c34fc6e66b987784b2bdda9da966d3ea35d13f0c6e9bbc912acc96`，源码提交 [5a8d72f](https://github.com/Hobartoakes/dsh-model-shelf/commit/5a8d72f741c770cc55cdf379fc120f8412a4c798)。
+
+最终归档已通过官方 Windows x64 DSH 0.2.2-rc.3 的隔离安装、禁用、重新启用、卸载和原生回退；发布前完整单元/契约测试 167/167、离线 UI 45/45，页面错误 0，远端三份附件已下载并核对 SHA-256。本版未执行日常安装升级或 GUI 人工验收，未重启日常 DSH，未发布 npm。
+
+本次发布后文档修正不重打包、不移动 v1.5.3 标签、不替换任何 Release 附件。归档内保留出包时文档快照；当前发布说明以本仓库默认分支和上述 Release 为准。
 
 目标是官方 Windows x64 桌面更新源 0.2.2-rc.3（2026-11-13），不是 npm latest。已校验官方安装器的 SHA-512，并从发行载荷核对桌面、核心、前端、模型选择器、renderer、插件管理器均为 0.2.2-rc.3，Cordis 4.1.0。来源：[官方更新源](https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml)、[官方发行标签](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
 
-根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。新包还必须通过本次隔离生命周期和归档校验；旧记录不自动认证新归档。
+根因：官方管理器明确拒绝 v1.5.1-local.2 的 `engines.dsh`；真实 rc.3 接口边界 11/11 通过。仅在白名单中加入精确 rc.3，不开放 rc.2、rc.4 或版本范围。生产源码、交互、偏好格式、图标与归属、缓存、6px 局部样式全部保留。1.5.3 最终归档已完成本次隔离生命周期和归档校验；下方历史结果只对应各自旧归档，不自动认证未来重打包版本。
 
 | DSH | 真实边界 | 离线 UI | 完整 runtime |
 | --- | --- | --- | --- |
@@ -19,7 +23,7 @@
 | 0.2.2-rc.1 | HISTORICAL | HISTORICAL | HISTORICAL |
 | 0.2.2-rc.3 | PASS | PASS | PASS |
 
-历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。日常已安装旧候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不混同。
+历史证据仅绑定已发布源码 `c6835819f86f9a24ed9514b718f97681198ee82f` 和公开归档 SHA-256 `2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22`，不是新包在旧宿主上的重测结果。历史本地候选 `13279e8c94afb944b003ec8ef678487ab99491ac2e2dcbc317d1551ff645c9b2` 是另一个归档，不作为当前日常安装状态的声明。
 
 
 
@@ -147,21 +151,21 @@
 
 **1.4.0 的历史变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
 
-模型 ID 是服务商目录提供的调用标识。当前默认图标不区分服务商或模型系列；若中转 API 将该标识映射到其他上游模型，插件**无法验证实际上游身份**。
+当前版本保留 DeepSeek、OpenAI、Cline、Qwen、Qoder 与 TRAE 的预置图标；未覆盖的品牌显示默认图标。可选联网补充默认关闭，素材来源与使用边界见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。模型 ID 和图标只表示目录标签；若中转 API 将标识映射到其他上游模型，插件**无法验证实际上游身份**。
 
 ## 兼容性
 
 | 项目 | 已验证范围 |
 | --- | --- |
-| DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2 / 0.2.2-rc.1**，仅精确五版；验证层级见顶部当前章节 |
-| 实际环境 | 2026-11-07 核对桌面宿主为 DSH 0.2.2-rc.1；此本地补丁等待共享 desktop 安装窗口，尚未安装或完成日常 GUI 验收 |
+| DSH 宿主 | **0.2.1-rc.2 / 0.2.1-rc.4 / 0.2.1-rc.5 / 0.2.2-alpha.2 / 0.2.2-rc.1 / 0.2.2-rc.3**，仅精确六版；1.5.3 的本轮完整 runtime 实测为 rc.3，其余列明历史证据 |
+| 实际环境 | 官方 Windows x64 DSH 0.2.2-rc.3 隔离环境；不代表已将 1.5.3 安装到日常 profile，也不代替日常 GUI 人工验收 |
 | 浏览器回归测试 | 本机 Microsoft Edge；浅色、深色和窄窗口 |
 | 必需服务 | 内置 `modelDirectories`、`sessions`、`remote.session` 和 UI slots |
 | 替换位置 | `conversation.input.model`，priority `-100` |
 | 模型名子插槽 | `conversation.input.model.label`（0.2.1 新增）：本插件**不声明**它，因此书架内的模型名文字不带宿主自带的 1017 徽标；工作树可在名称旁单独显示本地图标。理由见下文 |
 | 可选依赖 | `dsh-workbuddy-connect`（1.2.0 的思考强度检测与逐模型容量）。未安装、未登录、路由不可达，或未打 CTXPATCH 补丁时，对应控件不显示，其余功能不受影响 |
 
-仅允许上列五个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
+仅允许上列六个精确 DSH 版本；macOS、Linux 和其他版本未验证。不要绕过宿主的兼容性检查。同一插槽上的其他增强插件可能与本插件竞争；遇到重复界面或未生效时，先关闭其中一个插件。
 
 0.2.1 起，宿主自己也往这个座位里填一个官方选择器（priority `0`），并声明 `conversation.input.model.label` 子插槽给模型名加徽标。本插件以更低的 priority 胜出，因此整张座位（包括模型名的渲染）由本插件负责。
 
@@ -169,19 +173,19 @@
 
 ## 安装与卸载
 
-以下命令使用 **v1.4.0 已发布的公开归档 URL**。已验证匿名下载和哈希一致；最终归档的本地安装生命周期已在四版宿主验证，未对公开 URL 复跑安装；详见[发布检查清单](docs/RELEASE-CHECKLIST.md)。GitHub 预构建包安装无需 npm 账号：
+以下命令使用 **v1.5.3 正式版的公开归档 URL**，不需要 npm 账号。请先从 [Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 下载并按 [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) 核对；最终相同字节已在官方 rc.3 隔离宿主完成完整生命周期。此处不将公开 URL 直接安装或日常升级列为已完成验收。
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.4.0/dsh-model-shelf-1.4.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.4.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.5.3.tgz" --ignore-scripts
 ```
 
-安装后刷新现有 DSH 页面。内置模型选择器保持加载；禁用或卸载本插件后恢复内置选择器。
+安装后保存工作并按宿主提示重新加载；桌面版可自行重启 DSH 后确认插件版本为 1.5.3。内置模型选择器保持加载，禁用或卸载本插件并重新加载后恢复原生选择器。
 
 ```powershell
 dsh plugin --profile desktop remove dsh-model-shelf
@@ -288,7 +292,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## 发布状态
 
-- **当前 1.5.1-local.2：仅本地兼容与缩进修正候选，未安装、未公开发布**。本版六组合缩进专项通过；完整套件未重跑，完整生命周期与真实桌面验收未完成，发布门槛尚未满足。
+- **当前 1.5.3：已正式公开发布，设为 GitHub Latest；未在本轮升级日常安装**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。发布日期、源码提交、433958 字节最终归档与本轮测试范围见顶部当前验证；日常 GUI 人工验收未完成。
 
 - **历史 1.3.1：当时已公开发布并安装到本机日常 desktop profile**。[Release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1) · [预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/dsh-model-shelf-1.3.1.tgz) · [SHA256SUMS](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.3.1/SHA256SUMS)。两项最终独立审查、最终包四版矩阵、匿名下载及 rc.5/alpha.2 的公开 URL 安装均通过；2026-10-30 通过官方 CLI 从本地已验证归档升级日常 desktop（1.3.0 → 1.3.1，DSH 0.2.1-rc.5），安装后客户端哈希与发布字节一致，bundle 顺序与 cordis patch 未变。归档 **297213 字节**，SHA256 `2ab701bb4e7d1ef27790e6772bd24f724eda2d55ea65a8cca31007292cc5ba03`；[发布提交 d35c588](https://github.com/Hobartoakes/dsh-model-shelf/commit/d35c588b457bcf247dc0fb47df98d7abae185bae)。本次仅补发布后源码记录，不重打包或移动标签；下列 1.3.0 结果仅为历史记录。
 
@@ -304,14 +308,16 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 [发布检查清单](docs/RELEASE-CHECKLIST.md) · [版本记录](CHANGELOG.md)
 
-执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。当前候选是 1.5.1-local.2；下述 1.3.1 公开下载与安装证据属于历史，不描述本次安装状态。旧发布归档保留打包时文档，避免自引用。1.3.0 / 1.3.1 归档和标签均不可变。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
+执行 `pnpm run check:release` 检查当前版本/精确矩阵/文档与发布文件；不执行上传，也不替代测试证据。发行渠道为 GitHub Release。当前正式版是 1.5.3；本次源码文档记录已经完成的发布状态，历史安装证据不描述本次日常安装。1.5.3 及全部旧版本的归档和标签均保持不可变，包内保留打包时文档快照。当前 GUI 不在本轮操作范围。见[验证报告](docs/VALIDATION.md)。
 
 ## English summary
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-Version **1.3.1** is [publicly released](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1), but has **not** replaced the daily installation. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5 and 0.2.2-alpha.2**. Both final independent reviews passed. The controller verified 128 unit/boundary tests, 41 offline browser checks, and the exact final archive on all four official runtimes (8/8 each). Unauthenticated public download matched its size and SHA256; public-URL lifecycle checks additionally passed on rc.5 and alpha.2 (8/8 each). These are distinct evidence tiers, not daily-GUI acceptance; see the [validation report](docs/VALIDATION.md). Compact mode retains the complete accessible name and keyboard activation. No model calls, paid probes or real credentials are used. Published bytes and tag are immutable; the archive retains packaging-time documentation while these source documents record the later verification.
+Version **1.5.3** is [publicly released](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) as the normal GitHub Latest release. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5, 0.2.2-alpha.2, 0.2.2-rc.1 and 0.2.2-rc.3**. The exact final archive passed the official Windows rc.3 install/disable/reenable/uninstall/native-fallback lifecycle; release verification included 167 unit/contract tests and 45 offline browser checks with no uncaught page errors. Older-host results remain historical, not new-archive recertification. No daily upgrade, restart or manual daily-GUI acceptance was performed. Published tag and archive bytes stay immutable; the source documentation records post-release status.
+
+**Historical 1.3.1 evidence:** Version **1.3.1** is [publicly released](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.1), but has **not** replaced the daily installation. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5 and 0.2.2-alpha.2**. Both final independent reviews passed. The controller verified 128 unit/boundary tests, 41 offline browser checks, and the exact final archive on all four official runtimes (8/8 each). Unauthenticated public download matched its size and SHA256; public-URL lifecycle checks additionally passed on rc.5 and alpha.2 (8/8 each). These are distinct evidence tiers, not daily-GUI acceptance; see the [validation report](docs/VALIDATION.md). Compact mode retains the complete accessible name and keyboard activation. No model calls, paid probes or real credentials are used. Published bytes and tag are immutable; the archive retains packaging-time documentation while these source documents record the later verification.
 
 **Historical 1.3.0 evidence:** Version **1.3.0** adds flat Favorites, provider-wide Uncommon override/restore, remembered tabs, and manual drag/button-based keyboard sorting with offline order retention. [v1.3.0 is published](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.3.0), non-draft and non-prerelease; release commit `42760acc4b47c0f392ec6ccf482dd594ac450761` was pushed to main and the tag. The controller passed 42 unit tests, 40 offline browser checks (zero uncaught page errors), and 7/7 isolated-profile lifecycle checks for both the local archive and public URL. Unauthenticated download returned HTTP 200 with the matching archive hash; desktop fingerprints stayed unchanged during isolated testing. The actual desktop was separately upgraded from 1.2.1 to 1.3.0 through the official CLI, with a matching client hash and only this plugin dependency changed (bundle order and patch unchanged). Live-GUI activation/interaction acceptance remains pending because the browser requires authentication. The published archive retains its packaging-time documentation: these post-release source-doc updates do not replace the archive or tag, and no repack is planned. See the [release checklist](docs/RELEASE-CHECKLIST.md). npm remains unpublished and is not the intended release channel.
 
-Author: **Hobartoakes**. Licensed under **MIT**. Current admission is the exact four-version matrix above; historical 1.3.0 admission was only DSH **0.2.1-rc.2**. Integration is Windows/Microsoft Edge only; other platforms and unlisted host versions are unverified. Historical prebuilt packages are available through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. A market-listing PR was submitted historically; its current status has not been rechecked.
+Author: **Hobartoakes**. Licensed under **MIT**. Current admission is the exact six-version whitelist above; full-runtime validation of 1.5.3 covers official Windows DSH 0.2.2-rc.3 only; historical 1.3.0 admission was only DSH **0.2.1-rc.2**. Integration is Windows/Microsoft Edge only; other platforms and unlisted host versions are unverified. Current and historical prebuilt packages are available through GitHub Releases; no npm account is needed to install them. This project has not been published to npm. A market-listing PR was submitted historically; its current status has not been rechecked.

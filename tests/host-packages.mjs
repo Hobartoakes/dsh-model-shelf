@@ -5,103 +5,69 @@ import { join, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { x as untar } from 'tar';
+import { x as untar, list } from 'tar';
 
+const vendor = resolve(fileURLToPath(new URL('./vendor/', import.meta.url)));
+const cacheRoot = join(vendor, 'hosts');
 const registry = 'https://registry.npmjs.org';
-const cacheRoot = fileURLToPath(new URL('./vendor/hosts/', import.meta.url));
 const require = createRequire(import.meta.url);
 const packageNames = {
-  modelSelection: '@deepseek-ai/dsh-client-ui-model-selection',
-  slots: '@deepseek-ai/dsh-client-ui-slots',
-  store: '@deepseek-ai/dsh-client-store',
-  renderer: '@deepseek-ai/dsh-client-ui-renderer',
+  modelSelection: '@deepseek-ai/dsh-client-ui-model-selection', slots: '@deepseek-ai/dsh-client-ui-slots',
+  store: '@deepseek-ai/dsh-client-store', renderer: '@deepseek-ai/dsh-client-ui-renderer', frontend: '@deepseek-ai/dsh-web-frontend', runtime: '@deepseek-ai/dsh-client-runtime', conversation: '@deepseek-ai/dsh-client-ui-conversation', modules: '@deepseek-ai/dsh-client-modules',
 };
-// Published npm dist.integrity, captured 2026-10-29. These are deliberately
-// checked in: a moved dist-tag or modified cache must never change the matrix.
-const pins = {
-  // Official rc.3 metadata captured 2026-11-17; same Cordis ~4.1.0 peer.
-  '0.2.2-rc.3': {
-    modelSelection: 'sha512-23xph87TO8ig1UV7u+q/lgH5fxbLaDCSdSk7T9UsPlzVm21d7j4bJp524LNwu8GMY9uGhIyuWEWjI5qut7tKWQ==',
-    slots: 'sha512-cnPMSWLRezJu6xkxZr+IQ4NwPmNbiIS5A0kFZpE6JmdnFUmpOWGUeNu34kEDdShLL+89ultT8kiX9LMxtp7UPQ==',
-    store: 'sha512-mobiVazDtYKQ0woonT5XMae1EK+6HKyMgUVWEwCy+57NOzdoOtCzwvsoDCLoGaV8PAROm1LgftcKXt/LS1AdUA==',
-    renderer: 'sha512-6xZyfLizVjscbJ7MIyKTE1QuyWA314Fazte65/CJfO+SRqURGZ96MI8v0S0m843RAaEkKlfZGOMzXCsVtRo8Dg==',
-  },
-  // Official npm metadata verified 2026-11-07; rc.1 peers require Cordis ~4.1.0.
-  '0.2.2-rc.1': {
-    modelSelection: 'sha512-F+Unm70Uy/zvRenqBh/pfcvZI2UkOC7UqKseuxpTTNk1Ly0L39qiHHhIOQUNDN0m4U1ocPFzDXD2ybm8GRnk6w==',
-    slots: 'sha512-asUGj3a5vSvUht/mBhFalFcad/YBwF9HWdY1XuIDZ7+Dx1mVrPPVG8JlIKnLZX51BnCNGr52VsjsJoErRaD3bg==',
-    store: 'sha512-qMqkH1udz0pBjYi/S+KxEb4C70y6akJjdXxldXIy86h7fH+nAnzOC8+ooV8soz3tidCFtgS6MKcKOm1rvPmFSg==',
-    renderer: 'sha512-99uRdt3Zf6SUmMSFrXKM8XsBJWwDKLt5S1n8Yb523520JZL/bhBUV4XTPnVQkQx76wMtDuK77Sh0JcHQRWngvA==',
-  },
-  '0.2.1-rc.2': {
-    modelSelection: 'sha512-vQ/MfeWbhR8kEjKDxWnJ9Wf5RgltngVnq+8TAnfx5cA/4PDlUD/Fm4K3/KWAgUMz7pS+x4yno4ri3SHSsksb5g==',
-    slots: 'sha512-/DroOBXeQzFczr07RkMh2FolFL8yW8GTryc7fvaM7QPiFvwHv8oWoBGESQ3AaVQHY9TgpYhJ5X8JuMtaYovE4A==',
-    store: 'sha512-cYijKdEVbvROtorEcTl6ZkHMSbi2Utkh3pklaLQuC7aQl0FgMxXsnvNpmlx6AEjJkaZB+Quwmd3tH9EKFZf0dQ==',
-    renderer: 'sha512-HYS0vcreOjVEyizEbPJdbH42w9RU+zWtVXdhrGdPAUdQKTgiX7K12WITv64/w8T2efbO+g94SBTswWjfxGKXoQ==',
-  },
-  '0.2.1-rc.4': {
-    modelSelection: 'sha512-UfFq8ID9jZcvM/MQ8HHL5Zp8KE8ZvVjBNEs2lq5ecbj1oO0k0TAVw3uJZGNXHiltFqUzV/pzJ0+JCEG484Gw8w==',
-    slots: 'sha512-0ESZvB9Pr9sCjs381M51w+Hos+H7In9seT4Tg/YRc/fZOo/Td4Ez42XGV7n4vN5pEHR6SXATHULgVtPIoxltNA==',
-    store: 'sha512-4pyNXUq8/5c7swTrgA69XEKguV5U6ooVFpiNPUIFHHcW0T8egf6fi8ex9Mp+opnTjq8Bkwvme8iMHENxo3v6Hg==',
-    renderer: 'sha512-KTCjcA2Wh5rQ5u+6wwFo3zS7dpQ4y7LZMf7yfU3HqqTzNnoeTtO9TiwqEKbqCNk+qDLvxnPG2S28PLZQ0s2vhw==',
-  },
-  // Official metadata verified 2026-10-30; all four peers require Cordis ~4.0.5.
-  '0.2.1-rc.5': {
-    modelSelection: 'sha512-aL/NDqqDZqLrdWgW80cq33auuaqTF7BOUKaJplP4S1LLAl8DsfKGsiuCNwagjmtoZOxE+3y3FPlg9LrsKgUY7w==',
-    slots: 'sha512-CPqLPr1wYZAjxjwahcrud+Wf4sb5nKWqkukZOX3T/MLZ2lLJCOdDDlB5ji9ozLNCKwQw8nlcQPTiWzXMriNmMA==',
-    store: 'sha512-CDi+x1DSXVVrSNflGjDa1dovyWbcQ4Gmyz200sk2TYL69X74LyfPrAWkGA66z4v10o4VlRQxFz6hJ5YDFhoi/w==',
-    renderer: 'sha512-WJ3Rwg6f/5XPJwmqoDtYYC7DZZt6z9piQR1sOq1UwGrdY71l5QbwITnKPvVRZ5/WiHIdqmVdkAtCl19bwNcbKQ==',
-  },
-  '0.2.2-alpha.2': {
-    modelSelection: 'sha512-Zo9qZlmNRZrwpSR3KOQma5hmP1vL93wXnWN0z4oewl0ikUeTmYJ52EMnieNFlxg6eseKd5+buDlHGRCt9LpuRQ==',
-    slots: 'sha512-OOl2LZXuoR2hXr4WHdl8dFnp2eONepBaphhnQLYSd+EAvtOKoh2xA7Uj1NvESgyYAzRzkYgJEzbNl6an/K47hQ==',
-    store: 'sha512-vGeI3ewFYtO3tUUmT0nd8SmcuDuMSJkj3G5MS1ovZRLgowMzqtUqii0GsYmOKLe6R/edIYdhvdVU6sahCZ2JXA==',
-    renderer: 'sha512-aEqbZxnzudASF7C2mK6a6uNkDoSpfHYwJPNnYfOBqYCjHxVf/o7kHbt2F5AWkeHiqlcFc5W0JCs3Qg4m2oIiJg==',
-  },
-};
-
+// Focused non-DOM regression suite. The wider browser contract uses each
+// frontend's embedded modules, not these Node aliases or a primitives proxy.
+const nodeVersions = new Set(['0.2.1-rc.2','0.2.1-rc.4','0.2.1-rc.5','0.2.2-alpha.2','0.2.2-rc.1','0.2.2-rc.3','0.2.2-rc.5','0.2.3-alpha.1']);
+const cordisAliases = { '4.0.5': 'cordis-rc', '4.0.6-alpha.1': 'cordis-alpha', '4.1.0': 'cordis-current' };
+let inventory;
+async function hostRow(version) {
+  inventory ??= JSON.parse(await readFile(new URL('./host-inventory/matrix.json', import.meta.url), 'utf8'));
+  const row = inventory.hosts.find(h => h.version === version);
+  if (!row?.components.modelSelection) throw new Error('unsupported host version: ' + version);
+  return row;
+}
 async function download(url, request) {
   const response = await request(url, { redirect: 'error', signal: AbortSignal.timeout(30_000) });
-  if (!response.ok) throw new Error(`host fixture download failed: ${response.status} ${url}`);
+  if (!response.ok) throw new Error('host fixture download failed: ' + response.status + ' ' + url);
   return response;
 }
-
-async function packageAt(version, key, cacheDirectory, request) {
+async function verifiedArchive(row, key, cache, request, a = inventory.archives[row.components[key]]) {
   const name = packageNames[key];
-  const leaf = name.split('/')[1];
-  const directory = join(cacheDirectory, version, leaf);
+  if (!a || a.name !== name || !/^\d+\.\d+\.\d+(?:-[a-z]+\.\d+)?$/.test(a.version)) throw new Error('invalid host component: ' + key);
+  const version = a.version, leaf = name.split('/')[1], directory = join(cache, version, leaf);
+  const url = registry + '/' + name + '/-/' + leaf + '-' + version + '.tgz';
+  if (a.tarball !== url) throw new Error('untrusted host fixture URL');
   const archivePath = join(directory, 'package.tgz');
-  const url = `${registry}/${name}/-/${leaf}-${version}.tgz`;
-  const integrity = pins[version][key];
-  let archive;
+  let archive, cold = false;
   try { archive = await readFile(archivePath); }
   catch (error) {
     if (error.code !== 'ENOENT') throw error;
-    const metadata = await (await download(`${registry}/${encodeURIComponent(name)}/${version}`, request)).json();
-    if (metadata.name !== name || metadata.version !== version || metadata.dist?.tarball !== url || metadata.dist?.integrity !== integrity) {
-      throw new Error(`published host fixture metadata does not match pin: ${name}@${version}`);
+    cold = true;
+    const metadata = await (await download(registry + '/' + encodeURIComponent(name) + '/' + version, request)).json();
+    if (metadata.name !== name || metadata.version !== version || metadata.dist?.tarball !== url || metadata.dist?.integrity !== a.integrity) {
+      throw new Error('published host fixture metadata does not match pin: ' + name + '@' + version);
     }
     archive = Buffer.from(await (await download(url, request)).arrayBuffer());
   }
-  const actual = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
-  if (actual !== integrity) throw new Error(`host fixture integrity mismatch: ${name}@${version}`);
-  await mkdir(directory, { recursive: true });
-  await writeFile(archivePath, archive);
-  // Never trust loose cached code. Re-extract the verified bytes before loading;
-  // no scripts, links, or paths outside the official package subtree are used.
-  await pipeline(Readable.from([archive]), untar({
-    cwd: directory, strict: true,
-    filter(path, entry) {
-      if (!path.startsWith('package/') || path.includes('\\') || path.split('/').includes('..')) return false;
-      return entry.type === 'File' || entry.type === 'Directory';
-    },
-  }));
-  const packageRoot = join(directory, 'package');
-  const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
-  if (manifest.name !== name || manifest.version !== version) throw new Error(`host fixture manifest mismatch: ${name}@${version}`);
-  const receipt = { name, version, url, integrity, sha256: createHash('sha256').update(archive).digest('hex') };
-  await writeFile(join(directory, 'receipt.json'), `${JSON.stringify(receipt, null, 2)}\n`);
-  return { root: packageRoot, receipt };
+  const sha256 = createHash('sha256').update(archive).digest('hex');
+  if ('sha512-' + createHash('sha512').update(archive).digest('base64') !== a.integrity || sha256 !== a.sha256) {
+    throw new Error('host fixture integrity mismatch: ' + name + '@' + version);
+  }
+  if (cold) { await mkdir(directory, { recursive: true }); await writeFile(archivePath, archive); }
+  return { archive, directory, receipt: { name, version, url, integrity: a.integrity, sha256 } };
+}
+function checkManifest(manifest, receipt) {
+  if (manifest.name !== receipt.name || manifest.version !== receipt.version) throw new Error('host fixture manifest mismatch');
+}
+async function packageAt(row, key, cache, request) {
+  const { archive, directory, receipt } = await verifiedArchive(row, key, cache, request);
+  await pipeline(Readable.from([archive]), untar({ cwd: directory, strict: true, filter(path, entry) {
+    return path.startsWith('package/') && !path.includes('\\') && !path.split('/').includes('..') && ['File','Directory'].includes(entry.type);
+  } }));
+  const root = join(directory, 'package');
+  checkManifest(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')), receipt);
+  await writeFile(join(directory, 'receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
+  return { root, receipt };
 }
 
 // Run an unmodified published browser factory, resolving only declared imports.
@@ -148,18 +114,18 @@ async function assertUnlinkedCache(vendor, cacheDirectory) {
   }
 }
 
-// Options are test seams for isolated cache/network failure cases; neither the
-// registry, package allowlist nor integrity pins can be overridden.
+async function checkedCache(cacheDirectory) {
+  const cache = resolve(cacheDirectory);
+  if (!cache.startsWith(vendor + sep)) throw new Error('host fixture cache must stay inside tests/vendor');
+  await assertUnlinkedCache(vendor, cache);
+  return cache;
+}
+
 export async function loadHostPackages(version, { cacheDirectory = cacheRoot, fetch: request = globalThis.fetch } = {}) {
-  if (typeof version !== 'string' || !Object.hasOwn(pins, version)) throw new Error(`unsupported host version: ${version}`);
-  const vendor = resolve(fileURLToPath(new URL('./vendor/', import.meta.url)));
-  cacheDirectory = resolve(cacheDirectory);
-  if (!cacheDirectory.startsWith(vendor + sep)) throw new Error('host fixture cache must stay inside tests/vendor');
-  await assertUnlinkedCache(vendor, cacheDirectory);
-  const packages = {};
-  // Fail before starting another fetch; a failed test never leaves hidden work.
-  for (const key of Object.keys(packageNames)) packages[key] = await packageAt(version, key, cacheDirectory, request);
-  const cordis = await import(['0.2.2-rc.1', '0.2.2-rc.3'].includes(version) ? 'cordis-current' : version === '0.2.2-alpha.2' ? 'cordis-alpha' : 'cordis-rc');
+  if (!nodeVersions.has(version)) throw new Error('unsupported host version: ' + version);
+  const cache = await checkedCache(cacheDirectory), row = await hostRow(version), packages = {};
+  for (const key of ['modelSelection','slots','store','renderer']) packages[key] = await packageAt(row, key, cache, request);
+  const cordis = await import(cordisAliases[inventory.archives[row.components.cordis].version]);
   const slots = await import(pathToFileURL(join(packages.slots.root, 'lib/index.js')).href);
   const store = await import(pathToFileURL(join(packages.store.root, 'lib/index.js')).href);
   const modules = {
@@ -180,4 +146,34 @@ export async function loadHostPackages(version, { cacheDirectory = cacheRoot, fe
   const modelSelection = await loadClientFactory(join(packages.modelSelection.root, 'lib/client.js'), packageNames.modelSelection, modules);
   const renderer = await loadClientFactory(join(packages.renderer.root, 'lib/client.js'), packageNames.renderer, modules);
   return { version, cordis, slots, store, modelSelection, renderer, modules, packages };
+}
+// Only serve files actually present in the SRI-checked archive. A stale loose
+// file in the cache can never become a browser route or an executable asset.
+export async function loadPublishedWeb(version, { offline = false } = {}) {
+  const row = await hostRow(version);
+  const cache = await checkedCache(join(vendor, 'web-contract-archives'));
+  const request = offline ? () => { throw Error('archive not cached for offline run: ' + version); } : globalThis.fetch;
+  const assets = new Map(), clients = {}, receipts = {};
+  const early = row.disposition === 'different-package-layout' ? JSON.parse(await readFile(new URL('./host-inventory/early-pins.json', import.meta.url), 'utf8'))[version] : undefined;
+  if (row.disposition === 'different-package-layout' && !early) throw Error('missing early runtime pin: ' + version);
+  for (const key of ['frontend','modelSelection','renderer','runtime','conversation','modules'].filter(k => k === 'runtime' || k === 'modules' ? !!early : row.components[k])) {
+    const {archive,receipt} = await verifiedArchive(row, key, cache, request, key === 'runtime' ? early : key === 'modules' ? early.modules : undefined);
+    let manifest;
+    await pipeline(Readable.from([archive]), list({strict: true, onentry(entry) {
+      if (entry.type !== 'File') return;
+      const path = entry.path.replace(/^package\//, '');
+      if (path.includes('\\') || path.split('/').includes('..')) return;
+      const asset = key === 'frontend' && path.startsWith('dist/') && !path.endsWith('.map');
+      if (!asset && path !== 'package.json' && path !== 'lib/client.js') return;
+      const parts = []; entry.on('data', bytes => parts.push(bytes)); entry.on('end', () => {
+        const bytes = Buffer.concat(parts);
+        if (asset) assets.set('/' + path.slice(5), bytes);
+        else if (path === 'package.json') manifest = JSON.parse(bytes.toString());
+        else clients[key] = bytes.toString();
+      });
+    } }));
+    checkManifest(manifest, receipt); receipts[key] = receipt;
+  }
+  if (!assets.has('/index.html') || !clients.modelSelection || (row.components.renderer && !clients.renderer)) throw Error('missing published web entry: ' + version);
+  return { row, assets, clients, receipts };
 }

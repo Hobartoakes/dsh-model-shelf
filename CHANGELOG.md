@@ -1,6 +1,14 @@
 # 版本记录
 
-## 1.5.3 当前验证（已发布）
+## 1.6.0 发布与验证
+
+- 安装准入由六个精确版本改为 `>=0.0.1-rc.5 <0.3.0-0`。按 DSH 包管理器包含预发布版本的比较语义，排除 0.3.0 的首个预发布版本及其后版本。准入不是兼容声明。
+- 加载前检查会话服务和单座位插槽；遇到不兼容的会话目录，撤回书架注册。保留 provider/model/effort 身份、定向子代理限制、原生标签归属、收藏/排序/备注、离线图标、偏好和 6px 布局。
+- 修复旧宿主已切换却报错：当旧目录不返回结果时，只认更新后的会话快照及完整路由，不额外发 RPC 确认。书架不再把新版服务当作 Web 启动条件。
+- 已用修复后的客户端核对 50 个官方版本：46 个通过同版包契约，2 个因旧 picker/准入而不兼容，另有 2 个只有 GitHub 标签、未测；没有仅回退版本。完整桌面验收另计。
+- 离线 UI 45/45。正式包的 Windows x64 DSH 0.2.2-rc.5 生命周期以[同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json)为准；不继承试验包或历史版本的结果。通过 [1.6.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0) 分发，不发布到 npm。
+
+## 1.5.3 历史验证（已发布）
 
 [1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 

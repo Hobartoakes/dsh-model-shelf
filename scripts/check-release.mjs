@@ -1,11 +1,13 @@
 import { readFile, access } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { basename, posix } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 const root = new URL('../', import.meta.url);
 const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
 const issues = [];
 const publishing = process.argv.includes('--publish');
-if (publishing && pkg.private !== false) issues.push('npm 发布仍未授权：确认发布后才将 private 改为 false。');
-if (publishing && (pkg.publishConfig?.registry !== 'https://registry.npmjs.org/' || pkg.publishConfig?.access !== 'public' || pkg.publishConfig?.tag !== 'latest')) issues.push('公开发布必须限定官方 npm registry、public 和 latest 标签。');
+if (pkg.private !== true) issues.push('GitHub 发行包必须保留 private: true 防止误发 npm。');
+if (publishing) issues.push('本版仅通过 GitHub Releases 发行，不发布到 npm。');
 const author = typeof pkg.author === 'string' ? pkg.author : pkg.author?.name;
 if (!author || /待补|todo|placeholder/i.test(author)) issues.push('填写真实作者名称。');
 const repository = typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url;
@@ -19,82 +21,141 @@ try {
 for (const path of ['lib/index.js', 'lib/client.js', 'docs/images/main-list.png', 'docs/images/uncommon-list.png', 'docs/images/dark-list.png']) {
   try { await access(new URL(path, root)); } catch { issues.push(`缺少发布文件：${path}`); }
 }
-const SUPPORTED_DSH = ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3'];
-const CURRENT_DSH = '0.2.2-rc.3';
-const BASELINE_COMMIT = 'c6835819f86f9a24ed9514b718f97681198ee82f';
-const BASELINE_ARCHIVE = '2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22';
-// A targeted compatibility update does not re-certify the historical archives.
-// Historical tiers remain allowed only while the entire executable stays identical.
-const BASELINE_CLIENT = '59fa8e89c0a00e48176b91afc65d3035b2352e8d76a9508322fe8e53f8f5a8db';
-try {
-  const digest = createHash('sha256').update(await readFile(new URL('lib/client.js', root))).digest('hex');
-  if (digest !== BASELINE_CLIENT) issues.push('生产客户端字节已变；不得继承历史宿主证据，须重新确定验证范围。');
-} catch { issues.push('无法核对生产客户端历史基线字节。'); }
-const exactMatrix = SUPPORTED_DSH.join(' || ');
-if (pkg.engines?.dsh !== exactMatrix) issues.push(`engines.dsh 必须是精确白名单 ${exactMatrix}；不接受未测试版本或范围。`);
 
-// 文档与当前版本同步：版本一变，这些文档都要跟着改，漏改会在发布前暴露，
-// 而不是等到用户装完包才发现 README 还写着上一个宿主版本。
-const version = pkg.version;
-const docs = [
-  'README.md',
-  'CHANGELOG.md',
-  'docs/VALIDATION.md',
-  'docs/RELEASE-CHECKLIST.md',
-  'docs/HOST-COMPATIBILITY.md'
-];
-const docText = new Map();
-for (const path of docs) {
-  try { docText.set(path, await readFile(new URL(path, root), 'utf8')); }
-  catch { issues.push(`缺少文档：${path}`); }
-}
-const doc = (path) => docText.get(path) ?? '';
-// Current evidence must be in a current-version section, not a historical mention.
-// Preparation is allowed to remain explicitly unpublished; this check never uploads.
-const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const currentSections = new Map();
-for (const path of docs) {
-  const match = new RegExp(`^## ${escapedVersion} 当前验证（(未发布|已发布)）\\r?\\n([\\s\\S]*?)(?=^## |$(?![\\s\\S]))`, 'm').exec(doc(path));
-  if (!match) issues.push(`${path} 缺少 ${version} 当前验证及明确发布状态。`);
-  else currentSections.set(path, match[2]);
-}
-for (const path of ['README.md', 'docs/VALIDATION.md', 'docs/HOST-COMPATIBILITY.md']) {
-  const section = currentSections.get(path) ?? '';
-  if (!section.includes(BASELINE_COMMIT) || !section.includes(BASELINE_ARCHIVE)) issues.push(`${path} 历史证据缺少精确源码提交或公开归档校验绑定。`);
-  for (const runtime of SUPPORTED_DSH) {
-    const row = section.split(/\r?\n/).find(line => line.split('|')[1]?.trim() === runtime);
-    const cells = row?.split('|').slice(2, 5).map(cell => cell.trim());
-    const expected = runtime === CURRENT_DSH ? 'PASS' : 'HISTORICAL';
-    if (!cells || cells.length !== 3 || cells.some(cell => cell !== expected)) issues.push(`${path} 缺少 ${runtime} 的真实边界 / 离线 UI / 完整 runtime 三层 ${expected}；当前目标不得借用历史或低层证据。`);
+// Component results, the pre-fix pilot and the exact stable desktop receipt are distinct.
+// A final tgz digest belongs outside the archive.
+const CANDIDATE = {
+  version: '1.6.0', runtime: '0.2.2-rc.5', range: '>=0.0.1-rc.5 <0.3.0-0',
+  client: '2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00',
+};
+const PILOT = {
+  runtime: '0.2.2-rc.5',
+  archive: 'f88baf4c10f821900b789913f0345f639c70858a6066df89c6bb42f633d7b6b7',
+  client: '5b9994ad20eceaea799bcb6b1467d09982289e6d34ca44708a1ed6c00b053421',
+  report: 'tests/artifacts/clean-0.2.2-rc.5-1795363695552-3d73b594/result.json',
+};
+const HISTORY = {
+  title: '1.5.3 历史验证（已发布）',
+  commit: '5a8d72f741c770cc55cdf379fc120f8412a4c798',
+  archive: '934f9368f5c34fc6e66b987784b2bdda9da966d3ea35d13f0c6e9bbc912acc96',
+  previousCommit: 'c6835819f86f9a24ed9514b718f97681198ee82f',
+  previousArchive: '2adb0e7bee1d107013ad2b5947ec3ad46912d04fc539c2427801558719484f22',
+  runtimes: ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3'],
+};
+const args = process.argv.slice(2);
+const finalDesktop = args.length === 3 && args[0] === '--final-desktop';
+if (args.length && !finalDesktop && !(args.length === 1 && publishing)) issues.push('用法：check-release.mjs [--final-desktop <final.tgz> <result.json> | --publish]');
+const LOCAL_FINAL = '2e20f89bb7569ed0da2fdf02bba3f3875ecc3d81a78e64d9b94be67f1d60b300';
+if (pkg.version !== CANDIDATE.version) issues.push('版本已变；请为新版本绑定自己的证据。');
+if (pkg.engines?.dsh !== CANDIDATE.range) issues.push('engines.dsh 的准入应为 ' + CANDIDATE.range + '（不等于逐版实测）。');
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+try {
+  if (sha256(await readFile(new URL('lib/client.js', root))) !== CANDIDATE.client) issues.push('生产客户端字节与旧宿主修复后复验的候选不符；须重新取得相应证据。');
+} catch { issues.push('无法核对本候选生产客户端字节。'); }
+
+const docs = ['README.md', 'CHANGELOG.md', 'docs/VALIDATION.md', 'docs/RELEASE-CHECKLIST.md', 'docs/HOST-COMPATIBILITY.md'];
+const matrixDocs = ['README.md', 'docs/VALIDATION.md', 'docs/HOST-COMPATIBILITY.md'];
+const currentTiers = [['官方包契约', '逐版另查'], ['离线 UI', '45/45'], ['Windows ' + CANDIDATE.runtime, '查同包记录'], ['其他桌面宿主', '未测'], ['最终归档', '包外验收']];
+const sectionsOf = text => text.replace(/\r\n/g, '\n').split(/^## /m).slice(1).map(block => {
+  const [title, ...lines] = block.split('\n'); return { title, body: lines.join('\n') };
+});
+const rowsOf = body => body.split('\n').filter(line => line.startsWith('|')).map(line => line.split('|').slice(1, -1).map(s => s.trim()));
+
+function checkHistory(path, history) {
+  if (![HISTORY.commit, HISTORY.archive, HISTORY.previousCommit, HISTORY.previousArchive].every(id => history.includes(id))) {
+    issues.push(path + ' 的历史章节缺失旧源码/旧归档绑定。');
+  }
+  const rows = rowsOf(history);
+  for (const host of HISTORY.runtimes) {
+    const status = host === '0.2.2-rc.3' ? 'PASS' : 'HISTORICAL';
+    if (!rows.some(row => isDeepStrictEqual(row, [host, status, status, status]))) issues.push(path + ' 的历史三层记录已变：' + host);
   }
 }
-// 3. VALIDATION 的"范围与结果"必须指向当前版本，而不是上一个。
-// 只查"文档里出现过当前版本号"太弱：历史小节同样会提到它。这里锚定
-// "范围与结果"小节的第一行"包：…"——那一行描述的是"本次验证的对象"，
-// 版本一变它就必须改，正是最容易漏的一处。
-const validation = doc('docs/VALIDATION.md');
-const scopeMatch = /## 范围与结果[\s\S]*?\n\s*-\s*包：\*\*dsh-model-shelf ([^*]+)\*\*/.exec(validation);
-if (scopeMatch === null) {
-  issues.push('docs/VALIDATION.md 缺少"范围与结果"小节的"包：dsh-model-shelf <版本>"行。');
-} else if (scopeMatch[1].trim() !== version) {
-  issues.push(`docs/VALIDATION.md 的"范围与结果"仍写 ${scopeMatch[1].trim()}，应为当前版本 ${version}。`);
-}
-// 4. 每个 docs/*.md 都必须被 package.json 的 files 白名单收录，否则用户装包后看不到。
-const shipped = new Set((pkg.files ?? []).filter((entry) => typeof entry === 'string'));
+
 for (const path of docs) {
-  if (shipped.has(path)) continue;
-  // 允许通配覆盖（如 docs/*.md），逐项判断太脆。
-  const covered = [...shipped].some((entry) => {
-    const pattern = entry.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '.');
-    return new RegExp(`^${pattern}$`).test(path);
-  });
-  if (!covered) issues.push(`${path} 未列入 package.json 的 files，用户安装后看不到该文档。`);
+  let sections;
+  try { sections = sectionsOf(await readFile(new URL(path, root), 'utf8')); }
+  catch { issues.push('缺少文档：' + path); continue; }
+  const title = pkg.version + ' 发布与验证';
+  if (sections[0]?.title !== title || sections.filter(s => s.title.startsWith(title)).length !== 1) issues.push(path + ' 必须以唯一的本版发布与验证章节开头。');
+  const current = sections.find(s => s.title === title)?.body ?? '';
+  const scope = sections.find(s => s.title === '范围与结果')?.body ?? '';
+  if (matrixDocs.includes(path)) {
+    const rows = rowsOf(current).slice(2); // header and Markdown alignment row
+    if (!current.includes(CANDIDATE.range) || !isDeepStrictEqual(rows.map(row => row.slice(0, 2)), currentTiers) || rows.some(row => row.length !== 3 || !row[2])) {
+      issues.push(path + ' 当前矩阵须区分准入、逐版官方包契约、离线 UI、同包桌面、未测和包外验收。');
+    }
+    checkHistory(path, sections.find(s => s.title === HISTORY.title)?.body ?? '');
+  }
+  const pilotLabel = 'Pilot 归档 SHA-256：' + '`' + PILOT.archive + '`';
+  if (path === 'docs/VALIDATION.md') {
+    if (!current.includes(pilotLabel) || !current.includes('](../' + PILOT.report + ')')) issues.push(path + ' 缺少 pilot 归档与对应实测的绑定。');
+    if (!scope.trimStart().startsWith('- 包：**dsh-model-shelf ' + pkg.version + '**') || !scope.includes('releases/download/v1.6.0/release-integrity.json')) issues.push(path + ' 范围与结果须指明当前包及包外验收记录。');
+  }
+  const described = path === 'docs/VALIDATION.md' ? current.replace(pilotLabel, '') + scope : current;
+  if (/\b[a-f0-9]{64}\b/i.test(described)) issues.push(path + ' 当前章节不可借用旧哈希或嵌入最终归档的 SHA-256；该值只存包外。');
+}
+
+// A files entry can name a file, a glob, or an entire ancestor directory.
+function ships(file) {
+  const parts = file.split('/');
+  return (pkg.files ?? []).some(pattern => typeof pattern === 'string' && parts.some((_, i) => posix.matchesGlob(parts.slice(0, i + 1).join('/'), pattern.replace(/\/$/, ''))));
+}
+for (const path of docs) if (!ships(path)) issues.push(path + ' 未列入 package.json 的 files。');
+for (const path of ['release-integrity.json', 'SHA256SUMS.txt', 'dist-draft/release-1.6.0/release-integrity.json', 'dist-draft/final/acceptance.json', 'dist-draft/final/SHA256SUMS', PILOT.report]) {
+  if (ships(path)) issues.push(path + ' 必须留在包外。');
+}
+
+const nonempty = s => typeof s === 'string' && !!s.trim();
+function route(key) {
+  try {
+    const parts = JSON.parse(key);
+    if (Array.isArray(parts) && parts.length === 2 && parts.every(nonempty)) return parts;
+  } catch { /* absent or not a full provider/model key */ }
+}
+
+// Read the existing runner receipt, never run a host, mint a verdict from a version,
+// or infer official-package contract results from desktop evidence.
+function checkDesktop(r, digest) {
+  const fail = reason => issues.push('桌面记录：' + reason);
+  if (r.archiveSHA256 !== digest) fail('归档 SHA-256 与实际字节不符。');
+  if ([LOCAL_FINAL, PILOT.archive, HISTORY.archive, HISTORY.previousArchive].includes(digest)) fail('试验、本地或历史归档不能冒作最终包。');
+  if (r.clientSHA256 === PILOT.client) fail('修复前 pilot 客户端不能作为修复后客户端的桌面记录。');
+  if (r.packageVersion !== pkg.version || r.installedVersion !== pkg.version || r.clientSHA256 !== CANDIDATE.client ||
+      r.carrier !== 'Windows Desktop' || r.runtime?.actual !== CANDIDATE.runtime || r.success !== true) fail('包、客户端、官方 Windows 载体、实际宿主版本或成功状态不匹配。');
+  const phases = Array.isArray(r.phases) ? r.phases : [];
+  if (!isDeepStrictEqual(phases.map(p => p.label), ['installed', 'disabled', 'reenabled', 'uninstalled'])) fail('缺少有序的安装、禁用、重新启用、卸载四阶段。');
+  let selected;
+  for (const p of phases) {
+    const shelf = p.label === 'installed' || p.label === 'reenabled';
+    if (p.success !== true || p.expectedPlugin !== shelf || !isDeepStrictEqual(p.pageErrors, [])) fail(p.label + ' 未成功或出现页面错误。');
+    if (shelf) {
+      const before = route(p.routeBefore); selected = route(p.selectedKey);
+      if (!before || !selected || isDeepStrictEqual(before, selected) || p.routeAfterReload !== p.selectedKey ||
+          !nonempty(p.labelBefore) || !nonempty(p.labelAfter) || p.labelAfter === p.labelBefore) fail(p.label + ' 缺少实际切换、标签改变或刷新后的完整路由。');
+    } else if (p.nativeFallback !== true || p.nativeMenu?.expanded !== true || !nonempty(p.nativeMenu.trigger) ||
+               !nonempty(p.nativeMenu.text) || !selected || !p.nativeMenu.text.includes(selected[1])) fail(p.label + ' 未证明原生菜单打开并显示所选模型。');
+  }
+  const proof = r.protectedFiles;
+  if (proof?.unchanged !== true || !Array.isArray(proof.before) || proof.before.length !== 5 || !isDeepStrictEqual(proof.before, proof.after) ||
+      r.activeProcesses !== 0 || r.browserClosed !== true || r.providerStats?.streams !== 0 || r.realModelCalls !== false ||
+      r.credentialCopies !== false || r.installScripts !== false || !r.checks?.includes('uninstall removes dependency and bundle without orphaned plugin patch rows')) fail('未证明卸载清理、日常指纹保护或隔离安全边界。');
+}
+
+let digest;
+if (finalDesktop) {
+  try {
+    if (basename(args[1]) !== pkg.name + '-' + pkg.version + '.tgz') issues.push('最终归档名与当前候选不符。');
+    digest = sha256(await readFile(args[1]));
+    checkDesktop(JSON.parse(await readFile(args[2], 'utf8')), digest);
+  } catch (error) { issues.push('无法核对归档或桌面记录：' + error.message); }
 }
 if (issues.length) {
-  console.log('发布检查尚未通过（不执行发布）：');
-  issues.forEach((issue) => console.log(`- ${issue}`));
+  console.log('本地交付检查未通过（不执行发布）：');
+  issues.forEach(issue => console.log('- ' + issue));
   process.exitCode = 1;
+} else if (finalDesktop) {
+  console.log('已核对官方 Windows ' + CANDIDATE.runtime + ' 桌面记录及同一归档 SHA-256：' + digest + '；不代表发布或其他宿主通过。');
 } else {
-  console.log('发布文件检查通过；这不代表已执行 npm 发布或目录收录。');
-  if (pkg.private) console.log('npm 发布保持禁用；仅进行源码仓库准备和本地验证。');
+  console.log('打包前文件检查通过；不代表最终归档通过桌面验收或已经发布。');
 }

@@ -7,9 +7,9 @@ import { createIconStore } from './icon-cache.js';
 const React = require('react');
 const { createPortal } = require('react-dom');
 const { createElement: h, useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, useId } = React;
-// Service method calls inherit the consumer's Cordis context; directoryFor creates
-// a directory using remote.session, so declare the nested capability explicitly.
-export const inject = ['slots', 'modelDirectories', 'sessions', 'remote', 'remote.session'];
+// The Web loader requires every enabled entry to settle ACTIVE, even if no
+// model picker exists. Only an owned child waits for picker capabilities.
+export const inject = [];
 
 // DSH 0.2.1 gives the model seat a child slot, `conversation.input.model.label`,
 // that host badges (the built-in 1017 marker) register into. Rendering it needs
@@ -279,9 +279,9 @@ export function makeModelPicker(preferences, iconStore) {
         const keepEffort = resetEffort !== true && sameModel && pick.reasoningEffort === undefined && retainedEffort !== undefined
           && targetEfforts.some((x) => x.id === retainedEffort);
         const request = keepEffort ? { ...pick, reasoningEffort: retainedEffort } : pick;
-        const result = await select(request);
+        const result = await select(request, resetEffort === true);
         if (!mounted.current || popupEpoch.current !== epoch) return;
-        if (!result?.ok) {
+        if (result?.ok !== true) {
           setLocalError(result?.error?.code === 'session/writer-held' ? '该会话正在其他窗口使用，请稍后重试。' : result?.error?.message ?? '模型切换未成功，请重试。');
         } else if (!keepOpen) close();
       } catch (e) {
@@ -557,32 +557,99 @@ export function makeModelPicker(preferences, iconStore) {
   };
 }
 
+const modelSeat = 'conversation.input.model';
+const hasMethods = (object, ...names) => names.every(name => typeof object?.[name] === 'function');
+
+// Older directories resolve void on both a committed selection and a superseded
+// operation. Only a fresh, ready snapshot from this session can confirm it.
+function confirmsLegacySelection(before, after, requested, resetEffort) {
+  const current = after?.current;
+  if (!current || before === after || after.status !== 'ready' || after.error !== null || after.pending != null || after.routable !== true) return false;
+  if (!requested.provider || !requested.model || current.provider !== requested.provider || current.model !== requested.model) return false;
+  if (resetEffort) return current.reasoningEffort === undefined;
+  return requested.reasoningEffort === undefined || current.reasoningEffort === requested.reasoningEffort;
+}
+
+function pickerProps(ctx, sessionId) {
+  // The real directory is session-owned. Never probe with a fabricated ID or RPC.
+  const available = ctx.sessions.subagentAddress(sessionId) === undefined;
+  const directory = ctx.modelDirectories.directoryFor(sessionId);
+  if (!hasMethods(directory, 'load', 'select', 'resetConnected') || !hasMethods(directory.store, 'subscribe', 'getSnapshot')) return;
+  const state = directory.store.getSnapshot();
+  if (!Array.isArray(state?.groups) || typeof state.status !== 'string') return;
+  return {
+    available, directory: directory.store,
+    load: () => available ? directory.load() : undefined,
+    select: async (selection, resetEffort = false) => {
+      if (!available) return undefined;
+      const before = directory.store.getSnapshot();
+      let result;
+      try { result = await directory.select(selection); }
+      catch (error) {
+        // Do not erase an authoritative refusal or reset a settled newer route.
+        if (directory.store.getSnapshot().status === 'selecting') directory.resetConnected();
+        throw error;
+      }
+      if (result !== undefined) return result;
+      return { ok: confirmsLegacySelection(before, directory.store.getSnapshot(), selection, resetEffort) };
+    },
+  };
+}
+
 export function apply(ctx) {
+  if (!hasMethods(ctx, 'effect', 'inject') || typeof useSyncExternalStore !== 'function'
+      || typeof useId !== 'function' || typeof createPortal !== 'function') return;
+  ctx.inject(['slots', 'modelDirectories', 'sessions'], scope => {
+    if (!hasMethods(scope.slots, 'inject', 'register', 'spec') || !hasMethods(scope.modelDirectories, 'directoryFor')
+        || !hasMethods(scope.sessions, 'subagentAddress')) return;
+    // directoryFor() inherits the consumer's Cordis bindings on a cold session.
+    // Follow the native resolver's declared wire; never require both generations,
+    // call the wire directly, or look up services through an unchecked root.
+    const declared = scope.modelDirectories.constructor?.inject ?? [];
+    const names = Array.isArray(declared) ? declared : Object.keys(declared);
+    const wire = ['connection', 'remote', 'remote.session'].filter(key => names.includes(key));
+    if (wire.length) scope.inject(wire, watchModelSeat);
+    else watchModelSeat(scope);
+  });
+}
+
+function watchModelSeat(ctx) {
+  ctx.slots.inject(modelSeat, () => {
+    const spec = ctx.slots.spec(modelSeat);
+    if (spec?.kind !== 'single' || spec.scope !== 'session') return;
+    return installShelf(ctx);
+  });
+}
+
+function installShelf(ctx) {
+  ctx.effect(() => {
+    const style = document.createElement('style');
+    style.dataset.plugin = 'dsh-model-shelf';
+    style.textContent = SHELF_CSS;
+    document.head.appendChild(style);
+    return () => style.remove();
+  });
   let storage;
   try { storage = window.localStorage; } catch { storage = { getItem() { throw new Error('storage unavailable'); }, setItem() { throw new Error('storage unavailable'); } }; }
   const preferences = createPreferenceStore(storage, window);
   const iconStore = createIconStore({ storage, bundled: ICON_DATA, registry: DOWNLOADABLE_ICONS, fetcher: (...args) => window.fetch(...args) });
   ctx.effect(() => () => { preferences.dispose(); iconStore.dispose(); });
   const ModelPicker = makeModelPicker(preferences, iconStore);
-  ctx.slots.inject('conversation.input.model', () => ctx.slots.register({
-    name: 'conversation.input.model', priority: -100,
-    inject: (sessionId) => {
-      const directory = ctx.modelDirectories.directoryFor(sessionId);
-      const available = ctx.sessions.subagentAddress(sessionId) === undefined;
-      return {
-        available, directory: directory.store,
-        load: () => available ? directory.load() : undefined,
-        select: async (selection) => {
-          if (!available) return undefined;
-          try { return await directory.select(selection); }
-          catch (error) {
-            // Native select can leave its shared directory in 'selecting' on RPC rejection.
-            // Its connection-reset method clears pending selection and invalidates stale replies.
-            directory.resetConnected();
-            throw error;
-          }
-        }
-      };
-    }
-  }, ModelPicker));
+  let retired = false;
+  const unregister = ctx.slots.register({ name: modelSeat, priority: -100,
+    inject: sessionId => {
+      if (!retired) {
+        try {
+          const props = pickerProps(ctx, sessionId);
+          if (props) return props;
+        } catch { /* Incompatible session scope or service getter. */ }
+        retired = true;
+        // Slot injection is evaluated during render. Changing the registry there
+        // is unsafe; remove only this registration after the render stack unwinds.
+        queueMicrotask(() => unregister());
+      }
+      return {};
+    },
+  }, props => props.directory ? h(ModelPicker, props) : null);
+  return unregister;
 }

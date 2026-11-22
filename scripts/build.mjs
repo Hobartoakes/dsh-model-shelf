@@ -9,14 +9,6 @@ const iconFiles = { deepseek: 'deepseek-color.png', openai: 'openai.png', cline:
 const iconData = Object.fromEntries(await Promise.all(Object.entries(iconFiles).map(async ([key, file]) => [key, 'data:image/png;base64,' + (await readFile(new URL(`src/assets/${file}`, root))).toString('base64')])));
 const client = (await readFile(new URL('src/client.js', root), 'utf8')).replace(/^import .* from '\.\/preferences\.js';\r?\n/m, '').replace(/^import .* from '\.\/workbuddy-probe\.js';\r?\n/m, '').replace(/^import .* from '\.\/icons\.js';\r?\n/m, '').replace(/^import .* from '\.\/icon-cache\.js';\r?\n/m, '').replace(/^export /gm, '');
 const css = await readFile(new URL('src/style.css', root), 'utf8');
-const styledClient = client.replace('function apply(ctx) {', `function apply(ctx) {
-  ctx.effect(() => {
-    const style = document.createElement('style');
-    style.dataset.plugin = 'dsh-model-shelf';
-    style.textContent = ${JSON.stringify(css)};
-    document.head.appendChild(style);
-    return () => style.remove();
-  });`);
 const bundle = `window.__ModuleLoader__.load({
   id: 'dsh-model-shelf',
   factory: (require) => {
@@ -26,12 +18,13 @@ ${catalogIcons}
 ${icons}
 ${iconCache}
 const ICON_DATA = ${JSON.stringify(iconData)};
-${styledClient}
+const SHELF_CSS = ${JSON.stringify(css.replace(/\r\n/g, '\n'))};
+${client}
 return { apply, inject, makeModelPicker };
   }
 });
 `;
 await mkdir(new URL('lib/', root), { recursive: true });
-await writeFile(new URL('lib/client.js', root), bundle.replace('export ', ''));
+await writeFile(new URL('lib/client.js', root), bundle.replace(/\r\n/g, '\n'));
 await writeFile(new URL('lib/index.js', root), 'export function apply() {}\n');
 console.log('Built Model Shelf client and lifecycle-owned stylesheet.');

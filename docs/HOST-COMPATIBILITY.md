@@ -1,6 +1,50 @@
 # 宿主兼容性核对
 
-## 1.5.3 当前验证（已发布）
+## 1.6.0 发布与验证
+
+**安装策略。** `>=0.0.1-rc.5 <0.3.0-0` 是准入，不是“所有版本均工作”。官方 Web 的 0.0.1-rc.1/.2 引用旧 picker，0.0.1-rc.5 是清单中首次引用现代 model-selection 的版本。DSH 使用 `includePrerelease: true`，故上界为 `<0.3.0-0` 而非 `<0.3.0`（后者仍接纳 0.3.0-alpha.1）。范围内无需为兼容小版本另列许可；范围外不绕过宿主检查。
+
+**能力。** 书架在会话级单入口 `conversation.input.model` 上以 priority -100 注册，不声明宿主的 `conversation.input.model.label`。加载时检查 slots、目录解析器、会话服务、React hooks 及 portal；用真实 session ID 检查目录的 load/select/resetConnected、store 订阅与快照。接口缺失或快照不合用时不占座或在渲染后撤掉自己的注册，让仍加载的原生项接手。定向子代理不能借书架选择模型。
+
+Web 根条目无需等待书架服务。它的子作用域在所需服务到齐时才接入，并跟随原生目录的 Cordis 声明：旧版通过 `connection.api.sessions`，新版通过 `remote.session`。两者都调用宿主的 `directoryFor(sessionId)`，不自建模型目录或直调传输。
+
+新版 `select` 的明确拒绝仍是失败。旧版返回 `undefined` 时，只有该会话快照已更新、就绪、可路由、无错误及待处理选择，且 provider、model 和指定的 effort 一致，才认作成功；显式恢复默认要求已解除固定。旧路由、异常或无确认的返回不会关闭菜单，也不会为探测多发请求。
+
+| 验证对象 | 结果 | 证据边界 |
+| --- | --- | --- |
+| 官方包契约 | 逐版另查 | 46 个通过，0 个仅回退，2 个准入不兼容，2 个未测。下文列出 50 个版本；原始路由和按钮观测见[逐版运行结果](https://github.com/Hobartoakes/dsh-model-shelf/blob/v1.6.0/tests/host-inventory/contracts.json)。 |
+| 离线 UI | 45/45 | 共享合成目录，不渲染每版官方前端。 |
+| Windows 0.2.2-rc.5 | 查同包记录 | 正式 tgz 的官方 Windows Desktop 隔离结果见[同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json)。 |
+| 其他桌面宿主 | 未测 | 邻版乃至同 Cordis 版本都不能继承 rc.5 桌面结论。 |
+| 最终归档 | 包外验收 | 比对上述记录中的 SHA-256；不得用其他 tgz 的回执代替。 |
+
+**查一个版本：** 先在[来源矩阵](../tests/host-inventory/matrix.json)按 `hosts[].version` 查实际包和 SRI，再查逐版行为结果，最后看有无同一 tgz 的桌面记录。来源普查覆盖 50 个版本（48 个 npm 核心、2 个仅 GitHub），实取验 486 个不同 npm 归档，与 173 个既有四组件 pins 一致。38 组可建四包夹具，8 组布局不同，2 组使用旧 picker，2 组无同版 npm 核心。这些数是材料数，不是通过数。
+
+## 按官方版本查（打包时的组件证据）
+
+下面每个版本均执行同版官方前端、原生选择器与会话目录；使用虚构 provider/model，不是整机安装。后缀与第一列以 `-` 连接；没有列出的后缀不作推断。
+
+| 版本前缀 | 通过官方包契约的已发布后缀 |
+| --- | --- |
+| `0.0.1` | `rc.5` |
+| `0.1.0` | `rc.2`、`rc.3`、`rc.6`、`rc.7`、`rc.8` |
+| `0.1.1` | `rc.1`、`rc.2` |
+| `0.1.2` | `alpha.2`、`alpha.3`、`alpha.4`、`alpha.5`、`rc.1` |
+| `0.1.3` | `alpha.2` |
+| `0.1.5` | `alpha.1`、`alpha.2`、`rc.1`、`rc.2`、`rc.3` |
+| `0.1.6` | `alpha.1`、`alpha.2` |
+| `0.1.7` | `alpha.1`、`alpha.2`、`rc.1`、`rc.2` |
+| `0.2.0` | `rc.1`、`rc.2` |
+| `0.2.1` | `alpha.1`、`alpha.2`、`alpha.3`、`alpha.4`、`alpha.5`、`rc.1`、`rc.2`、`rc.3`、`rc.4`、`rc.5` |
+| `0.2.2` | `alpha.2`、`alpha.3`、`rc.1`、`rc.2`、`rc.3`、`rc.4`、`rc.5` |
+| `0.2.3` | `alpha.1`、`alpha.2` |
+
+- **准入不兼容（2）**：`0.0.1-rc.1`、`0.0.1-rc.2` 低于下界，旧 picker/front-end 发布物也不可取；没有假设其运行表现。
+- **未测（2）**：`0.1.2-alpha.1`、`0.1.3-alpha.1` 只有 GitHub 标签，没有同版 npm 核心包。
+- **只回退（0）**。46 个通过版本均实点原生按钮：卸载书架组件后和已加载但目录不可用时，原生菜单都能展开。8 个早期布局另通过官方 Web 启动结算，且负对照确实被拒。其余 38 个不据此声称 Web 整图或桌面通过。
+- `0.2.3-alpha.2` 的完整 CLI 另需 Node `^24.22.3` 或 `>=26.13.1`；包测试未启动其完整 CLI。
+
+## 1.5.3 历史验证（已发布）
 
 [1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 

@@ -1,6 +1,18 @@
 # 发布检查清单
 
-## 1.5.3 当前验证（已发布）
+## 1.6.0 发布与验证
+
+渠道：仅 [1.6.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0)。同一个正式 tgz 通过 Windows 隔离验收后再上传；不执行 npm publish，不动旧标签或旧附件。
+
+1. **打包前：**运行 `pnpm run build`、`pnpm run check:release`、`pnpm test`、`pnpm run test:browser`，分别记录结果。来源清单不是行为测试；另按源码工作树 `tests/host-inventory/CONTRACTS.md` 核对逐版契约，把执行、回退、失败与未测分列。默认门禁只读文件，不需要预先有最终归档。
+2. **冻结：**将正式 tgz 放到新的 `dist-draft/release-1.6.0/`，不要覆盖试验包或先前本地候选。检查成员、版本、准入、预构建客户端和归档 SHA-256；不夹带临时 profile、凭据或原始回执。
+3. **桌面：**从工作树运行 `node tests/clean-profile.mjs <final.tgz>`，显式设置 `DSH_TEST_EXPECTED_VERSION=0.2.2-rc.5` 和 `DSH_TEST_ACTIVE_ORIGIN`（实际日常 GUI 的 origin，仅用于保护）。仅在官方 Windows Desktop 隔离环境操作。采集打开、真实路由/标签改变、刷新、停用后原生菜单、重新启用、卸载及指纹保护。
+4. **包外核对：**运行 `node scripts/check-release.mjs --final-desktop <final.tgz> <本次result.json>`。该命令重算 tgz SHA-256 并核对 runner 输出；它不会启动桌面，也不证明其他版本。pilot、历史包、错误载体或重打包不接受旧回执。
+5. **发布与安装：**提交对应源码并新建 `v1.6.0` 标签。上传验收过的 tgz、`SHA256SUMS.txt` 和脱敏的 `release-integrity.json`。确认正式 Latest；匿名下载三个附件核对原字节，再用官方管理器升级 desktop。核对安装版本、客户端、其他依赖、bundle 顺序与 patch；不自动重启或更改偏好。**不回写归档自身哈希再重打包。**
+
+试验包在 Windows 0.2.2-rc.5 的 8/8 为修复前证据，出处见[验证报告](VALIDATION.md)。门禁核对修复后客户端字节；不得用 pilot 的客户端或回执签收最终包。本清单不是最终验收记录。
+
+## 1.5.3 历史验证（已发布）
 
 [1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 
@@ -135,7 +147,7 @@ npm 尚未发布，且**不是本版计划发行渠道**；不把 npm 发布列�
 
 详细过程见 [验证报告](VALIDATION.md)。
 
-## 下一阶段仍未执行
+## 历史发行待办（不构成本候选授权）
 
 - [ ] 再次确认 npm 包名可用性，以及准备 npm 发布账号和权限。
 - [x] 用户明确授权 npm 发布，并解除 private 发布保护。
@@ -164,19 +176,19 @@ npm 尚未发布，且**不是本版计划发行渠道**；不把 npm 发布列�
 
 ## 版本更新时必改的文档
 
-版本号或宿主版本一变，下面每一项都要跟着改。漏改不会立刻报错，而是等用户装完包才发现 README 还写着上一个版本——1.2.1 迁移时就漏过 `docs/VALIDATION.md` 与 `docs/RELEASE-CHECKLIST.md`。
+插件版本或准入政策改变时，更新下列文档。兼容宿主的小版本在既定范围内发布，只需按证据更新逐版记录，不必为添加一个版本号而重发。
 
 | 文件 | 必改内容 |
 | --- | --- |
 | `package.json` | `version`；兼容宿主变化时改 `engines.dsh`；新增文档要加进 `files` 白名单 |
-| `scripts/check-release.mjs` | `SUPPORTED_DSH` 常量与对应断言（扩大兼容范围时） |
+| `scripts/check-release.mjs` | 核对本候选的准入、修复后客户端，并分清 pilot 与历史章节的证据边界；不要让旧包或清单代替新验收 |
 | `CHANGELOG.md` | 新增当前版本的条目（`check:release` 会校验 `## <version>` 存在） |
 | `README.md` | 当前发布状态、安装 URL 与本地包名、兼容性表、中文介绍和英文摘要必须与当前版本一致；历史小节须明确标注 |
-| `docs/VALIDATION.md` | 「范围与结果」的**包版本行**（`check:release` 锚定这一行）；文末新增该版本小节 |
+| `docs/VALIDATION.md` | 「范围与结果」包版本、各证据层与归档身份分开；最终归档哈希只写包外 |
 | `docs/RELEASE-CHECKLIST.md` | 版本相关待办的勾选与新增；「尚未验证」随实测范围更新 |
 | `docs/HOST-COMPATIBILITY.md` | 宿主版本变化时逐项核对并更新；标题的迁移方向 |
 
-[发布检查器](../scripts/check-release.mjs) 会核对精确六版 OR 白名单、五份文档当前版本的「当前验证（未发布/已发布）」段落、README / HOST-COMPATIBILITY / VALIDATION 的逐版本三层证据表（当前目标 PASS，旧版本 HISTORICAL）、VALIDATION 包版本行和文档打包白名单。历史出现同一版本号不能代替当前段落；PENDING 不会被放行。**改完文档跑一次 `pnpm run check:release`**；这只是准备门禁，不执行测试、提交或发布，也不能凭文档文字自行证明真实验收。
+[发布检查器](../scripts/check-release.mjs)检查五份当前文档、准入、客户端字节、历史绑定和打包清单。`--publish` 始终拒绝 npm 发行；GitHub 的上传、公开下载、桌面验收均须分别验证。
 
 发布后还要将已发布源码及发布后文档以非强制推送同步到默认分支，回读仓库首页核对版本、安装 URL、兼容范围和英文摘要；只推标签不代表默认分支文档已更新。保持已发布标签和附件不可变；如需修改安装包内的文档，应另发新版本，而非覆盖旧包。
 

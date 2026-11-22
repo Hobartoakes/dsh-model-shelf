@@ -1,6 +1,30 @@
 # 验证报告
 
-## 1.5.3 当前验证（已发布）
+## 1.6.0 发布与验证
+
+准入 `>=0.0.1-rc.5 <0.3.0-0`；安装、服务与会话能力、官方包边界、完整桌面行为分别判断。
+
+| 验证对象 | 结果 | 证据边界 |
+| --- | --- | --- |
+| 官方包契约 | 逐版另查 | 50 个官方版本中，46 个通过、0 个仅回退、2 个准入不兼容、2 个未测。[逐版运行结果](https://github.com/Hobartoakes/dsh-model-shelf/blob/v1.6.0/tests/host-inventory/contracts.json)保留路由、拒绝与原生菜单观测。 |
+| 离线 UI | 45/45 | 零未捕获页面错误；不代表各版桌面。 |
+| Windows 0.2.2-rc.5 | 查同包记录 | 官方 Windows x64 Desktop 的安装/禁用/重新启用/卸载与实际菜单结果见[同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json)。 |
+| 其他桌面宿主 | 未测 | 本版在其他 Windows 宿主、macOS、Linux 均无完整桌面结论。 |
+| 最终归档 | 包外验收 | 核验最终 tgz 与它自己的 clean-profile 结果；包内不填写该 tgz 自身的哈希。 |
+
+历史试验（非正式版）：Pilot 归档 SHA-256：`f88baf4c10f821900b789913f0345f639c70858a6066df89c6bb42f633d7b6b7`。以下三条仅描述该次本地试验；[桌面原始记录](../tests/artifacts/clean-0.2.2-rc.5-1795363695552-3d73b594/result.json)和截图仅保存在当时的验证工作树，不作为公开附件。
+
+- 安装时从 `shelf-fixture/fixture-b` 切到 `fixture-a`；重新启用时从 `fixture-a` 切回 `fixture-b`。两次触发器标签都改变，刷新后完整 provider/model 路由匹配。停用/卸载后均实际点击原生按钮，菜单展开并显示所选模型：[停用截图](../tests/artifacts/clean-0.2.2-rc.5-1795363695552-3d73b594/disabled-native.png)、[卸载截图](../tests/artifacts/clean-0.2.2-rc.5-1795363695552-3d73b594/uninstalled-native.png)。
+- 通过官方桌面程序的 CLI 和随附前端启动四次隔离服务器；不是日常 GUI 人工验收或热卸载。每阶段使用独立 loopback 端口，测试 provider 只供合成目录。未复制凭据，未调用真实模型，未修改兼容豁免；退出后所属进程为零、五个日常路径指纹未变。
+- [首次试跑](../tests/artifacts/clean-0.2.2-rc.5-1795363620852-7f7d8db9/result.json)在重新启用时再次选择已选模型，未计入通过。修正**工作树的 runner** 后用原 pilot 重新运行，未覆盖归档。包内旧 runner 不是成功运行的版本。
+
+## 范围与结果
+
+- 包：**dsh-model-shelf 1.6.0**。桌面测的是隔离的 Windows x64 官方载体与虚构模型目录，不是用户日常会话。试验包和后续本地候选的回执均不计为正式包验收。
+- 修复后客户端的[独立回归](../tests/legacy-client.test.mjs)验证旧版空返回的状态确认、拒绝与断线、定向子代理零请求，以及三代 Cordis 上服务先到和书架先到的加载与撤回。它是接口回归，不是桌面安装回执。
+- 对照[SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/SHA256SUMS.txt)和[同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json)检查下载是否为经过隔离验收的相同字节；复验命令见[交付检查](RELEASE-CHECKLIST.md)。安装到磁盘不等于正在运行的 GUI 已重新加载。
+
+## 1.5.3 历史验证（已发布）
 
 [1.5.3 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 已于 2026-11-17 23:56:09（Asia/Shanghai）公开发布并设为 Latest，非草稿、非预发布。[预构建归档](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/dsh-model-shelf-1.5.3.tgz) · [SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/SHA256SUMS.txt) · [完整性记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.5.3/release-integrity.json)。
 
@@ -74,7 +98,7 @@
 | 真实边界 | [log](../boundary-local2-20261110.log) | 84/84，fail/cancelled/skipped 均 0 |
 | 离线 UI | [log](../offline-local2-20261110.log) | `c14b374df7c27f7dfac6bfbed79f7c4b2f58b193cb44bb31e3a0bc50be967e2b`，45/45 |
 
-## 范围与结果
+## 1.5.3 历史范围与结果
 
 - 包：**dsh-model-shelf 1.5.3**。本轮重测官方 Windows x64 桌面 0.2.2-rc.3；最终归档成员、源码提交与校验值由本版外置完整性记录绑定。
 - 本次实际：目标边界、单元、离线 UI 与隔离生命周期结果见当前验证段及本次证据。历史段只描述其自己的旧归档。
@@ -208,15 +232,15 @@
 先构建/打包，再按精确版本逐一运行。同一套环境参数适用于 `0.2.1-rc.2`、`0.2.1-rc.4`、`0.2.1-rc.5`、`0.2.2-alpha.2`。pnpm 11 `pack` 不接收 `--ignore-scripts` CLI 选项；通过 `npm_config_ignore_scripts=true` 禁止生命周期，使用明确 Node + pnpm.mjs。
 
 ```powershell
-# working directory: C:/Users/13015/Documents/deepseek-harness/default-workspace/dsh-model-shelf
-$node = 'C:/Users/13015/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe'
-$pnpm = 'C:/Users/13015/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/pnpm/bin/pnpm.mjs'
+# 从插件源码根目录运行；按实际安装位置调整 Node、pnpm 与隔离 CLI。
+$node = Join-Path $HOME '.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe'
+$pnpm = Join-Path $HOME '.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/pnpm/bin/pnpm.mjs'
 & $node scripts/build.mjs
 & $node --test tests/*.test.mjs
 & $node tests/browser.mjs
 $env:npm_config_ignore_scripts = 'true'
 & $node $pnpm pack --pack-destination dist-draft
-$env:DSH_TEST_CLI_ENTRY = 'C:/Users/13015/Documents/deepseek-harness/default-workspace/.model-shelf-compat/runtimes/0.2.1-rc.2/runtime-cli.mjs'
+$env:DSH_TEST_CLI_ENTRY = (Resolve-Path '../.model-shelf-compat/runtimes/0.2.1-rc.2/runtime-cli.mjs').Path
 $env:DSH_TEST_NODE_EXECUTABLE = $node
 $env:DSH_TEST_EXPECTED_VERSION = '0.2.1-rc.2'
 $env:DSH_TEST_ACTIVE_ORIGIN = 'http://127.0.0.1:59983'

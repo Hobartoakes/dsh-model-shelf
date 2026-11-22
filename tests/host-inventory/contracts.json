@@ -1,0 +1,3160 @@
+{
+  "schemaVersion": 1,
+  "inputs": {
+    "./matrix.json": "5244f88c8e89cf5e92aa78ffcdf3168e9dc7f1824fb9d67cadad9eb2e0851350",
+    "./early-pins.json": "bc1b38cb605593fb0bff8f9487d9f543378bf4f7a658027ecda2c6be215726a8",
+    "../host-packages.mjs": "a60f25c77408303bdafff46a5b45d97ea84231f73552a8691adcfa002dfcbd35",
+    "./run-contracts.mjs": "0575cb69c7beb4378a83b586aba552f5c23221f405ec534feb48eaf71941884c",
+    "./web-fixture.mjs": "eaa58be53d98b079b1e4af078eff028128dfc73f0b360ea203cdb588b2fa3e33",
+    "./seat-fixture.mjs": "20ff40e3b417596d59dac502be02700e13e17b045aa15d75575746e2691a749a",
+    "./boot-settlement.mjs": "ff9ade57eb3575f5ea0ec7afe50f019a61c39407e2de907d87324ec71295a952"
+  },
+  "pilot": {
+    "host": "0.2.2-rc.5",
+    "carrier": "Windows Desktop",
+    "plugin": "1.6.0-local.1",
+    "checks": 8,
+    "clientSHA256": "5b9994ad20eceaea799bcb6b1467d09982289e6d34ca44708a1ed6c00b053421",
+    "archiveSHA256": "f88baf4c10f821900b789913f0345f639c70858a6066df89c6bb42f633d7b6b7",
+    "file": "tests/artifacts/clean-0.2.2-rc.5-1795363695552-3d73b594/result.json",
+    "receiptSHA256": "dd8a27b32c1b04ccefdfffab9976eef3709650a31837fa6c4352293cdcc3f043"
+  },
+  "observedAt": "2026-11-22T19:09:41.448Z",
+  "node": "v24.21.0",
+  "browser": "158.0.4370.33",
+  "platform": "win32",
+  "driver": "playwright-core@1.64.1",
+  "clientSHA256": "2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00",
+  "pluginVersion": "1.6.0",
+  "hosts": [
+    {
+      "version": "0.0.1-rc.1",
+      "admitted": false,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "tier": "incompatible-admission",
+      "reason": "Web declares legacy picker, not model-selection; old picker/frontend identities unavailable. Do not borrow a newer Web build."
+    },
+    {
+      "version": "0.0.1-rc.2",
+      "admitted": false,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "tier": "incompatible-admission",
+      "reason": "Web declares legacy picker, not model-selection; old picker/frontend identities unavailable. Do not borrow a newer Web build."
+    },
+    {
+      "version": "0.0.1-rc.5",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.0.1-rc.5",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.0.1-rc.5",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.0.1-rc.5",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.0.1-rc.5",
+        "modules": "@deepseek-ai/dsh-client-modules@0.0.1-rc.5"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.0-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.0-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.0-rc.2",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.0-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.2",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.0-rc.2"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.0-rc.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.0-rc.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.0-rc.3",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.0-rc.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.3",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.0-rc.3"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.0-rc.6",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.0-rc.6",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.0-rc.6",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.0-rc.6",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.0-rc.6"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.0-rc.7",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.0-rc.7",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.0-rc.7",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.0-rc.7",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.7",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.0-rc.7"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.0-rc.8",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.0-rc.8",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.0-rc.8",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.0-rc.8",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.0-rc.8",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.8",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.0-rc.8"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.1-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.1-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.1-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.1-rc.1",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.1-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.1-rc.1",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.1-rc.1"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.1-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.1-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.1-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.1-rc.2",
+        "runtime": "@deepseek-ai/dsh-client-runtime@0.1.1-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.1-rc.2",
+        "modules": "@deepseek-ai/dsh-client-modules@0.1.1-rc.2"
+      },
+      "webSettlement": {
+        "settled": true,
+        "negativeControl": "pending entry rejected"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": true,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.2-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "tier": "untested",
+      "reason": "Upstream label without this registry core; no adjacent npm release is a substitute."
+    },
+    {
+      "version": "0.1.2-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.2-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.2-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.2-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.2-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.2-alpha.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.2-alpha.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.2-alpha.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.2-alpha.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.2-alpha.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.2-alpha.4",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.2-alpha.4",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.2-alpha.4",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.2-alpha.4",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.2-alpha.4"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.2-alpha.5",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.2-alpha.5",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.2-alpha.5",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.2-alpha.5",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.2-alpha.5"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.2-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.2-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.2-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.2-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.2-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.3-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "tier": "untested",
+      "reason": "Upstream label without this registry core; no adjacent npm release is a substitute."
+    },
+    {
+      "version": "0.1.3-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.3-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.3-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.3-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.3-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.5-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.5-alpha.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.5-alpha.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.5-alpha.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.5-alpha.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.5-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.5-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.5-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.5-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.5-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.5-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.5-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.5-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.5-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.5-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.5-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.5-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.5-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.5-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.5-rc.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.5-rc.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.5-rc.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.5-rc.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.5-rc.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.5-rc.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.6-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.6-alpha.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.6-alpha.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.6-alpha.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.6-alpha.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.6-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.6-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.6-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.6-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.6-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.7-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.7-alpha.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.7-alpha.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.7-alpha.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.7-alpha.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.7-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.7-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.7-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.7-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.7-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.7-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.7-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.7-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.7-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.7-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.1.7-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.1.7-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.1.7-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.1.7-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.1.7-rc.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.0-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.0-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.0-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.0-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.0-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.0-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.0-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.0-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.0-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.0-rc.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-alpha.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-alpha.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-alpha.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-alpha.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-alpha.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-alpha.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-alpha.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-alpha.4",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-alpha.4",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-alpha.4",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-alpha.4",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.4"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": null,
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "menu.model\nShared Fixture Model\nmenu.effort\nmedium"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-alpha.5",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-alpha.5",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-alpha.5",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-alpha.5",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.5"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-rc.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-rc.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-rc.4",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-rc.4",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.4",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.4",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.4"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.1-rc.5",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": null,
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.1-rc.5",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.5",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.5",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.5"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-alpha.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-alpha.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-alpha.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-alpha.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-alpha.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-rc.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-rc.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-rc.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-rc.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-rc.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-rc.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-rc.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-rc.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-rc.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-rc.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-rc.3",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-rc.3",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-rc.3",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-rc.3",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-rc.3"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-rc.4",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-rc.4",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-rc.4",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-rc.4",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-rc.4"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.2-rc.5",
+      "admitted": true,
+      "desktopEvidence": "separate pilot archive",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.2-rc.5",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.2-rc.5",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.2-rc.5",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.2-rc.5"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.3-alpha.1",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": ">=24.9.0",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.3-alpha.1",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.3-alpha.1",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.3-alpha.1",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.3-alpha.1"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    },
+    {
+      "version": "0.2.3-alpha.2",
+      "admitted": true,
+      "desktopEvidence": "not run",
+      "coreNode": "^24.22.3 || >=26.13.1",
+      "fullHostStarted": false,
+      "packages": {
+        "frontend": "@deepseek-ai/dsh-web-frontend@0.2.3-alpha.2",
+        "modelSelection": "@deepseek-ai/dsh-client-ui-model-selection@0.2.3-alpha.2",
+        "renderer": "@deepseek-ai/dsh-client-ui-renderer@0.2.3-alpha.2",
+        "conversation": "@deepseek-ai/dsh-client-ui-conversation@0.2.3-alpha.2"
+      },
+      "react": "18.3.1",
+      "enabled": true,
+      "earlyWire": false,
+      "label": {
+        "kind": "single",
+        "scope": "session",
+        "inline": true
+      },
+      "missing": [],
+      "route": {
+        "before": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "high"
+        },
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "after": {
+          "provider": "fixture-b",
+          "model": "vendor/shared-model",
+          "reasoningEffort": "low"
+        },
+        "childRequests": 0,
+        "acknowledgement": "ok"
+      },
+      "shelfButton": {
+        "wire": {
+          "sessionId": "fixture-session",
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "current": {
+          "provider": "fixture-a",
+          "model": "vendor/shared-model"
+        },
+        "count": 2,
+        "closed": true,
+        "falseFailure": false
+      },
+      "rejection": "visible error, chooser open, previous route kept",
+      "seatAfterDisposal": "native",
+      "nativeClickAfterDispose": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "nativeClickMissingCapability": {
+        "expanded": true,
+        "catalogVisible": true,
+        "menu": "Fixture fixture-a\nFixture fixture-b"
+      },
+      "tier": "package-contract"
+    }
+  ]
+}

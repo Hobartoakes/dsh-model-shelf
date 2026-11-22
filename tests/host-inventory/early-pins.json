@@ -1,0 +1,162 @@
+{
+  "0.0.1-rc.5": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.0.1-rc.5",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.0.1-rc.5.tgz",
+    "integrity": "sha512-VcsrHHnn6ShxKEIbg3oemy9IgJ/a3AVaQWYqsS0808FTOgFpEdM6f2PYr0R9R3/ecgF81Ggg6ZFct9j2uJTTAw==",
+    "sha256": "b512a5c7a6739193aa3dbcd3eda17be80f7047a4dea4122999b9c3b28cbd10b8",
+    "ranges": [
+      "^0.0.1-rc.5",
+      "^0.0.1-rc.5"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.0.1-rc.5",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.0.1-rc.5.tgz",
+      "integrity": "sha512-NNSmQ+nMTvBFLc4WrUURpv58pQzutpNQhv7ZGApvJ6xK4MiM5y2h5ixV7ALA3gz+fxjFVNmJ3TPGalC6+ZnuHA==",
+      "sha256": "e351dddf689ef673904c840861bedff8722bba2a627a04acb3ecb1b8458776eb",
+      "range": "^0.0.1-rc.5"
+    }
+  },
+  "0.1.0-rc.2": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.0-rc.2",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.0-rc.2.tgz",
+    "integrity": "sha512-Q62QEmCoAvtFWEZOgCSk01cLqGHIZa9qQxUNSKmQqoSrY8mnle3/EkD19/sWtUK2Jb3Hi578oC7gmE3nCyCm8g==",
+    "sha256": "437b7eec03026c42603d5f33809bf273abb6ec77e1ba7e517cc58460be9c3550",
+    "ranges": [
+      "^0.1.0-rc.2",
+      "^0.1.0-rc.2"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.0-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.0-rc.2.tgz",
+      "integrity": "sha512-S25T0GKg/glb3ilRWEm6z/g93acCvb+TpYN7NCs0sVrG9DLArb9+8JyU/hovVYwk6EICJxVXDQ2AkWHl46DBNg==",
+      "sha256": "296527d8eed475eb640ddd7d01345504ceda417c8b9abdc581aa79ed8cc5f08e",
+      "range": "^0.1.0-rc.2"
+    }
+  },
+  "0.1.0-rc.3": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.0-rc.3",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.0-rc.3.tgz",
+    "integrity": "sha512-97sECzPw6WxcUZzDjIXTGVAvyGE0ZL8AknCjwNq25dEKoaPKpjPyJeAvm/8H0rN258BCEMzsgdfS8nIfluOa8A==",
+    "sha256": "16626be7bca43bed12c91debe1167e45a63af666c52ddf793e11962fcf977042",
+    "ranges": [
+      "^0.1.0-rc.3",
+      "^0.1.0-rc.3"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.0-rc.3",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.0-rc.3.tgz",
+      "integrity": "sha512-8rdbf27ZDgK8W4bQAdpNdqjyFTxwUVQLr8qlULaIzSJS8M1nnyI9QP/RpnHFi/8cEVKk/oVNmPvqcwslxjZjbg==",
+      "sha256": "cdb2e9c1b203e8347c124f6f9c4a9ba68df259c58ead2ddc865113f36fc59f89",
+      "range": "^0.1.0-rc.3"
+    }
+  },
+  "0.1.0-rc.6": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.0-rc.6",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.0-rc.6.tgz",
+    "integrity": "sha512-qprJMsVPLK2CyJmmCHwECJZlbM7XNG5yKr2Zf/yKYRyz0+QNJfHlIt+4C32tkjFFIq+Dx3gU5YaUQaLXxsR4/w==",
+    "sha256": "5be0aea454fbfe157fefc66784d105b1543177a8b05f2ffb1bf74f0e97617e2b",
+    "ranges": [
+      "^0.1.0-rc.6",
+      "^0.1.0-rc.6"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.0-rc.6",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.0-rc.6.tgz",
+      "integrity": "sha512-DFeXjfbfrU2LvVziHsqBsfvnYVuqXTpvNybwBDJqGBNR4VjPVUbvCUrH8pzFRkv0bQO6Vq6dLKUR0Q2ZUYdTwg==",
+      "sha256": "31ec2eb8ab51fd70bd8967d4f481d3db3d2e118a0c22b69b378d8f7423c2e17f",
+      "range": "^0.1.0-rc.6"
+    }
+  },
+  "0.1.0-rc.7": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.0-rc.7",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.0-rc.7.tgz",
+    "integrity": "sha512-Ish2uFML2FibTpzo7QyVSt29jf/iG4j9BFQ41ychVMPRR3trJGM3h8CMuam3oKWlvB8OXVXFd6gO929w6PI0Ew==",
+    "sha256": "d5c764d2afe9fe9ebd73bf7f63e665678f86bf5d2d4fdacfd72b9e16e526dadb",
+    "ranges": [
+      "^0.1.0-rc.7",
+      "^0.1.0-rc.7"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.0-rc.7",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.0-rc.7.tgz",
+      "integrity": "sha512-hczFl0TRH5sLt/dS0+TMCtQvfDoeLw/r88L6n3rXfY6Q1e4Yddg6RAv4kGsUoMoLYgWi7qPwD6HcUGgyKkDPHg==",
+      "sha256": "785557dd961aaabfb13121c48a26a7a4bb0e40aa0d3895cd0f14c926e80e3c71",
+      "range": "^0.1.0-rc.7"
+    }
+  },
+  "0.1.0-rc.8": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.0-rc.8",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.0-rc.8.tgz",
+    "integrity": "sha512-wW/nktO/GVbGO/k163NlyJab/rK4D6xS5EL0bhYw4ojF1mxmWfrb3RUEYR5LcEUpFx/yXUHsUSgeO1ezmgIrvw==",
+    "sha256": "1f705420f0ecae8b8cbf4aad7379b5ab69cfd038998668c17b37a496afc6e047",
+    "ranges": [
+      "^0.1.0-rc.8",
+      "^0.1.0-rc.8"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.0-rc.8",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.0-rc.8.tgz",
+      "integrity": "sha512-K+uDZSmSbpmHFpvrKkdctHHDIjimv1NWDZoc7CYy7QIk0Vuis4jShDau6H5L0B9TScWBDyXAz/R7rXttFlwseA==",
+      "sha256": "be3eb6f2e080b1aa3825c5932c154b0cb2653510016e3fa643a8911e0fded0c5",
+      "range": "^0.1.0-rc.8"
+    }
+  },
+  "0.1.1-rc.1": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.1-rc.1",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.1-rc.1.tgz",
+    "integrity": "sha512-re0dq+vXlGIGMs5qQHJLMHael8FN+9zKTnGk2M0BQUH4fGr3jTOBUvoKUztbjW/DJP3l3f1k6uoDj2ri3DA0nA==",
+    "sha256": "214ef2cd11a123f37a0b43c38cd9b12f741173e9c7a8a3924f803ab35436dee3",
+    "ranges": [
+      "^0.1.1-rc.1",
+      "^0.1.1-rc.1"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.1-rc.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.1-rc.1.tgz",
+      "integrity": "sha512-cdBFlFE8sb+vD/w3gYKTu8LH+yH4OyPHXhxJTkzhQJF3bAhdC24k25mogaxkpZXg4rcHS16zWyCriZaOGQRgsQ==",
+      "sha256": "60b37470eca8d3be3dad2e70bf63e19b6ff51c9732e35dc84f024abb10c9ed15",
+      "range": "^0.1.1-rc.1"
+    }
+  },
+  "0.1.1-rc.2": {
+    "name": "@deepseek-ai/dsh-client-runtime",
+    "version": "0.1.1-rc.2",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-runtime/-/dsh-client-runtime-0.1.1-rc.2.tgz",
+    "integrity": "sha512-o1FH7Rlns0Xaxh4SBOWZ1wpa0ViGw6DXWNm5NFpsBTGYD94RGdIrud3QxgrfzmQKLzu33gvS8JL/IjqbzWyYsg==",
+    "sha256": "35f3a1a216be85f250f56ee46dfc116afbd870688f01c79de27285f3cb945b4d",
+    "ranges": [
+      "^0.1.1-rc.2",
+      "^0.1.1-rc.2"
+    ],
+    "selection": "lowest published satisfying Web dependencies and picker devDependencies",
+    "modules": {
+      "name": "@deepseek-ai/dsh-client-modules",
+      "version": "0.1.1-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-modules/-/dsh-client-modules-0.1.1-rc.2.tgz",
+      "integrity": "sha512-D0vRgJJpMeTB4ExJTGHk9ay01kLxfK5zvp6bgFjYGlk9sBJgCE3qsOGBFNqD369ylJx4W2oyExAH9lOZGNk3Rw==",
+      "sha256": "0a3c4365494bf4b9bd94af4f5b229c131c9ba3e176a76f40ae30cc6b903b3668",
+      "range": "^0.1.1-rc.2"
+    }
+  }
+}

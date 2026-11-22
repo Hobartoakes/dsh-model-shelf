@@ -174,7 +174,7 @@ async function checkBoot(label, expected) {
       await page.locator('.dmo-note-action').first().click();
       await page.locator('.dmo-note-input').fill('隔离测试账号'); await page.locator('.dmo-note-input').press('Enter');
       const first = page.locator('.dmo-row').first();
-      const selectedKey = await first.getAttribute('data-model-key');
+      const firstKey = await first.getAttribute('data-model-key');
       await first.locator('.dmo-favorite').click();
       const second = page.locator('.dmo-row').nth(1);
       const secondKey = await second.getAttribute('data-model-key');
@@ -183,23 +183,34 @@ async function checkBoot(label, expected) {
       assert.equal(await page.locator('.dmo-row').count(), 2);
       await page.locator('.dmo-order-down').first().focus(); await page.keyboard.press('Space');
       phase.favoriteOrder = await page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey));
-      assert.deepEqual(phase.favoriteOrder, [secondKey, selectedKey]);
+      assert.deepEqual(phase.favoriteOrder, [secondKey, firstKey]);
       await assertFlatFavoritesUnchanged(page);
-      await page.locator('.dmo-select').last().click();
+      // Re-enabled sessions can inherit the route selected before disabling.
+      const nextRow = page.locator('.dmo-row:has(.dmo-select[aria-pressed="false"])');
+      const selectedKey = await nextRow.getAttribute('data-model-key');
+      const [provider, model] = JSON.parse(selectedKey);
+      assert.equal(provider, fixtureProviderId); assert.ok(['fixture-a', 'fixture-b'].includes(model));
+      phase.labelBefore = await trigger.getAttribute('aria-label');
+      phase.routeBefore = await page.locator('.dmo-row:has(.dmo-select[aria-pressed="true"])').getAttribute('data-model-key');
+      assert.notEqual(phase.routeBefore, selectedKey, 'Switch to a different full route, not just reselect');
+      await nextRow.locator('.dmo-select').click();
       await page.locator('.dmo-panel').waitFor({ state: 'hidden' });
       assert.ok((await trigger.getAttribute('aria-label')).includes('隔离测试账号'));
       phase.selectedKey = selectedKey;
+      phase.labelAfter = await trigger.getAttribute('aria-label');
+      assert.notEqual(phase.labelBefore, phase.labelAfter);
       await page.reload({ waitUntil: 'domcontentloaded' });
       await trigger.waitFor({ state: 'visible', timeout: 30000 }); await trigger.click();
       await page.getByRole('tab', { name: '收藏 (2)', exact: true }).click();
       assert.deepEqual(await page.locator('.dmo-row').evaluateAll(rows => rows.map(row => row.dataset.modelKey)), phase.favoriteOrder, 'Keyboard order survives reload');
-      assert.equal(await page.locator('.dmo-row').last().getAttribute('data-model-key'), selectedKey);
-      assert.ok((await page.locator('.dmo-row').last().innerText()).includes('账号备注：隔离测试账号'));
-      assert.equal(await page.locator('.dmo-select').last().getAttribute('aria-pressed'), 'true', 'Native session selection survives reload');
+      const currentRow = page.locator('.dmo-row:has(.dmo-select[aria-pressed="true"])');
+      phase.routeAfterReload = await currentRow.getAttribute('data-model-key');
+      assert.equal(phase.routeAfterReload, selectedKey, 'Native session selected the new full route after reload');
+      assert.ok((await currentRow.innerText()).includes('账号备注：隔离测试账号'));
       await page.locator('.dmo-panel').screenshot({ path: join(evidenceDir, `${label}.png`) });
       await page.keyboard.press('Escape');
       const fullName = await trigger.getAttribute('aria-label');
-      assert.ok(fullName.includes(fixtureProviderId)); assert.ok(fullName.includes('fixture-a')); assert.ok(fullName.includes('隔离测试账号'));
+      assert.ok(fullName.includes(fixtureProviderId)); assert.ok(fullName.includes(model)); assert.ok(fullName.includes('隔离测试账号'));
       phase.fullAccessibleName = fullName;
       // Use a fixture width proven to overflow native and shelf expanded controls.
       // The host decides compact mode by measured fit, not a fixed 390px breakpoint.
@@ -242,6 +253,11 @@ async function checkBoot(label, expected) {
       await page.getByRole('menuitem').first().or(page.getByRole('group').filter({ hasText: /模型|Model/ }).first()).first().waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await page.locator('style[data-plugin="dsh-model-shelf"]').count(), 0);
       assert.equal(await page.locator('.dmo-trigger').count(), 0);
+      assert.equal(await nativePicker.getAttribute('aria-expanded'), 'true');
+      const nativeMenu = page.getByRole('menu').filter({ hasText: /模型|model|fixture/i }).first();
+      await nativeMenu.waitFor({ state: 'visible' });
+      phase.nativeMenu = { trigger: await nativePicker.getAttribute('aria-label'), expanded: true, text: await nativeMenu.innerText() };
+      await page.screenshot({ path: join(evidenceDir, label + '-native.png') });
       phase.nativeFallback = true;
     }
     assert.deepEqual(phase.pageErrors, []);

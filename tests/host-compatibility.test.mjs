@@ -4,7 +4,7 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, rmdir, symlink,
 import { dirname, join, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import semver from 'semver';
+
 import { loadHostPackages, loadClientFactory } from './host-packages.mjs';
 
 test('host loader rejects any version outside the tested matrix', async () => {
@@ -293,7 +293,7 @@ async function fixture(t, version, { order = 'native-first', declared = true } =
 
 // Independent of the loader's pin table: accidentally dropping a pin must fail
 // a required version's tests, never silently shrink the compatibility matrix.
-for (const version of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3']) {
+for (const version of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3', '0.2.2-rc.5', '0.2.3-alpha.1']) {
   test(`${version}: shelf shares the real session store and preserves complete route/effort`, async t => {
     const f = await fixture(t, version);
     const props = f.props();
@@ -479,17 +479,16 @@ for (const version of ['0.2.1-rc.2', '0.2.1-rc.4', '0.2.1-rc.5', '0.2.2-alpha.2'
   });
 }
 
-const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
-// A widened range accidentally admits unverified runtimes; an rc.2-only range
-// incorrectly refuses the newly verified releases. Use the host's real
-// SemVer interpretation, not string membership or a homemade parser.
-for (const [version, admitted] of [
-  ['0.2.1-rc.2', true], ['0.2.1-rc.4', true], ['0.2.1-rc.5', true], ['0.2.2-alpha.2', true],
-  ['0.2.0-rc.2', false], ['0.2.1-rc.3', false], ['0.2.1-rc.6', false],
-  ['0.2.2-alpha.3', false], ['0.2.2-rc.1', true], ['0.2.2-rc.2', false], ['0.2.2-rc.3', true], ['0.2.2-rc.4', false],
-  ['0.2.1', false], ['0.2.2', false], ['0.3.0', false],
-]) {
-  test(`manifest admission ${version}: ${admitted ? 'allow' : 'deny'}`, () => {
-    assert.equal(semver.satisfies(version, manifest.engines.dsh, { includePrerelease: true }), admitted);
+for (const missing of ['load', 'select', 'resetConnected', 'store', 'subscribe', 'getSnapshot', 'invalid snapshot']) {
+  test('session fallback: missing ' + missing + ' restores the native entry', async t => {
+    const f = await fixture(t, '0.2.2-rc.3');
+    const directory = f.directory();
+    const member = ['subscribe', 'getSnapshot', 'invalid snapshot'].includes(missing) ? directory.store : directory;
+    Object.defineProperty(member, missing === 'invalid snapshot' ? 'getSnapshot' : missing, { configurable: true, value: missing === 'invalid snapshot' ? () => ({}) : undefined });
+    assert.doesNotThrow(() => f.props());
+    await Promise.resolve();
+    assert.deepEqual(f.slots.entries(modelSeat).map(entry => entry.component), [f.NativePicker]);
+    assert.equal(f.slots.entriesOfSlot(labelSeat)[0].component, f.NativeBadge);
+    assert.equal(f.requests.length, 0);
   });
 }

@@ -46,10 +46,18 @@ function codexChangeValue(field, change) {
   if (keys[0] === 'set' && field.editor.choices.includes(change.set)) return change.set;
 }
 
-// Discard the echoed settings. An internal error can occur *after* persistence.
-function codexWriteReceipt(response) {
-  if (response?.ok === false && response.error && response.error.code !== 'internal') return 'refused';
-  if (response?.ok !== true || !response.value || typeof response.value !== 'object' || Array.isArray(response.value)) return 'unconfirmed';
+// In Codex 3.2.28 subscription-rpc.js these preference-fields.js errors return
+// before preferences.update(). The same 'internal' code can also occur AFTER persistence.
+const codexValidationError = {
+  outputVerbosity: 'Invalid output verbosity preference',
+  reasoningSummary: 'Invalid reasoning summary preference'
+};
+function codexWriteReceipt(response, field) {
+  if (response?.ok === false) {
+    return !Object.hasOwn(response, 'value') && response.error?.code === 'internal' && response.error.message === codexValidationError[field]
+      ? 'refused' : 'unconfirmed';
+  }
+  if (response?.ok !== true || Object.hasOwn(response, 'error') || !response.value || typeof response.value !== 'object' || Array.isArray(response.value)) return 'unconfirmed';
   const synced = response.value.liveSynced;
   if (synced === false) return 'saved-not-live';
   return synced === undefined || synced === true ? 'applied' : 'unconfirmed';
@@ -96,7 +104,7 @@ export function createCodexOptions(rpc) {
 
       // No owner CAS exists: another client can still win between this check and dispatch.
       let receipt = 'unconfirmed';
-      try { receipt = codexWriteReceipt(await rpc.call('/api', codexUpdateMethod, { [fresh.id]: value }, signal)); }
+      try { receipt = codexWriteReceipt(await rpc.call('/api', codexUpdateMethod, { [fresh.id]: value }, signal), fresh.id); }
       catch { /* The patch may have landed. Do not resend it. */ }
       if (!active()) return 'stale';
       if (receipt === 'refused') return receipt;

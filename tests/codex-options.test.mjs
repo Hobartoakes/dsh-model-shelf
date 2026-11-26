@@ -174,15 +174,56 @@ test('saved-not-live requires independent confirmation, never just the echoed pa
   }
 });
 
-test('explicit rejection and lost acknowledgements do not report success or resend', async () => {
-  for (const [receipt, outcome] of [[{ ok: false, error: { code: 'invalid-input', message: 'denied' } }, 'refused'],
-    [{ ok: false, error: { code: 'internal', message: 'Could not update preferences' } }, 'unconfirmed'],
-    [new Error('connection reset'), 'unconfirmed'], [ok(null), 'unconfirmed'], [undefined, 'unconfirmed'],
-    [status({ liveSynced: 'false' }), 'unconfirmed']]) {
-    const { io, calls } = transport(status(), status(), receipt, status({ outputVerbosity: 'low' }));
-    const [expected] = await io.read(target);
-    assert.equal(await io.write(target, expected, { set: 'low' }, undefined, current), outcome);
-    assert.deepEqual(calls.filter(c => c[1] === UPDATE).map(c => c[2]), [{ outputVerbosity: 'low' }]);
+function statefulOwner(onPatch) {
+  const stored = { outputVerbosity: 'default', reasoningSummary: 'auto' };
+  const calls = [];
+  const io = createCodexOptions({ call(path, method, payload, signal) {
+    calls.push([path, method, payload, signal]);
+    if (method === STATUS) return status({ ...stored });
+    if (method === UPDATE) return onPatch(stored, payload);
+    throw new Error('unexpected endpoint');
+  } });
+  return { io, calls, stored };
+}
+
+for (const [name, receipt] of [
+  ['missing code', { ok: false, error: {} }],
+  ['unknown code with a familiar message', { ok: false, error: { code: 'new-error', message: 'Invalid output verbosity preference' } }],
+  ['other endpoint’s error code', { ok: false, error: { code: 'invalid-input', message: 'denied' } }],
+  ['generic internal failure', { ok: false, error: { code: 'internal', message: 'Could not update preferences' } }],
+  ['other field’s validation error', { ok: false, error: { code: 'internal', message: 'Invalid reasoning summary preference' } }],
+  ['contradictory result', { ok: true, error: {}, value: { outputVerbosity: 'low' } }],
+  ['lost response', new Error('connection reset')], ['empty value', ok(null)], ['missing response', undefined],
+  ['invalid sync flag', status({ liveSynced: 'false' })]
+]) {
+  test('a persisted patch with ' + name + ' is read back once but remains unconfirmed', async () => {
+    const { io, calls, stored } = statefulOwner((state, patch) => {
+      Object.assign(state, patch); // Persistence precedes the failed/ambiguous acknowledgement.
+      if (receipt instanceof Error) throw receipt;
+      return receipt;
+    });
+    const { signal } = new AbortController();
+    const [expected] = await io.read(target, signal);
+    const result = await io.write(target, expected, { set: 'low' }, signal, current);
+    assert.equal(stored.outputVerbosity, 'low');
+    assert.deepEqual({ result, calls }, { result: 'unconfirmed', calls: [
+      ['/api', STATUS, {}, signal], ['/api', STATUS, {}, signal],
+      ['/api', UPDATE, { outputVerbosity: 'low' }, signal], ['/api', STATUS, {}, signal]
+    ] });
+  });
+}
+
+test('a field validation failure before preferences.update is a definitive refusal', async () => {
+  for (const [id, original, value, message] of [
+    ['outputVerbosity', 'default', 'low', 'Invalid output verbosity preference'],
+    ['reasoningSummary', 'auto', 'none', 'Invalid reasoning summary preference']
+  ]) {
+    const { io, calls, stored } = statefulOwner(() => ({ ok: false, error: { code: 'internal', message, details: { issues: [] } } }));
+    const { signal } = new AbortController();
+    const expected = (await io.read(target, signal)).find(option => option.id === id);
+    assert.equal(await io.write(target, expected, { set: value }, signal, current), 'refused');
+    assert.equal(stored[id], original);
+    assert.deepEqual(calls, [['/api', STATUS, {}, signal], ['/api', STATUS, {}, signal], ['/api', UPDATE, { [id]: value }, signal]]);
   }
 });
 

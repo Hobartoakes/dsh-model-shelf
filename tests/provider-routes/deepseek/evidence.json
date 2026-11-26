@@ -1,0 +1,90 @@
+[
+  {
+    "route": "deepseek",
+    "variant": "deepseek-official",
+    "field": "maxTokens",
+    "status": "candidate",
+    "packagePin": "@deepseek-ai/dsh-llm-deepseek-api-key@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
+    "source": [
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-api-key/src/index.ts#L62-L110",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L44-L53",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L78-L89",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L523-L541",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L565-L572",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L92-L98",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/listed-catalog.ts#L59-L69",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/model-info.ts#L66-L99",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/serialize.ts#L147-L156",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L97-L104",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L142-L158",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L187-L213",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/boot/config-editor/src/index.ts#L134-L148"
+    ],
+    "ownerProof": "API Key 连接器在同一 Cordis fiber 下以 deepseek-official 登记目录与实际 adapter；目录带当前装载实例的 entry id 作为 settingsNs、settingsPath=[]，不是显示名或固定 namespace。公开 llm.listConfigurableProviders() 同一 provider 只可登记一次。要求当前已加载、可路由的 provider/model 唯一匹配，目录所有者和脱敏实时表单均唯一。仅白名单 deepseek-flash/deepseek-v4-pro；其他模型或同名中转不推断。",
+    "writeSurface": "ctx.remote.settings.describe() 读取该 ns 的有效值、基值、用户覆盖、版本与 schema；仅 mutate(ns,[{op:\"set\",path:[\"maxTokens\"],value:n}],expectedRevision)，正安全整数；仅现有用户覆盖可用 unset 同一路径。共享该连接器的其他模型/会话受影响。不替换配置、不读凭据服务。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。隔离 profile fixture-key：保存 2048、独立读回，两个模型的下一条 Messages 均带 max_tokens=2048，另一线路同名模型仍为 4096。重置后 Flash 按本地目录 4096、Pro 按继承值 256000；单次调用显式 73 优先；上下文仍为 1048576。",
+    "reason": "受试本机固定代码载体和本地合成目录，不是厂商在线限制。线路默认值不保证是每次请求值：目录可取 min(线路上限, 模型上限)；models 中该 id 的 maxTokens 显式存在时隐藏。已验证适配层和请求构造，没有书架界面保存/重开闭环，候选不启用。"
+  },
+  {
+    "route": "deepseek",
+    "variant": "deepseek-official",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm-deepseek-api-key@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
+    "source": [
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-api-key/src/index.ts#L62-L110",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/model-info.ts#L66-L99",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L20-L27",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/serialize.ts#L147-L156",
+      "src/client.js#L530-L547 (shelf 61aed96623bc)"
+    ],
+    "ownerProof": "会话的 provider/model/effort 由原生目录选择链路持有。deepseek-official 的连接器只声明该模型可用的档位及默认值，不能把共享的 thinking 部署策略当会话开关。",
+    "writeSurface": "沿用已有模型选择器选择/重置 reasoningEffort；不对 settings.mutate 写 thinking 或 reasoningEffort，也不增加第二个控件。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。deepseek-official 默认发送 thinking.type=enabled 与 output_config.effort=high；单次 off 发送 disabled 且不带 effort；两者仍是同一输出上限 2048。",
+    "reason": "已有会话能力，并非新增设置。固定代码的部署策略 disabled 限制连接器只接受 off；改变会话 effort 不应改变其他会话或覆盖部署策略。"
+  },
+  {
+    "route": "deepseek",
+    "variant": "deepseek-account",
+    "field": "maxTokens",
+    "status": "candidate",
+    "packagePin": "@deepseek-ai/dsh-llm-deepseek-account@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
+    "source": [
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-account/src/index.ts#L59-L96",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L44-L53",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L78-L89",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L523-L541",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L565-L572",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L92-L98",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/listed-catalog.ts#L59-L69",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/model-info.ts#L66-L99",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/serialize.ts#L147-L156",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L97-L104",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L142-L158",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L187-L213",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/boot/config-editor/src/index.ts#L134-L148"
+    ],
+    "ownerProof": "账号连接器在同一 Cordis fiber 下以 deepseek-account 登记目录与实际 adapter；目录带当前装载实例的 entry id 作为 settingsNs、settingsPath=[]，不是显示名或固定 namespace。公开 llm.listConfigurableProviders() 同一 provider 只可登记一次。要求当前已加载、可路由的 provider/model 唯一匹配，目录所有者和脱敏实时表单均唯一。仅白名单 deepseek-flash/deepseek-v4-pro；其他模型或同名中转不推断。",
+    "writeSurface": "ctx.remote.settings.describe() 读取该 ns 的有效值、基值、用户覆盖、版本与 schema；仅 mutate(ns,[{op:\"set\",path:[\"maxTokens\"],value:n}],expectedRevision)，正安全整数；仅现有用户覆盖可用 unset 同一路径。共享该连接器的其他模型/会话受影响。不替换配置、不读凭据服务。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。隔离 profile fixture-account：保存 2048、独立读回，两个模型的下一条 Messages 均带 max_tokens=2048，另一线路同名模型仍为 4096。重置后 Flash 按本地目录 4096、Pro 按继承值 256000；单次调用显式 73 优先；上下文仍为 1048576。",
+    "reason": "受试本机固定代码载体和本地合成目录，不是厂商在线限制。线路默认值不保证是每次请求值：目录可取 min(线路上限, 模型上限)；modelOverrides[modelId].maxTokens 显式存在时隐藏。已验证适配层和请求构造，没有书架界面保存/重开闭环，候选不启用。"
+  },
+  {
+    "route": "deepseek",
+    "variant": "deepseek-account",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm-deepseek-account@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
+    "source": [
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-account/src/index.ts#L59-L96",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/model-info.ts#L66-L99",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L20-L27",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/serialize.ts#L147-L156",
+      "src/client.js#L530-L547 (shelf 61aed96623bc)"
+    ],
+    "ownerProof": "会话的 provider/model/effort 由原生目录选择链路持有。deepseek-account 的连接器只声明该模型可用的档位及默认值，不能把共享的 thinking 部署策略当会话开关。",
+    "writeSurface": "沿用已有模型选择器选择/重置 reasoningEffort；不对 settings.mutate 写 thinking 或 reasoningEffort，也不增加第二个控件。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。deepseek-account 默认发送 thinking.type=enabled 与 output_config.effort=high；单次 off 发送 disabled 且不带 effort；两者仍是同一输出上限 2048。",
+    "reason": "已有会话能力，并非新增设置。固定代码的部署策略 disabled 限制连接器只接受 off；改变会话 effort 不应改变其他会话或覆盖部署策略。"
+  }
+]

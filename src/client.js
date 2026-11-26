@@ -2,6 +2,7 @@ import { modelKey, groupKey, toggleKey, partitionModels, favoriteRows, isUncommo
 import { isWorkBuddyProvider, loadProbeStatus, requestProbe, probeStateFor, effortSourceFor, contextWindowFor, formatCapacity, requestContextWindow } from './workbuddy-probe.js';
 import { providerIcon, modelIcon, DOWNLOADABLE_ICONS } from './icons.js';
 import { createIconStore } from './icon-cache.js';
+import { createProviderConnection, observeProviderTarget, makeProviderOptionPanel } from './provider-option-panel.js';
 
 // React and ReactDOM come from the running DSH client, never a second React copy.
 const React = require('react');
@@ -32,8 +33,16 @@ function withCatalogOrder(prefs, groups) {
   return { ...prefs, providerOrder: { main, uncommon }, favoriteOrder: favorites };
 }
 
-export function makeModelPicker(preferences, iconStore) {
-  return function ModelPicker({ locked, available, directory, load, select }) {
+const ProviderOptionPanel = makeProviderOptionPanel(React);
+function CurrentProviderOptions({ directory, connection, sessionId, editable }) {
+  const source = React.useMemo(() => observeProviderTarget(directory, connection, sessionId), [directory, connection, sessionId]);
+  const item = useSyncExternalStore(source.subscribe, source.getSnapshot);
+  return item && h(ProviderOptionPanel, { key: item.target.epoch, ...item, canEdit: true,
+    isCurrent: () => source.getSnapshot() === item && editable() });
+}
+
+export function makeModelPicker(preferences, iconStore, providerConnection) {
+  return function ModelPicker({ locked, available, directory, load, select, sessionId, isPrimarySession }) {
     const state = useSyncExternalStore(directory.subscribe.bind(directory), directory.getSnapshot.bind(directory));
     const prefs = useSyncExternalStore(preferences.subscribe, preferences.getSnapshot);
     useSyncExternalStore(iconStore.subscribe, iconStore.getSnapshot);
@@ -68,6 +77,8 @@ export function makeModelPicker(preferences, iconStore) {
     const popupEpoch = useRef(0);
     const mounted = useRef(true);
     const popupId = useId();
+    const opening = popupEpoch.current;
+    const editable = () => mounted.current && opening === popupEpoch.current && !inFlight.current && !locked && available && isPrimarySession();
     const groups = state.groups ?? [];
     const shown = partitionModels(groups, prefs, list, query);
     const allMain = partitionModels(groups, prefs, 'main').reduce((n, g) => n + g.models.length, 0);
@@ -544,6 +555,8 @@ export function makeModelPicker(preferences, iconStore) {
           contextRow.declared.map((size) => h('option', { key: size, value: String(size) }, formatCapacity(size)))),
           contextRow.effective !== undefined && h('span', { className: 'dmo-effort-source dmo-context-note' }, `当前生效 ${formatCapacity(contextRow.effective)}`)),
         probeBlock,
+        available && !busy && sessionId && providerConnection && state.current?.provider === 'openai-codex' &&
+          h(CurrentProviderOptions, { key: sessionId, directory, connection: providerConnection, sessionId, editable }),
         h('div', { className: 'dmo-identity' }, '分类、收藏、备注及折叠偏好保存在当前浏览器；不会自动分类。'),
         h('label', { className: 'dmo-icon-setting' }, h('input', { type: 'checkbox', checked: prefs.iconNetwork, onChange: e => preferences.update(p => ({ ...p, iconNetwork: e.target.checked })) }), '联网下载缺失图标（仅请求图标名称，下载后保存在本地）'),
         h('div', { className: 'dmo-identity' }, '图标依据目录标识，不验证实际上游。'),
@@ -578,7 +591,8 @@ function pickerProps(ctx, sessionId) {
   const state = directory.store.getSnapshot();
   if (!Array.isArray(state?.groups) || typeof state.status !== 'string') return;
   return {
-    available, directory: directory.store,
+    available, directory: directory.store, sessionId,
+    isPrimarySession: () => { try { return ctx.sessions.subagentAddress(sessionId) === undefined; } catch { return false; } },
     load: () => available ? directory.load() : undefined,
     select: async (selection, resetEffort = false) => {
       if (!available) return undefined;
@@ -634,7 +648,14 @@ function installShelf(ctx) {
   const preferences = createPreferenceStore(storage, window);
   const iconStore = createIconStore({ storage, bundled: ICON_DATA, registry: DOWNLOADABLE_ICONS, fetcher: (...args) => window.fetch(...args) });
   ctx.effect(() => () => { preferences.dispose(); iconStore.dispose(); });
-  const ModelPicker = makeModelPicker(preferences, iconStore);
+  const providerConnection = createProviderConnection();
+  // A separate child: losing the optional RPC service never retires the seat.
+  try {
+    ctx.inject(['connection'], scope => scope.effect(() => {
+      try { return providerConnection.attach(scope.connection); } catch { /* optional capability */ }
+    }));
+  } catch { /* An older host can reject the optional injection itself. */ }
+  const ModelPicker = makeModelPicker(preferences, iconStore, providerConnection);
   let retired = false;
   const unregister = ctx.slots.register({ name: modelSeat, priority: -100,
     inject: sessionId => {

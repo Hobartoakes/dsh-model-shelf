@@ -40,7 +40,7 @@ window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:optio
   if(body.action==='set-model-context-window'){if(body.contextWindow===null)delete wbOverrides[body.model];else wbOverrides[body.model]=body.contextWindow;return jsonResponse({state:'updated',model:body.model,contextWindow:body.contextWindow});}
   wbProbe.candidates=['wb-flash'];wbProbe.results=[{id:'wb-flash',validation:'validating',efforts:['low','medium','high'],probedAt:1}];window.publishEfforts();return jsonResponse({state:'ok',validation:'validating',efforts:['low','medium','high'],requests:2});}
  return jsonResponse({error:'not found'},false,404);};
-const disposers=[]; const ctx={inject(_deps,fn){fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false)=>{root.render(React.createElement(Component,{locked,...options.inject('test-session')}))};return()=>{}}}};
+const disposers=[]; const ctx={inject(_deps,fn){if(_deps.length===1&&_deps[0]==='connection')throw Error('optional service is unavailable');fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false)=>{root.render(React.createElement(Component,{locked,...options.inject('test-session')}))};return()=>{}}}};
 const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
 </script>`;
 await mkdir(new URL('tests/artifacts/', root), { recursive: true });
@@ -755,6 +755,14 @@ try {
   assert.equal(await page.locator('.dmo-context-note').count(), 0);
   ok('an unpatched WorkBuddy host is never shown a per-model window control');
   await page.evaluate(() => localStorage.removeItem('wbStock'));
+  // This legacy harness has no connection/generation service. Even an exact
+  // Codex route must keep its normal picker/effort without fetching settings.
+  const beforeOptional = await page.evaluate(() => fetchCalls.length);
+  await page.evaluate(() => setState({ routable:true, current:{ provider:'openai-codex', model:'gpt-5.4' }, groups:[{ id:'openai-codex', models:[{ id:'gpt-5.4', reasoning:{ defaultEffort:'medium',efforts:[{id:'medium'}] } }] }] }));
+  await page.getByLabel('思考强度', {exact:true}).waitFor();
+  assert.equal(await page.locator('.dmo-provider-options').count(),0);
+  assert.equal(await page.evaluate(() => fetchCalls.length),beforeOptional);
+  ok('absent optional connection leaves native selection and effort available with zero provider traffic');
   await page.evaluate(() => dispose()); assert.equal(await page.locator('style[data-plugin="dsh-model-shelf"]').count(), 0);
   ok('plugin lifecycle disposes injected stylesheet');
   assert.deepEqual(errors, []);

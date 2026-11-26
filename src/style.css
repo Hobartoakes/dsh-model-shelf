@@ -55,4 +55,10 @@ span.dmo-icon{display:inline-flex;align-items:center;justify-content:center;bord
 .dmo-probe .dmo-effort-reset{margin-top:0}
 .dmo-probe-ok{color:var(--dsw-alias-state-business-primary,#4d6bfe)}
 .dmo-probe-error{color:var(--dsw-alias-state-error-primary,#c33)}
+.dmo-provider-options{margin:8px 0;padding:8px 0;border-block:1px solid var(--dsw-alias-border-l1,#ddd);font-size:12px;line-height:1.5}
+.dmo-provider-options p{margin:2px 0 6px;color:var(--dsw-alias-label-secondary,#666)}
+.dmo-provider-field,.dmo-provider-field label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dmo-provider-field+.dmo-provider-field{margin-top:6px}
+.dmo-provider-options button,.dmo-provider-options select{padding:3px 6px;border:1px solid var(--dsw-alias-border-l1,#ddd);border-radius:5px;color:inherit;background:var(--dsw-alias-bg-layer-2,#fff);font:inherit;cursor:pointer}
+.dmo-provider-options :disabled{opacity:.55;cursor:default}
 .dmo-probe-confirm{margin:6px 0 0;padding:8px;border:1px solid var(--dsw-alias-border-l1,#ddd);border-radius:8px;font-size:12px;line-height:1.6}

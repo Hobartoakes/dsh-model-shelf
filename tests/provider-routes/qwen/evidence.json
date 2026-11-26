@@ -1,0 +1,122 @@
+[
+  {
+    "route": "qwen",
+    "variant": "token-plan-cn-switchable",
+    "field": "enableThinking",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/qwen-token-plan-cn.js#L5-L12；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/qwen-token-plan-cn.json#L1 (chat:qwen3.6-flash)；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L634-L642",
+    "ownerProof": "隔离实例的唯一 PiAiAdapter 注册 qwen-token-plan-cn；目录指向 llm-pi-ai / [providers, qwen-token-plan-cn]，declared=false。真实部署 namespace 来自具体 entry id，目录标签本身不证明正在服务；见 https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L3039-L3062。",
+    "writeSurface": "既有会话模型选择的 reasoningEffort；不写连接器布尔偏好，不影响其他会话。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — switchable CN model：qwen3.6-flash 的 off/high 分别序列化 enable_thinking=false/true，不发 reasoning_effort。",
+    "reason": "该固定目录提供 off/minimal/low/medium/high；书架原生档位已足够，不加第二个开关。"
+  },
+  {
+    "route": "qwen",
+    "variant": "token-plan-cn-switchable",
+    "field": "thinkingBudget",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/qwen-token-plan-cn.json#L1 (chat:qwen3.6-flash)；https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L982-L987, #L1892；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L730-L732, #L756-L762",
+    "ownerProof": "隔离实例的唯一 PiAiAdapter 注册 qwen-token-plan-cn；目录指向 llm-pi-ai / [providers, qwen-token-plan-cn]，declared=false。真实部署 namespace 来自具体 entry id，目录标签本身不证明正在服务；见 https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L3039-L3062。",
+    "writeSurface": "宿主 volatile providers[该路由].thinkingBudgets[档位] 可能影响所有使用该路由/档位的会话；这不是模型独立预算。书架不写，也不改 compat 来强迫产生字段。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — switchable CN model：high 的路由预算 1200 与 2400 均无 thinking_budget、thinking_token_budget、thinking_budget_tokens；同名中转显式声明后有正对照。",
+    "reason": "仅指该模型的随包 CN 目录配置：未启用 wire budget field。不是百炼或自定义部署一概不支持。"
+  },
+  {
+    "route": "qwen",
+    "variant": "token-plan-cn-no-off",
+    "field": "enableThinking",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/qwen-token-plan-cn.json#L1 (chat:qwen3.8-max)；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/models.js#L680-L691；https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L1914-L1922；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L520-L532, #L634-L642",
+    "ownerProof": "隔离实例的唯一 PiAiAdapter 注册 qwen-token-plan-cn；目录指向 llm-pi-ai / [providers, qwen-token-plan-cn]，declared=false。真实部署 namespace 来自具体 entry id，目录标签本身不证明正在服务；见 https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L3039-L3062。",
+    "writeSurface": "仅会话现有 low/medium/xhigh；不发明 off，不用恢复默认冒充关闭。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — no-off CN model：显式 off 在网络前以 UNSUPPORTED_REASONING_EFFORT 拒绝；low 得 true/low；省略 effort 得 enable_thinking=false。",
+    "reason": "仅指用户可选择的二态开关。该目录不对外提供 off；省略时构造出的 false 不是关档，亦不证明模型在线始终思考或能关闭。"
+  },
+  {
+    "route": "qwen",
+    "variant": "token-plan-cn-no-off",
+    "field": "thinkingBudget",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/qwen-token-plan-cn.json#L1 (chat:qwen3.8-max)；https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L1892；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L730-L732, #L756-L762",
+    "ownerProof": "隔离实例的唯一 PiAiAdapter 注册 qwen-token-plan-cn；目录指向 llm-pi-ai / [providers, qwen-token-plan-cn]，declared=false。真实部署 namespace 来自具体 entry id，目录标签本身不证明正在服务；见 https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L3039-L3062。",
+    "writeSurface": "宿主 volatile providers[该路由].thinkingBudgets[档位] 可能影响所有使用该路由/档位的会话；这不是模型独立预算。书架不写，也不改 compat 来强迫产生字段。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — no-off CN model：low 的路由预算从 1200 换到 2400，仍只有 enable_thinking=true、reasoning_effort=low。",
+    "reason": "该随包模型的档位映射不含预算字段；不能把 low 或其它强度值换算成 token 数。"
+  },
+  {
+    "route": "qwen",
+    "variant": "same-id-relay",
+    "field": "enableThinking",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L1004-L1024, #L3039-L3055；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L634-L647",
+    "ownerProof": "与 CN 路由同一 PiAiAdapter，但目录另给已声明的 fixture-relay、[providers, fixture-relay]。该自定义实例的名称、模型 ID 或 Chat Completions 协议均不能证明上游是千问。",
+    "writeSurface": "已有会话档位由该自定义目录决定（夹具：off/high）；没有可证明为该中转所有的独立千问布尔偏好。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — same-id relay：对同一个 qwen3.6-flash、高档，OpenAI 格式中转只发 reasoning_effort=high；显式指定 Qwen 格式的另一配置才发 enable_thinking=true。",
+    "reason": "协议选择取决于该中转的声明；可序列化不同格式，不能据同名、同图标或 URL 猜实际支持。"
+  },
+  {
+    "route": "qwen",
+    "variant": "same-id-relay",
+    "field": "thinkingBudget",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5 + @earendil-works/pi-ai@1.3.0",
+    "source": "https://unpkg.com/@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5/lib/index.js#L1004-L1024, #L1071；https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L730-L732, #L756-L762",
+    "ownerProof": "与 CN 路由同一 PiAiAdapter，但目录另给已声明的 fixture-relay、[providers, fixture-relay]。该自定义实例的名称、模型 ID 或 Chat Completions 协议均不能证明上游是千问。",
+    "writeSurface": "宿主 volatile providers[该路由].thinkingBudgets[档位] 可能影响所有使用该路由/档位的会话；这不是模型独立预算。书架不写，也不改 compat 来强迫产生字段。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — same-id relay：无预算能力声明时不发预算；另一个显式 opt-in 的 fixture-relay 配置指定 thinkingTokenBudgetField=thinking_budget 后，收到数值 2400。",
+    "reason": "序列化正对照证明检测有效，不证明上游、预算单位/范围或真实模型能力，不向中转推送厂商字段。"
+  },
+  {
+    "route": "qwen",
+    "variant": "dashscope-native",
+    "field": "enableThinking",
+    "status": "gap",
+    "packagePin": "@dsh-ai-providers/dashscope@0.7.5 + @dsh-ai-providers/runtime@0.7.5 + @dsh-ai-providers/core@0.7.5; DSH LLM 0.2.2-rc.5",
+    "source": "https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L1178-L1185, #L1239-L1269；https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L935-L960；https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1560-L1578；模型发现 https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L782-L799",
+    "ownerProof": "DashScope 服务 id=dashscope、configEntryId=ai-dashscope；runtime 将手配 route.id 登记为 DSH provider，目录只定位 [llmRoutes]。本夹具仅一条路由/模型；设置存储归属不等于一次调用的有效参数归属。https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1741-L1751",
+    "writeSurface": "ai-dashscope 的 volatile llmRoutes[i].sampling.enableThinking（全路由）或 .models[j].sampling.enableThinking（同路由/模型的各会话）。自带 GUI 编辑列表；未接整表写、数组索引写或请求 body。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — native parameters：qwen-plus 没有声明独立能力。省略时无 parameters.enable_thinking；显式 true 有该字段；相同路由/模型配置下 per-call policy 可改成 false。",
+    "reason": "模型发现仅给 id、名称、输入模态和容量，不给逐字段能力；模型表单为部署者声明，按次 policy/level/body 可盖过读回的值。没有可依赖的客户端“此字段现正生效”的证明。"
+  },
+  {
+    "route": "qwen",
+    "variant": "dashscope-native",
+    "field": "thinkingBudget",
+    "status": "gap",
+    "packagePin": "@dsh-ai-providers/dashscope@0.7.5 + @dsh-ai-providers/runtime@0.7.5 + @dsh-ai-providers/core@0.7.5; DSH LLM 0.2.2-rc.5",
+    "source": "https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L1178-L1185, #L1239-L1269；https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L935-L960；https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1560-L1578；模型发现 https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L782-L799",
+    "ownerProof": "DashScope 服务 id=dashscope、configEntryId=ai-dashscope；runtime 将手配 route.id 登记为 DSH provider，目录只定位 [llmRoutes]。本夹具仅一条路由/模型；设置存储归属不等于一次调用的有效参数归属。https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1741-L1751",
+    "writeSurface": "ai-dashscope 的 volatile llmRoutes[i].sampling.thinkingBudget（全路由）或 .models[j].sampling.thinkingBudget（同路由/模型的各会话）。自带 GUI 编辑列表；未接整表写、数组索引写或请求 body。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — native parameters：qwen-plus 省略不发；路由 1000、模型覆盖后 2000、独立 policy 覆盖后 256，均直接取自序列化的 parameters.thinking_budget。",
+    "reason": "natural() 是连接器类型，不是模型预算边界。模型发现仅给 id、名称、输入模态和容量，不给逐字段能力；模型表单为部署者声明，按次 policy/level/body 可盖过读回的值。没有可依赖的客户端“此字段现正生效”的证明。"
+  },
+  {
+    "route": "qwen",
+    "variant": "dashscope-thinking-only-checkpoint",
+    "field": "enableThinking",
+    "status": "unsupported",
+    "packagePin": "@dsh-ai-providers/dashscope@0.7.5 + @dsh-ai-providers/runtime@0.7.5 + @dsh-ai-providers/core@0.7.5; DSH LLM 0.2.2-rc.5; Qwen/Qwen3-235B-A22B-Thinking-2507@6cbffae6d8e28b986a6b17bd36f42f9fa0f1f0a5",
+    "source": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507/blob/6cbffae6d8e28b986a6b17bd36f42f9fa0f1f0a5/README.md#L37；https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L897-L922, #L935-L960",
+    "ownerProof": "DashScope 服务 id=dashscope、configEntryId=ai-dashscope；runtime 将手配 route.id 登记为 DSH provider，目录只定位 [llmRoutes]。本夹具仅一条路由/模型；设置存储归属不等于一次调用的有效参数归属。https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1741-L1751 样例以发布者完整 id 手配在隔离端点，不证明任何在线端点部署了该检查点。",
+    "writeSurface": "ai-dashscope 的 volatile llmRoutes[i].sampling.enableThinking（全路由）或 .models[j].sampling.enableThinking（同路由/模型的各会话）。自带 GUI 编辑列表；未接整表写、数组索引写或请求 body。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — fixed checkpoint：同一原生构造器即使收到固定思考检查点的 id 也会序列化 false；这是无法据载荷识别模型能力的反例。",
+    "reason": "模型卡明确该精确检查点只支持思考。unsupported 指关闭此检查点，不指整个连接器；不以模型名中的 Thinking 推断。"
+  },
+  {
+    "route": "qwen",
+    "variant": "dashscope-thinking-only-checkpoint",
+    "field": "thinkingBudget",
+    "status": "gap",
+    "packagePin": "@dsh-ai-providers/dashscope@0.7.5 + @dsh-ai-providers/runtime@0.7.5 + @dsh-ai-providers/core@0.7.5; DSH LLM 0.2.2-rc.5; Qwen/Qwen3-235B-A22B-Thinking-2507@6cbffae6d8e28b986a6b17bd36f42f9fa0f1f0a5",
+    "source": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507/blob/6cbffae6d8e28b986a6b17bd36f42f9fa0f1f0a5/README.md#L37；https://unpkg.com/@dsh-ai-providers/dashscope@0.7.5/lib/index.js#L782-L799, #L897-L922",
+    "ownerProof": "DashScope 服务 id=dashscope、configEntryId=ai-dashscope；runtime 将手配 route.id 登记为 DSH provider，目录只定位 [llmRoutes]。本夹具仅一条路由/模型；设置存储归属不等于一次调用的有效参数归属。https://unpkg.com/@dsh-ai-providers/runtime@0.7.5/lib/index.js#L1741-L1751",
+    "writeSurface": "ai-dashscope 的 volatile llmRoutes[i].sampling.thinkingBudget（全路由）或 .models[j].sampling.thinkingBudget（同路由/模型的各会话）。自带 GUI 编辑列表；未接整表写、数组索引写或请求 body。",
+    "requestProof": "node --test tests/provider-routes/qwen/contract.test.mjs — fixed checkpoint：不给预算时省略；另给 1800 时构造器按原样写 parameters.thinking_budget，未向上游验证。",
+    "reason": "思考模式固定并不等于预算固定或可调。没有该部署的受支持范围、运行时生效或优先级证明。"
+  }
+]

@@ -1,0 +1,137 @@
+[
+  {
+    "route": "kimi",
+    "variant": "moonshotai/kimi-k2.6",
+    "field": "thinkingMode",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/moonshotai.json",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L171",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/adapter.ts#L190-L234",
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L670-L681"
+    ],
+    "ownerProof": "无端点或模型覆盖的内置目录，openai-completions → api.moonshot.ai/v1。固定版 llm-pi-ai 实例同时注册适配器与目录项：settingsNs 取实例 entry id，settingsPath 是 ['providers','moonshotai']；不是 Kimi 订阅插件的设置。",
+    "writeSurface": "会话原生 reasoningEffort；只选当前模型的已声明档位，不写共享设置。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — PiAiAdapter.resolveModel 含 off/high；POST off → thinking.type=disabled，high → enabled，无配置且省略档位 → disabled。",
+    "reason": "已能在原生档位中开启或关闭思考；这里的 high 未发送 reasoning_effort，不能承诺服务端的推理强度，也不再提供第二个开关。"
+  },
+  {
+    "route": "kimi",
+    "variant": "moonshotai/kimi-k2.7-code",
+    "field": "thinkingMode",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/moonshotai.json",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L171",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/adapter.ts#L190-L234",
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L670-L681"
+    ],
+    "ownerProof": "无端点或模型覆盖的内置目录，openai-completions → api.moonshot.ai/v1。固定版 llm-pi-ai 实例同时注册适配器与目录项：settingsNs 取实例 entry id，settingsPath 是 ['providers','moonshotai']；不是 Kimi 订阅插件的设置。",
+    "writeSurface": "此模型不提供可关闭的二元模式；不可通过改写目录的 reasoningEfforts 来制造能力。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — PiAiAdapter.resolveModel 不含 off；显式 off 在 Fetch 前以 UNSUPPORTED_REASONING_EFFORT 拒绝。无配置省略档位 → 无 thinking 字段，high → enabled。",
+    "reason": "thinkingLevelMap.off=null。省略由供应方按模型默认执行，不是关闭。结论限当前注册的模型和协议，不推断服务端实际推理。"
+  },
+  {
+    "route": "kimi",
+    "variant": "moonshotai-cn/kimi-k2.6",
+    "field": "thinkingMode",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/moonshotai-cn.json",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L171",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/adapter.ts#L190-L234",
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L670-L681"
+    ],
+    "ownerProof": "无端点或模型覆盖的内置目录，openai-completions → api.moonshot.cn/v1。固定版 llm-pi-ai 实例同时注册适配器与目录项：settingsNs 取实例 entry id，settingsPath 是 ['providers','moonshotai-cn']；不是 Kimi 订阅插件的设置。",
+    "writeSurface": "会话原生 reasoningEffort；只选当前模型的已声明档位，不写共享设置。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — PiAiAdapter.resolveModel 含 off/high；POST off → thinking.type=disabled，high → enabled，无配置且省略档位 → disabled。",
+    "reason": "已能在原生档位中开启或关闭思考；这里的 high 未发送 reasoning_effort，不能承诺服务端的推理强度，也不再提供第二个开关。"
+  },
+  {
+    "route": "kimi",
+    "variant": "moonshotai-cn/kimi-k2.7-code",
+    "field": "thinkingMode",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/moonshotai-cn.json",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L171",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/adapter.ts#L190-L234",
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L670-L681"
+    ],
+    "ownerProof": "无端点或模型覆盖的内置目录，openai-completions → api.moonshot.cn/v1。固定版 llm-pi-ai 实例同时注册适配器与目录项：settingsNs 取实例 entry id，settingsPath 是 ['providers','moonshotai-cn']；不是 Kimi 订阅插件的设置。",
+    "writeSurface": "此模型不提供可关闭的二元模式；不可通过改写目录的 reasoningEfforts 来制造能力。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — PiAiAdapter.resolveModel 不含 off；显式 off 在 Fetch 前以 UNSUPPORTED_REASONING_EFFORT 拒绝。无配置省略档位 → 无 thinking 字段，high → enabled。",
+    "reason": "thinkingLevelMap.off=null。省略由供应方按模型默认执行，不是关闭。结论限当前注册的模型和协议，不推断服务端实际推理。"
+  },
+  {
+    "route": "kimi",
+    "variant": "opencode/kimi-k2.6",
+    "field": "officialThinkingPreference",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/providers/data/opencode.json",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L177",
+      "https://unpkg.com/@earendil-works/pi-ai@1.3.0/dist/api/openai-completions.js#L670-L681"
+    ],
+    "ownerProof": "opencode 的实际目录项指向 ['providers','opencode']；URL 为 opencode.ai/inference/v1。模型 ID 与官方相同，但线路、配置路径不同。",
+    "writeSurface": "没有属于此实例的 Moonshot 官方偏好写面；不跨线路写入。它自己的会话档位仍可用。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — 同一 PiAiAdapter，opencode/kimi-k2.6 的 off/high 也序列化为 disabled/enabled，但 POST 指向 OpenCode 而非 Moonshot。",
+    "reason": "同名、同协议甚至字段完全相同都不是共享所有者的证据。未证明能在该中转按模型保存、读回官方思考偏好，不是说中转不能思考。"
+  },
+  {
+    "route": "kimi",
+    "variant": "moonshotai/kimi-k2.6",
+    "field": "connectorThinkingDefault",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/config.ts#L104-L169",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/catalog.ts#L629-L639",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/index.ts#L149-L177",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.5/packages/llm/llm-pi-ai/src/adapter.ts#L431-L435"
+    ],
+    "ownerProof": "在此实例中 ['providers','moonshotai','reasoning'] 属于整条 profile；modelOverrides[].reasoningEfforts 是能力声明，不是保存偏好的路径。",
+    "writeSurface": "没有独立且仅影响所选模型的默认模式写面。未调用 settings.mutate、replace 或偏好写入。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — 注入线路默认 reasoning=off：K2.6 默认请求 disabled，会话 high 覆盖为 enabled；同线路 K2.7 Code 的默认请求在 Fetch 前被拒。",
+    "reason": "即使路径写入足够窄，效果也涉及其他模型与会话；同一路线存在不能关闭的模型。不能把整条路线的默认档位包装成 K2.6 开关。"
+  },
+  {
+    "route": "kimi",
+    "variant": "kimi-subscription/kimi-for-coding",
+    "field": "thinkingMode",
+    "status": "unsupported",
+    "packagePin": "dsh-kimi-subscription@1.5.1; @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/index.js#L48-L113",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/pi-ai-runtime.js#L74-L130",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/pi-ai-runtime.js#L244-L269",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/login-coordinator.js#L192-L224"
+    ],
+    "ownerProof": "dsh-kimi-subscription 注册独立的 kimi-subscription provider，注入自己的固定 profile；不是通用 kimi-coding 或 moonshotai。",
+    "writeSurface": "订阅 preferences/status 与 preferences/update 的用户偏好字段是 searchProvider，不是 thinking；writable 不是任意字段授权。不写入。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — 公开 provider 工厂的目录仅映射 low/high/max；默认 POST 无模式/档位字段，high → reasoning_effort=high（没有 thinking）。",
+    "reason": "此版本的 K2.8 Preview 可以调节档位，但 off 映射为 null，不能做思考开关。测试使用订阅 provider 自己的 streamSimple，未登录、未启动账户服务。"
+  },
+  {
+    "route": "kimi",
+    "variant": "kimi-subscription/kimi-for-coding-highspeed",
+    "field": "thinkingMode",
+    "status": "unsupported",
+    "packagePin": "dsh-kimi-subscription@1.5.1; @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; openai@7.19.0",
+    "source": [
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/index.js#L48-L113",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/pi-ai-runtime.js#L74-L130",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/pi-ai-runtime.js#L244-L269",
+      "https://github.com/BaronCyrus/dsh-kimi-subscription/blob/1e0164815c9af0ba429a59549ba3b033df2dd01f/src/login-coordinator.js#L192-L224"
+    ],
+    "ownerProof": "dsh-kimi-subscription 注册独立的 kimi-subscription provider，注入自己的固定 profile；不是通用 kimi-coding 或 moonshotai。",
+    "writeSurface": "订阅 preferences/status 与 preferences/update 的用户偏好字段是 searchProvider，不是 thinking；writable 不是任意字段授权。不写入。",
+    "requestProof": "node --test tests/provider-routes/kimi/contract.test.mjs — 公开 provider 工厂的 Highspeed 条目 reasoning=false，所有档位映射 null；默认 POST 没有 thinking 或 reasoning_effort。",
+    "reason": "连接器明确把 K2.7 Code Highspeed 作为固定思考、无可选档位处理。reasoning=false 描述的是不可选择，不是服务端关闭思考。只验证了本地请求。"
+  }
+]

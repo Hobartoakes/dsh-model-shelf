@@ -1,0 +1,122 @@
+[
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "cacheRetention",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:368-369,383-384; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159; @earendil-works/pi-ai/dist/api/anthropic-messages.js:22-40,139-146,893-925; @anthropic-ai/sdk/src/resources/messages/messages.ts:1203-1215",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.cacheRetention；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 本地截获最终 Messages POST：short 有 ephemeral、无 ttl（协议默认 5m）；long 有 ttl=1h；none 无缓存标记。错配所有者读回 long，请求仍为 short；修改活动所有者后才出现 1h。",
+    "reason": "保留时长不等于“启用缓存”。可观察客户端请求，不能据此保证服务端实际命中或保留，也不能从 provider/model 同名授权写入。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-6",
+    "field": "cacheRetention",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:368-369,383-384; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159; @earendil-works/pi-ai/dist/api/anthropic-messages.js:22-40,139-146,893-925; @anthropic-ai/sdk/src/resources/messages/messages.ts:1203-1215",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.cacheRetention；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 本地截获最终 Messages POST：short 有 ephemeral、无 ttl（协议默认 5m）；long 有 ttl=1h；none 无缓存标记。错配所有者读回 long，请求仍为 short；修改活动所有者后才出现 1h。",
+    "reason": "保留时长不等于“启用缓存”。可观察客户端请求，不能据此保证服务端实际命中或保留，也不能从 provider/model 同名授权写入。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "thinkingBudgets.minimal",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:263-268,368-369; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159,419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,993-1009",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.thinkingBudgets.minimal；单位为 token，不是本会话强度；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 在 minimal 档单独写入并重新读取，下一条最终请求 thinking.type=enabled，budget_tokens 从 1536 变为 1664；off 不发送数值预算。分属两实例时另验 low 的写入无效。",
+    "reason": "该模型确实消费固定预算；最终预算还受输出余量限制。公开表单地址不能证明活动实例归属，不能开放共享配置编辑。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "thinkingBudgets.low",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:263-268,368-369; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159,419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,993-1009",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.thinkingBudgets.low；单位为 token，不是本会话强度；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 在 low 档单独写入并重新读取，下一条最终请求 thinking.type=enabled，budget_tokens 从 3072 变为 3200；off 不发送数值预算。分属两实例时另验 low 的写入无效。",
+    "reason": "该模型确实消费固定预算；最终预算还受输出余量限制。公开表单地址不能证明活动实例归属，不能开放共享配置编辑。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "thinkingBudgets.medium",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:263-268,368-369; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159,419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,993-1009",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.thinkingBudgets.medium；单位为 token，不是本会话强度；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 在 medium 档单独写入并重新读取，下一条最终请求 thinking.type=enabled，budget_tokens 从 6144 变为 6272；off 不发送数值预算。分属两实例时另验 low 的写入无效。",
+    "reason": "该模型确实消费固定预算；最终预算还受输出余量限制。公开表单地址不能证明活动实例归属，不能开放共享配置编辑。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "thinkingBudgets.high",
+    "status": "gap",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:263-268,368-369; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159,419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,993-1009",
+    "ownerProof": "目录给出 settingsNs/settingsPath；活动分派与配置目录分别注册（@deepseek-ai/dsh-llm/src/index.ts:369-372,452-468,530-539；llm-pi-ai/src/index.ts:324-345）。隔离反例的公开线路、目录、模型信息和表单有效值相同，但写目录所有者不改变另一实例的请求。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 path=providers.anthropic.thinkingBudgets.high；单位为 token，不是本会话强度；书架不写。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 在 high 档单独写入并重新读取，下一条最终请求 thinking.type=enabled，budget_tokens 从 12288 变为 12416；off 不发送数值预算。分属两实例时另验 low 的写入无效。",
+    "reason": "该模型确实消费固定预算；最终预算还受输出余量限制。公开表单地址不能证明活动实例归属，不能开放共享配置编辑。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-6",
+    "field": "thinkingBudgets",
+    "status": "unsupported",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:263-268,368-369; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159,419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,993-1009",
+    "ownerProof": "在同一已知活动的 pi-ai 实例内验证；模型目录 forceAdaptiveThinking=true。此反例不依赖所有者错配。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 thinkingBudgets 的 low 可写可读，但不控制此模型的预算，不提供控件。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 相同 low 强度下把 profile 的 low 预算从 3200 改为 3584：两次 thinking.type=adaptive、output_config.effort=low，均没有 budget_tokens；选 high 后 effort=high。",
+    "reason": "该版本 Messages 自适应分支发送强度，不接受逐档固定 token 数；不是没有推理能力。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5/no-long-ttl",
+    "field": "cacheRetention.long",
+    "status": "unsupported",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "@deepseek-ai/dsh-llm-pi-ai/src/config.ts:368-369,383-384; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:148-159; @earendil-works/pi-ai/dist/api/anthropic-messages.js:22-40,139-146,893-925; @anthropic-ai/sdk/src/resources/messages/messages.ts:1203-1215; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1",
+    "ownerProof": "仅限同一活动实例中为此模型显式覆盖 compat.supportsLongCacheRetention=false 的对照；并非官方 4-5 目录的一般结论。",
+    "writeSurface": "SettingsForms.describe({redactSecrets:true}) / mutate(ns,[{op:set,path,value}],expectedRevision)，由宿主按路径写 provider profile，使用该 profile 的其他会话共享。 读回 cacheRetention=long 仍不能在该兼容组合发送 1h；不提供控件。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 同一 profile=long：覆盖后的 4-5 只发送 ephemeral、无 ttl；相邻未覆盖 4-6 发送 1h。移除 4-5 覆盖，不改 retention，4-5 又发送 1h。",
+    "reason": "仅 1 小时保留不适用，短时缓存标记仍在；不能把它写成“不支持缓存”。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-5",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "shelf@61aed96623bc15fec46eaca9060296aa1f9195cf/src/client.js:534-540; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,978-1009",
+    "ownerProof": "已有目录从活动适配器 resolveModelInfo 读取具名模型的 reasoning.efforts；不向另一份 provider 配置写入。",
+    "writeSurface": "书架已有模型选择中的会话 reasoningEffort / resetEffort；非共享 thinkingBudgets，不新建下拉框。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 两款真实目录模型均返回 off、minimal、low、medium、high。四档选择分别产生已配置的 budget_tokens；off 省略预算。",
+    "reason": "沿用原有会话选择；本测试验证目录及请求边界，不宣称本任务进行了桌面操作或线上推理。"
+  },
+  {
+    "route": "claude",
+    "variant": "anthropic-messages/claude-sonnet-4-6",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "dsh-v0.2.2-rc.5 (9c2670d3bce5275e0d1610272958121af87787bb); @deepseek-ai/dsh-llm-pi-ai@0.2.2-rc.5; @earendil-works/pi-ai@1.3.0; @anthropic-ai/sdk@0.129.0",
+    "source": "shelf@61aed96623bc15fec46eaca9060296aa1f9195cf/src/client.js:534-540; @deepseek-ai/dsh-llm-pi-ai/src/adapter.ts:419-435; @earendil-works/pi-ai/dist/providers/data/anthropic.json:1; @earendil-works/pi-ai/dist/api/anthropic-messages.js:748-781,978-1009",
+    "ownerProof": "已有目录从活动适配器 resolveModelInfo 读取具名模型的 reasoning.efforts；不向另一份 provider 配置写入。",
+    "writeSurface": "书架已有模型选择中的会话 reasoningEffort / resetEffort；非共享 thinkingBudgets，不新建下拉框。",
+    "requestProof": "node --test tests/provider-routes/claude/contract.test.mjs — 两款真实目录模型均返回 off、minimal、low、medium、high。low/high 发出不同 output_config.effort、thinking.type=adaptive；没有 budget_tokens。",
+    "reason": "沿用原有会话选择；本测试验证目录及请求边界，不宣称本任务进行了桌面操作或线上推理。"
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "route": "gemini",
+    "variant": "google-generative-ai/gemini-2.5-flash",
+    "field": "thinkingBudget",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google.json:1; pi-ai/dist/api/google-generative-ai.js:236-267,311-322,337-368; dsh-llm-pi-ai/src/config.ts:263-268,368,384; dsh-llm-pi-ai/src/index.ts:265-286; dsh-llm/src/index.ts:370-371,416-443,498-511,775-789; dsh-settings/src/index.ts:304-329,368-405",
+    "ownerProof": "唯一 settingsNs、settingsPath 和活动 google 行相同，目录模型与档位也相同；但另一个已注册的 PiAiAdapter 可以持有推理线路。",
+    "writeSurface": "表单按 revision 仅 set providers.google.thinkingBudgets.low；这是供应商配置的 low 档默认预算，会影响使用该配置和预算分支的其他会话、模型，不是本次请求的预算。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google: 2.5 Flash maps catalog effort to a token budget, not a wire level; google: a unique writable form can change without changing the active adapter",
+    "reason": "表单和活动适配器一致时 low 从 2048 变为 4096，medium 仍为 8192。不同实例时表单读回 6144，实际 low 请求写前写后都是 3072。书架缺少把写入实例绑定到活动推理实例的凭据，不展示数值输入。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-generative-ai/gemini-2.5-flash",
+    "field": "thinkingLevel",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google.json:1; pi-ai/dist/api/google-generative-ai.js:236-267,311-322,337-368",
+    "ownerProof": "固定目录的 google 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-generative-ai 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有 reasoningEffort 只选择档位；这条请求分支没有独立的 thinkingLevel 写入面。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google: 2.5 Flash maps catalog effort to a token budget, not a wire level",
+    "reason": "这个模型的 low、medium 走数值预算分支，最终 thinkingConfig 有 thinkingBudget、无 thinkingLevel。这是固定协议/模型的序列化结论，不是 Google API 整体不支持等级。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-generative-ai/gemini-2.5-flash",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google.json:1; pi-ai/dist/api/google-generative-ai.js:236-267,311-322,337-368; dsh-llm-pi-ai/src/adapter.ts:376-399,419-435,475-478; shelf@61aed966/src/client.js:272-293,534-540",
+    "ownerProof": "固定目录的 google 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-generative-ai 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有会话模型目录 select({provider: 'google', model, reasoningEffort})；不写供应商配置。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google: 2.5 Flash maps catalog effort to a token budget, not a wire level",
+    "reason": "目录已经给出 low、medium 等会话档位。更换档位选择不同的数值预算，不是直接设置任意 token 数；保留原选择器。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-generative-ai/gemini-3.1-pro-preview",
+    "field": "thinkingBudget",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google.json:1; pi-ai/dist/api/google-generative-ai.js:236-267,311-322,337-368",
+    "ownerProof": "固定目录的 google 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-generative-ai 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "表单能写 providers.google.thinkingBudgets.low，但此模型启用的目录档位走等级分支，不会读取该数值。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google: 3.1 Pro Preview sends its catalog level instead of the configured budget",
+    "reason": "low 配为 4096 后，本模型 low、high 请求只有 LOW、HIGH 等级，无 thinkingBudget。同一配置下 2.5 Flash 的 low 确实发出 4096；不能据一张共享表单对两种模型都开放数字框。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-generative-ai/gemini-3.1-pro-preview",
+    "field": "thinkingLevel",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google.json:1; pi-ai/dist/api/google-generative-ai.js:236-267,311-322,337-368; pi-ai/dist/api/google-shared.js:50-63; dsh-llm-pi-ai/src/adapter.ts:376-399,419-435,475-478; shelf@61aed966/src/client.js:272-293,534-540",
+    "ownerProof": "固定目录的 google 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-generative-ai 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有会话模型目录 select({provider: 'google', model, reasoningEffort})；不写供应商配置。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google: 3.1 Pro Preview sends its catalog level instead of the configured budget",
+    "reason": "目录声明 low、medium、high；离线实际发送过的 low、高档分别为 thinkingLevel: LOW、HIGH，不带预算。已有档位实现此效果，不增加第二个等级选择器。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-vertex/gemini-2.5-flash",
+    "field": "thinkingBudget",
+    "status": "gap",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google-vertex.json:1; pi-ai/dist/api/google-vertex.js:238-272,381-393,407-429; dsh-llm-pi-ai/src/config.ts:263-268,368,384; dsh-llm-pi-ai/src/index.ts:265-286; dsh-llm/src/index.ts:370-371,416-443,498-511,775-789; dsh-settings/src/index.ts:304-329,368-405",
+    "ownerProof": "唯一 settingsNs、settingsPath 和活动 google-vertex 行相同，目录模型与档位也相同；但另一个已注册的 PiAiAdapter 可以持有推理线路。",
+    "writeSurface": "表单按 revision 仅 set providers.google-vertex.thinkingBudgets.low；这是供应商配置的 low 档默认预算，会影响使用该配置和预算分支的其他会话、模型，不是本次请求的预算。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google-vertex: 2.5 Flash maps catalog effort to a token budget, not a wire level; google-vertex: a unique writable form can change without changing the active adapter",
+    "reason": "表单和活动适配器一致时 low 从 2048 变为 4096，medium 仍为 8192。不同实例时表单读回 6144，实际 low 请求写前写后都是 3072。书架缺少把写入实例绑定到活动推理实例的凭据，不展示数值输入。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-vertex/gemini-2.5-flash",
+    "field": "thinkingLevel",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google-vertex.json:1; pi-ai/dist/api/google-vertex.js:238-272,381-393,407-429",
+    "ownerProof": "固定目录的 google-vertex 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-vertex 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有 reasoningEffort 只选择档位；这条请求分支没有独立的 thinkingLevel 写入面。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google-vertex: 2.5 Flash maps catalog effort to a token budget, not a wire level",
+    "reason": "这个模型的 low、medium 走数值预算分支，最终 thinkingConfig 有 thinkingBudget、无 thinkingLevel。这是固定协议/模型的序列化结论，不是 Google API 整体不支持等级。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-vertex/gemini-2.5-flash",
+    "field": "reasoningEffort",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google-vertex.json:1; pi-ai/dist/api/google-vertex.js:238-272,381-393,407-429; dsh-llm-pi-ai/src/adapter.ts:376-399,419-435,475-478; shelf@61aed966/src/client.js:272-293,534-540",
+    "ownerProof": "固定目录的 google-vertex 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-vertex 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有会话模型目录 select({provider: 'google-vertex', model, reasoningEffort})；不写供应商配置。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google-vertex: 2.5 Flash maps catalog effort to a token budget, not a wire level",
+    "reason": "目录已经给出 low、medium 等会话档位。更换档位选择不同的数值预算，不是直接设置任意 token 数；保留原选择器。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-vertex/gemini-3.1-pro-preview",
+    "field": "thinkingBudget",
+    "status": "unsupported",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google-vertex.json:1; pi-ai/dist/api/google-vertex.js:238-272,381-393,407-429",
+    "ownerProof": "固定目录的 google-vertex 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-vertex 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "表单能写 providers.google-vertex.thinkingBudgets.low，但此模型启用的目录档位走等级分支，不会读取该数值。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google-vertex: 3.1 Pro Preview sends its catalog level instead of the configured budget",
+    "reason": "low 配为 4096 后，本模型 low、high 请求只有 LOW、HIGH 等级，无 thinkingBudget。同一配置下 2.5 Flash 的 low 确实发出 4096；不能据一张共享表单对两种模型都开放数字框。"
+  },
+  {
+    "route": "gemini",
+    "variant": "google-vertex/gemini-3.1-pro-preview",
+    "field": "thinkingLevel",
+    "status": "builtin",
+    "packagePin": "@deepseek-ai/dsh-llm, dsh-llm-pi-ai, dsh-settings 0.2.2-rc.5; @earendil-works/pi-ai 1.3.0; @google/genai 2.21.0 (SHA-512: tests/provider-options/pins.json:48-61)",
+    "source": "pi-ai/dist/providers/data/google-vertex.json:1; pi-ai/dist/api/google-vertex.js:238-272,381-393,407-429; pi-ai/dist/api/google-shared.js:50-63; dsh-llm-pi-ai/src/adapter.ts:376-399,419-435,475-478; shelf@61aed966/src/client.js:272-293,534-540",
+    "ownerProof": "固定目录的 google-vertex 记录；夹具用其模型 ID，不覆盖 api、模型能力或地址，实际 google-vertex 请求在 SDK Fetch 边界截获。",
+    "writeSurface": "现有会话模型目录 select({provider: 'google-vertex', model, reasoningEffort})；不写供应商配置。",
+    "requestProof": "node --test tests/provider-routes/gemini/contract.test.mjs — google-vertex: 3.1 Pro Preview sends its catalog level instead of the configured budget",
+    "reason": "目录声明 low、medium、high；离线实际发送过的 low、高档分别为 thinkingLevel: LOW、HIGH，不带预算。已有档位实现此效果，不增加第二个等级选择器。"
+  }
+]

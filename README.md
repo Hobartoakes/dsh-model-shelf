@@ -1,6 +1,20 @@
 # 模型书架 · DSH Model Shelf
 
-**开发中的服务商选项（未发布）**：Codex 订阅可按当前模型能力显示回答详略、推理摘要和响应速度。下列已发布归档不含这项改动。见[八条线路的可调项与限制](docs/PROVIDER-OPTIONS.md)。
+## 1.7.0 发布与验证
+
+Codex 订阅在当前模型支持时可设置回答详略、推理摘要和响应速度。只有点击该行「保存」才会写入连接器共享默认值；其他七条线路没有新增写入口。 [各线路的选项与限制](docs/PROVIDER-OPTIONS.md)。
+
+安装准入 `>=0.0.1-rc.5 <0.3.0-0`；范围不等于逐版实测。
+
+| 验证对象 | 结果 | 证据边界 |
+| --- | --- | --- |
+| 官方包契约 | 逐版另查 | 本版在 0.0.1-rc.5 与 0.2.2-rc.5 核验官方组件，不等于完整桌面。 |
+| 离线 UI | 50/50 | 合成目录，零未捕获页面错误；没有线上推理。 |
+| Windows 0.2.2-rc.5 | 查同包记录 | [隔离桌面验证](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/release-integrity.json)只对应相同归档。 |
+| 其他桌面宿主 | 未测 | 不能把包契约或旧归档当成本包的桌面实测。 |
+| 最终归档 | 包外验收 | [校验和](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/SHA256SUMS.txt)与包外记录一起核对。 |
+
+[下载 1.7.0](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.7.0) · [安装命令](#安装与卸载)。
 
 ## 1.6.0 发布与验证
 
@@ -165,7 +179,7 @@
 - 沿用 DSH 原生模型切换和思考强度选项，保留会话锁定与失败提示。
 - 思考强度可随时**恢复服务商默认**；未声明档位的模型若装了 `dsh-workbuddy-connect`，可在面板内**就地检测档位**，并在档位旁标注来源（1.2.0）。
 - **逐模型上下文容量**：对打了 CTXPATCH 补丁的 `dsh-workbuddy-connect`，面板底部按模型选择 `300K` / `1M` 等它声明的容量，并显示“当前生效”；未打补丁时该控件不出现（1.2.0）。
-- **服务商选项（开发版）**：在普通会话打开当前模型的选择面板；仅在 `openai-codex` 连接器允许内联修改且模型适用时显示。OpenAI API 或中转里的同名模型不会沿用这些控件。
+- **服务商选项**：在普通会话打开当前模型的选择面板；仅在 `openai-codex` 连接器允许内联修改且模型适用时显示。OpenAI API 或中转里的同名模型不会沿用这些控件。
 - 适配宿主浅色 / 深色主题，支持键盘操作。
 
 **1.4.0 的历史变更：**收起服务商卡片的排序及操作控件横向排列；服务商和模型行均显示中性默认图标，目前没有可用的品牌图标。图标完全离线；素材来源和许可见[图标归属说明](docs/ICON-ATTRIBUTIONS.md)。
@@ -196,16 +210,16 @@
 
 ### 安装 1.6.0
 
-从 [1.6.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0) 下载预构建归档，可按[SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/SHA256SUMS.txt)核对；不要用 GitHub 自动生成的源码压缩包代替。
+从 [1.7.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.7.0) 下载预构建归档，可按[SHA-256 校验文件](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/SHA256SUMS.txt)核对；不要用 GitHub 自动生成的源码压缩包代替。
 
 ```powershell
-dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/dsh-model-shelf-1.6.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/dsh-model-shelf-1.7.0.tgz" --ignore-scripts
 ```
 
 如果 CLI 下载受网络限制，可先从 Release 页面下载归档，再使用本地路径（将路径替换为实际归档位置）：
 
 ```powershell
-dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.6.0.tgz" --ignore-scripts
+dsh plugin --profile desktop add "C:/path/to/dsh-model-shelf-1.7.0.tgz" --ignore-scripts
 ```
 
 安装后保存工作，再按宿主提示重新加载；桌面版可自行完全退出并重开 DSH，确认插件版本为 1.6.0。保留内置模型选择器：禁用或卸载书架并重新加载后即恢复原生入口。
@@ -257,7 +271,7 @@ dsh plugin --profile desktop remove dsh-model-shelf
 
 判断方法：打开选择器看 `服务商 ID`。**若两个账号显示的 ID 相同，说明它们在 DSH 里是同一个配置**，需要到宿主的 API 服务商配置里再新增一条。新增后即使两个分组的模型一样，也能分别备注。
 
-### 怎样修改 Codex 订阅的共享默认值（开发版）
+### 怎样修改 Codex 订阅的共享默认值
 
 在「服务商选项」中改选一项，点该行的「保存」。点「恢复默认」只改草稿，还需「保存」；取消或关闭面板不写设置。修改会影响同一 profile 中使用这个 Codex 连接器的其他会话，不是给当前模型单独设值。详略默认跟随模型；摘要默认沿用请求构造器的选择，选「无摘要（不关闭推理）」只移除摘要；速度默认是标准。快速和极速（Beta）按当前账号目录分别提供，可能增加订阅额度或 Credits 消耗。
 
@@ -323,7 +337,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 ## 发布状态
 
-- **当前发行：**[1.6.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0) · [同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json)。GitHub Release 是发行渠道，不发布到 npm。
+- **当前发行：**[1.7.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.7.0) · [同包验证记录](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/release-integrity.json)。GitHub Release 是发行渠道，不发布到 npm。
 
 - **历史正式版 1.5.3：**[发布和原始附件](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) 保持不变；其 rc.3 结果仅适用于当时的包。
 
@@ -347,7 +361,7 @@ React、ReactDOM 和 playwright-core 仅用于开发测试。插件运行时复�
 
 A wide, collapsible model picker for DSH, with Main and Uncommon lists plus a separate Favorites list. Users explicitly move models between lists; no automatic usage-based classification is performed. Each row shows the provider name, provider ID, model name and model ID. Per-provider account notes let you label multiple API accounts on the same platform, saved by provider configuration ID. Preferences are stored in the current browser only; no cross-device synchronization is implemented.
 
-**[1.6.0 release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0): one capability-based package.** Admission is `>=0.0.1-rc.5 <0.3.0-0` (including prereleases). Of 50 inventoried versions, 46 passed official component tests, two fall below the range and two lack a matching published core. For the exact Windows x64 DSH 0.2.2-rc.5 lifecycle see the [release integrity record](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.6.0/release-integrity.json); other desktops are untested.
+**[1.7.0 release](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.7.0): Codex subscription preferences.** Save answer detail, reasoning summaries and model-supported speed tiers from the model picker. These are shared connector defaults, not per-session settings. The connector was verified offline, not against an online model. See the [desktop integrity record](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/release-integrity.json) for the exact archive.
 
 **Historical 1.5.3:** Version **1.5.3** is [publicly released](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.5.3) as the normal GitHub Latest release. Admission is pinned to DSH **0.2.1-rc.2, 0.2.1-rc.4, 0.2.1-rc.5, 0.2.2-alpha.2, 0.2.2-rc.1 and 0.2.2-rc.3**. The exact final archive passed the official Windows rc.3 install/disable/reenable/uninstall/native-fallback lifecycle; release verification included 167 unit/contract tests and 45 offline browser checks with no uncaught page errors. Older-host results remain historical, not new-archive recertification. No daily upgrade, restart or manual daily-GUI acceptance was performed. Published tag and archive bytes stay immutable; the source documentation records post-release status.
 

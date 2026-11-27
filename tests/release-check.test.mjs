@@ -43,7 +43,7 @@ function releasedBlob(path) {
   return r.stdout;
 }
 
-async function fixture(fn) {
+async function fixture(fn, current = false) {
   const root = await mkdtemp(join(tmpdir(), 'shelf-gate-'));
   try {
     await mkdir(join(root, 'scripts'));
@@ -51,7 +51,8 @@ async function fixture(fn) {
     for (const path of [...docs, 'package.json', 'LICENSE', 'lib/client.js', 'lib/index.js',
       ...['main-list', 'uncommon-list', 'dark-list'].map(name => 'docs/images/' + name + '.png')]) {
       await mkdir(dirname(join(root, path)), { recursive: true });
-      await writeFile(join(root, path), releasedBlob(path));
+      if (current) await copyFile(join(repo, path), join(root, path));
+      else await writeFile(join(root, path), releasedBlob(path));
     }
     const text = path => readFile(join(root, path), 'utf8');
     const put = (path, value) => writeFile(join(root, path), value);
@@ -72,11 +73,29 @@ test('pre-pack check accepts the pinned stable package, not a claim of final acc
   assert.match(passes(run()), /打包前.*不代表.*桌面验收/);
 }));
 
-test('pre-pack check still checks the actual worktree and its client bytes', async () => {
-  const digest = sha256(await readFile(join(repo, 'lib/client.js')));
-  const result = gate(repo);
-  if (digest === releasedClientSHA256) assert.match(passes(result), /打包前.*不代表.*桌面验收/);
-  else refusesOnlyChangedClient(result);
+test('1.7.0 pre-pack binds the audited client and still refuses npm', async () => {
+  const pkg = JSON.parse(await readFile(join(repo, 'package.json'), 'utf8'));
+  assert.equal(pkg.version, '1.7.0');
+  assert.equal(sha256(await readFile(join(repo, 'lib/client.js'))), '8171dcb86fd60d47c04eb69a8da900478fd7533f80a9efab4a20a3dab96c78f4');
+  assert.match(passes(gate(repo)), /打包前.*不代表.*桌面验收/);
+  refuses(gate(repo, '--publish'), /不发布到 npm/);
+});
+
+test('1.6.0 cannot claim the new client, and 1.7.0 refuses historical or changed evidence', async () => {
+  await fixture(async f => {
+    await f.put('lib/client.js', await readFile(join(repo, 'lib/client.js')));
+    refusesOnlyChangedClient(f.run());
+  });
+  await fixture(async f => {
+    const { receipt, check } = await desktopFixture(f);
+    passes(await check(receipt));
+    for (const change of [{packageVersion: version, installedVersion: version}, {clientSHA256: releasedClientSHA256}])
+      refuses(await check({ ...receipt, ...change }), /桌面记录/);
+    const candidate = await readFile(join(f.root, 'lib/client.js'));
+    candidate[0] ^= 1;
+    await f.put('lib/client.js', candidate);
+    refuses(f.run(), /生产客户端字节/);
+  }, true);
 });
 
 test('GitHub-only release refuses npm even with historical registry settings', () => fixture(async ({ pkg, put, run }) => {
@@ -146,7 +165,7 @@ test('current validation scope, shipped docs, assets, license and candidate byte
 
 // Only an isolated checker fixture. It does not install a host or supply release evidence.
 async function desktopFixture(f) {
-  const archive = join(f.root, 'dsh-model-shelf-' + version + '.tgz');
+  const archive = join(f.root, 'dsh-model-shelf-' + f.pkg.version + '.tgz');
   const path = join(f.root, 'desktop-result.json');
   await createTar({ gzip: true, cwd: f.root, prefix: 'package/', file: archive }, ['package.json', 'lib', ...docs]);
   const route = model => JSON.stringify(['test-provider', model]);
@@ -156,7 +175,7 @@ async function desktopFixture(f) {
     nativeMenu: { trigger: 'Select ' + model, expanded: true, text: 'Model: ' + model } });
   const fingerprints = ['manifest', 'patch', 'lock', 'package', 'client'].map(sha256);
   const receipt = { checks: ['uninstall removes dependency and bundle without orphaned plugin patch rows'], archiveSHA256: sha256(await readFile(archive)), clientSHA256: sha256(await readFile(join(f.root, 'lib/client.js'))),
-    packageVersion: version, installedVersion: version, success: true, carrier: 'Windows Desktop', runtime: { actual: '0.2.2-rc.5' },
+    packageVersion: f.pkg.version, installedVersion: f.pkg.version, success: true, carrier: 'Windows Desktop', runtime: { actual: '0.2.2-rc.5' },
     phases: [shelf('installed', 'a', 'b'), native('disabled', 'b'), shelf('reenabled', 'b', 'a'), native('uninstalled', 'a')],
     protectedFiles: { unchanged: true, before: fingerprints, after: [...fingerprints] }, activeProcesses: 0, browserClosed: true, providerStats: { streams: 0 },
     realModelCalls: false, credentialCopies: false, installScripts: false };

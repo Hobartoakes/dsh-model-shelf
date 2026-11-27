@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-shelf",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "publishConfig": { "access": "restricted" },
   "description": "Model Shelf for DSH: a wide, collapsible model picker with a manually organized uncommon list and explicit provider/model identity.",

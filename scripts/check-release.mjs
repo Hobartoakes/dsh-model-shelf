@@ -24,9 +24,13 @@ for (const path of ['lib/index.js', 'lib/client.js', 'docs/images/main-list.png'
 
 // Component results, the pre-fix pilot and the exact stable desktop receipt are distinct.
 // A final tgz digest belongs outside the archive.
-const CANDIDATE = {
+const historical = pkg.version === '1.6.0';
+const CANDIDATE = historical ? {
   version: '1.6.0', runtime: '0.2.2-rc.5', range: '>=0.0.1-rc.5 <0.3.0-0',
   client: '2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00',
+} : {
+  version: '1.7.0', runtime: '0.2.2-rc.5', range: '>=0.0.1-rc.5 <0.3.0-0',
+  client: '8171dcb86fd60d47c04eb69a8da900478fd7533f80a9efab4a20a3dab96c78f4',
 };
 const PILOT = {
   runtime: '0.2.2-rc.5',
@@ -50,12 +54,12 @@ if (pkg.version !== CANDIDATE.version) issues.push('版本已变；请为新版�
 if (pkg.engines?.dsh !== CANDIDATE.range) issues.push('engines.dsh 的准入应为 ' + CANDIDATE.range + '（不等于逐版实测）。');
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 try {
-  if (sha256(await readFile(new URL('lib/client.js', root))) !== CANDIDATE.client) issues.push('生产客户端字节与旧宿主修复后复验的候选不符；须重新取得相应证据。');
+  if (sha256(await readFile(new URL('lib/client.js', root))) !== CANDIDATE.client) issues.push(historical ? '生产客户端字节与旧宿主修复后复验的候选不符；须重新取得相应证据。' : '生产客户端字节与 1.7.0 独立验收的候选不符。');
 } catch { issues.push('无法核对本候选生产客户端字节。'); }
 
 const docs = ['README.md', 'CHANGELOG.md', 'docs/VALIDATION.md', 'docs/RELEASE-CHECKLIST.md', 'docs/HOST-COMPATIBILITY.md'];
 const matrixDocs = ['README.md', 'docs/VALIDATION.md', 'docs/HOST-COMPATIBILITY.md'];
-const currentTiers = [['官方包契约', '逐版另查'], ['离线 UI', '45/45'], ['Windows ' + CANDIDATE.runtime, '查同包记录'], ['其他桌面宿主', '未测'], ['最终归档', '包外验收']];
+const currentTiers = [['官方包契约', '逐版另查'], ['离线 UI', historical ? '45/45' : '50/50'], ['Windows ' + CANDIDATE.runtime, '查同包记录'], ['其他桌面宿主', '未测'], ['最终归档', '包外验收']];
 const sectionsOf = text => text.replace(/\r\n/g, '\n').split(/^## /m).slice(1).map(block => {
   const [title, ...lines] = block.split('\n'); return { title, body: lines.join('\n') };
 });
@@ -89,8 +93,9 @@ for (const path of docs) {
   }
   const pilotLabel = 'Pilot 归档 SHA-256：' + '`' + PILOT.archive + '`';
   if (path === 'docs/VALIDATION.md') {
-    if (!current.includes(pilotLabel) || !current.includes('](../' + PILOT.report + ')')) issues.push(path + ' 缺少 pilot 归档与对应实测的绑定。');
-    if (!scope.trimStart().startsWith('- 包：**dsh-model-shelf ' + pkg.version + '**') || !scope.includes('releases/download/v1.6.0/release-integrity.json')) issues.push(path + ' 范围与结果须指明当前包及包外验收记录。');
+    const legacy = historical ? current : sections.find(s => s.title === '1.6.0 发布与验证')?.body ?? '';
+    if (!legacy.includes(pilotLabel) || !legacy.includes('](../' + PILOT.report + ')')) issues.push(path + ' 缺少 pilot 归档与对应实测的绑定。');
+    if (!scope.trimStart().startsWith('- 包：**dsh-model-shelf ' + pkg.version + '**') || !scope.includes('releases/download/v' + CANDIDATE.version + '/release-integrity.json')) issues.push(path + ' 范围与结果须指明当前包及包外验收记录。');
   }
   const described = path === 'docs/VALIDATION.md' ? current.replace(pilotLabel, '') + scope : current;
   if (/\b[a-f0-9]{64}\b/i.test(described)) issues.push(path + ' 当前章节不可借用旧哈希或嵌入最终归档的 SHA-256；该值只存包外。');
@@ -102,7 +107,7 @@ function ships(file) {
   return (pkg.files ?? []).some(pattern => typeof pattern === 'string' && parts.some((_, i) => posix.matchesGlob(parts.slice(0, i + 1).join('/'), pattern.replace(/\/$/, ''))));
 }
 for (const path of docs) if (!ships(path)) issues.push(path + ' 未列入 package.json 的 files。');
-for (const path of ['release-integrity.json', 'SHA256SUMS.txt', 'dist-draft/release-1.6.0/release-integrity.json', 'dist-draft/final/acceptance.json', 'dist-draft/final/SHA256SUMS', PILOT.report]) {
+for (const path of ['release-integrity.json', 'SHA256SUMS.txt', 'dist-draft/release-' + CANDIDATE.version + '/release-integrity.json', 'dist-draft/final/acceptance.json', 'dist-draft/final/SHA256SUMS', PILOT.report]) {
   if (ships(path)) issues.push(path + ' 必须留在包外。');
 }
 
@@ -119,7 +124,8 @@ function route(key) {
 function checkDesktop(r, digest) {
   const fail = reason => issues.push('桌面记录：' + reason);
   if (r.archiveSHA256 !== digest) fail('归档 SHA-256 与实际字节不符。');
-  if ([LOCAL_FINAL, PILOT.archive, HISTORY.archive, HISTORY.previousArchive].includes(digest)) fail('试验、本地或历史归档不能冒作最终包。');
+  const previousStable = '81508429bf4fe15db5c1402b86cf8943145deb0cf048e915b093ec8e08487b73';
+  if ((!historical && digest === previousStable) || [LOCAL_FINAL, PILOT.archive, HISTORY.archive, HISTORY.previousArchive].includes(digest)) fail('试验、本地或历史归档不能冒作最终包。');
   if (r.clientSHA256 === PILOT.client) fail('修复前 pilot 客户端不能作为修复后客户端的桌面记录。');
   if (r.packageVersion !== pkg.version || r.installedVersion !== pkg.version || r.clientSHA256 !== CANDIDATE.client ||
       r.carrier !== 'Windows Desktop' || r.runtime?.actual !== CANDIDATE.runtime || r.success !== true) fail('包、客户端、官方 Windows 载体、实际宿主版本或成功状态不匹配。');

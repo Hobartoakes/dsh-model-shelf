@@ -1,5 +1,12 @@
 # 发布检查清单
 
+## 1.7.0 发布与验证
+
+1. 构建并核对客户端，运行 `npm run check:release`、全量 Node、浏览器、七线合同、Codex 离线闭环和两个边界宿主合同。
+2. 在新的目录冻结 `dsh-model-shelf-1.7.0.tgz`，核对实际成员和客户端指纹，之后不重打包。
+3. 用官方 Windows 0.2.2-rc.5 的隔离 profile 验证正式包的安装、切换、刷新、禁用、重新启用与卸载，保护日常配置；执行 `node scripts/check-release.mjs --final-desktop <final.tgz> <result.json>`。
+4. 先通过官方管理器把同一包安装到本机 desktop；只核验磁盘安装，不自动重启。成功后发布 GitHub 标签 `v1.7.0` 和归档、校验和、脱敏回执三份附件，匿名重新下载核对，不发布 npm。
+
 ## 1.6.0 发布与验证
 
 渠道：仅 [1.6.0 正式版](https://github.com/Hobartoakes/dsh-model-shelf/releases/tag/v1.6.0)。同一个正式 tgz 通过 Windows 隔离验收后再上传；不执行 npm publish，不动旧标签或旧附件。

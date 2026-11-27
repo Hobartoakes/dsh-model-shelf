@@ -1,5 +1,19 @@
 # 宿主兼容性核对
 
+## 1.7.0 发布与验证
+
+安装准入 `>=0.0.1-rc.5 <0.3.0-0`；范围不等于逐版实测。
+
+| 验证对象 | 结果 | 证据边界 |
+| --- | --- | --- |
+| 官方包契约 | 逐版另查 | 本版在 0.0.1-rc.5 与 0.2.2-rc.5 核验官方组件，不等于完整桌面。 |
+| 离线 UI | 50/50 | 合成目录，零未捕获页面错误；没有线上推理。 |
+| Windows 0.2.2-rc.5 | 查同包记录 | [隔离桌面验证](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/release-integrity.json)只对应相同归档。 |
+| 其他桌面宿主 | 未测 | 不能把包契约或旧归档当成本包的桌面实测。 |
+| 最终归档 | 包外验收 | [校验和](https://github.com/Hobartoakes/dsh-model-shelf/releases/download/v1.7.0/SHA256SUMS.txt)与包外记录一起核对。 |
+
+模型能力证据见[八条线路说明](PROVIDER-OPTIONS.md)。以下旧版本章节为其各自发布时的验证记录。
+
 ## 1.6.0 发布与验证
 
 **安装策略。** `>=0.0.1-rc.5 <0.3.0-0` 是准入，不是“所有版本均工作”。官方 Web 的 0.0.1-rc.1/.2 引用旧 picker，0.0.1-rc.5 是清单中首次引用现代 model-selection 的版本。DSH 使用 `includePrerelease: true`，故上界为 `<0.3.0-0` 而非 `<0.3.0`（后者仍接纳 0.3.0-alpha.1）。范围内无需为兼容小版本另列许可；范围外不绕过宿主检查。

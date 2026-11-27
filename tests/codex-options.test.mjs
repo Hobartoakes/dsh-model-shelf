@@ -97,9 +97,11 @@ test('speed preflight refuses a revoked tier or permission and does not overwrit
 });
 
 test('speed uses one exact patch and an independent, still-eligible readback', async () => {
+  const echoed = ok({ speedMode: 'ultrafast' });
   for (const [receipt, observed, result] of [
-    [ok({}), { speedMode: 'ultrafast' }, 'applied'], [ok({}), { speedMode: 'ultrafast', ultrafastModels: [] }, 'unconfirmed'],
-    [ok({}), {}, 'unconfirmed'], [{ ok: false, error: {} }, { speedMode: 'ultrafast' }, 'unconfirmed'],
+    [echoed, { speedMode: 'ultrafast' }, 'applied'], [echoed, { speedMode: 'ultrafast', ultrafastModels: [] }, 'unconfirmed'],
+    [echoed, {}, 'unconfirmed'], [ok({}), { speedMode: 'ultrafast' }, 'unconfirmed'],
+    [{ ok: false, error: {} }, { speedMode: 'ultrafast' }, 'unconfirmed'],
   ]) {
     const { io, calls } = transport(speedStatus(), speedStatus(), receipt, speedStatus(observed));
     const field = await speedRow(io); assert.ok(field);
@@ -151,6 +153,42 @@ test('an absent service or failed status has no fallback and leaks no error', as
     assert.deepEqual(calls.map(c => c[1]), [STATUS]);
   }
 });
+
+// Fault injection: a successful envelope cannot also carry its own error member.
+const contradictoryStatus = reply => ({ ...reply, error: { code: 'internal', message: 'fixture status failed' } });
+
+test('a contradictory initial status exposes no options', async () => {
+  const eligible = speedStatus();
+  for (const reply of [contradictoryStatus(eligible), { ...eligible, error: null }]) {
+    const { io, calls } = transport(reply);
+    assert.deepEqual(await io.read(target), []);
+    assert.deepEqual(calls.map(c => c[1]), [STATUS]);
+  }
+});
+
+test('a contradictory preflight refuses the draft without dispatching a patch', async () => {
+  const saved = status({ reasoningSummary: 'none' });
+  const { io, calls } = transport(status(), contradictoryStatus(status()), saved, saved);
+  const expected = (await io.read(target)).find(f => f.id === 'reasoningSummary');
+  const result = await io.write(target, expected, { set: 'none' }, undefined, current);
+  assert.deepEqual({ result, methods: calls.map(c => c[1]) }, { result: 'refused', methods: [STATUS, STATUS] });
+});
+
+for (const liveSynced of [true, false]) {
+  test('a contradictory readback cannot confirm a persisted patch, liveSynced=' + liveSynced, async () => {
+    for (const contradictory of [false, true]) {
+      const { io, calls, stored } = statefulOwner((state, patch) => {
+        Object.assign(state, patch);
+        return ok({ ...state, liveSynced });
+      }, state => contradictory && state.outputVerbosity === 'low' ? contradictoryStatus(status(state)) : status(state));
+      const [expected] = await io.read(target);
+      const result = await io.write(target, expected, { set: 'low' }, undefined, current);
+      assert.equal(stored.outputVerbosity, 'low');
+      assert.deepEqual(calls.map(c => [c[1], c[2]]), [[STATUS, {}], [STATUS, {}], [UPDATE, { outputVerbosity: 'low' }], [STATUS, {}]]);
+      assert.equal(result, contradictory ? 'unconfirmed' : liveSynced ? 'applied' : 'saved-not-live');
+    }
+  });
+}
 
 test('save verifies an independent readback', async () => {
   const { io, calls } = transport(status(), status(), status({ outputVerbosity: 'low' }), status());
@@ -239,12 +277,12 @@ test('saved-not-live requires independent confirmation, never just the echoed pa
   }
 });
 
-function statefulOwner(onPatch) {
+function statefulOwner(onPatch, onStatus = status) {
   const stored = { outputVerbosity: 'default', reasoningSummary: 'auto' };
   const calls = [];
   const io = createCodexOptions({ call(path, method, payload, signal) {
     calls.push([path, method, payload, signal]);
-    if (method === STATUS) return status({ ...stored });
+    if (method === STATUS) return onStatus({ ...stored });
     if (method === UPDATE) return onPatch(stored, payload);
     throw new Error('unexpected endpoint');
   } });
@@ -259,7 +297,10 @@ for (const [name, receipt] of [
   ['other field’s validation error', { ok: false, error: { code: 'internal', message: 'Invalid reasoning summary preference' } }],
   ['contradictory result', { ok: true, error: {}, value: { outputVerbosity: 'low' } }],
   ['lost response', new Error('connection reset')], ['empty value', ok(null)], ['missing response', undefined],
-  ['invalid sync flag', status({ liveSynced: 'false' })]
+  ['empty update echo', ok({})], ['other field only', ok({ reasoningSummary: 'auto' })],
+  ['wrong target value', ok({ outputVerbosity: 'high' })],
+  ['wrong target value and unsynced flag', ok({ outputVerbosity: 'high', liveSynced: false })],
+  ['invalid sync flag', status({ outputVerbosity: 'low', liveSynced: 'false' })]
 ]) {
   test('a persisted patch with ' + name + ' is read back once but remains unconfirmed', async () => {
     const { io, calls, stored } = statefulOwner((state, patch) => {
@@ -277,6 +318,21 @@ for (const [name, receipt] of [
     ] });
   });
 }
+
+test('a reset requires its own field and wire default in the update echo', async () => {
+  for (const [echo, outcome] of [['none', 'unconfirmed'], ['auto', 'applied']]) {
+    const { io, calls, stored } = statefulOwner((state, patch) => {
+      Object.assign(state, patch);
+      return ok({ reasoningSummary: echo, get unrelated() { throw new Error('irrelevant receipt field'); } });
+    });
+    stored.reasoningSummary = 'none';
+    const expected = (await io.read(target)).find(f => f.id === 'reasoningSummary');
+    const result = await io.write(target, expected, { reset: true }, undefined, current);
+    assert.equal(stored.reasoningSummary, 'auto');
+    assert.deepEqual(calls.map(c => [c[1], c[2]]), [[STATUS, {}], [STATUS, {}], [UPDATE, { reasoningSummary: 'auto' }], [STATUS, {}]]);
+    assert.equal(result, outcome);
+  }
+});
 
 test('a field validation failure before preferences.update is a definitive refusal', async () => {
   for (const [id, original, value, message] of [

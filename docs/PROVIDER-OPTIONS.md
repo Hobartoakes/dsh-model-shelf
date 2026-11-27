@@ -111,6 +111,28 @@ WorkBuddy 不计入八组。未声明思考档位且模型列为候选时，点�
 
 ## 本次验证与复跑
 
+### Codex：什么才算保存成功
+
+[协议测试](../tests/codex-options.test.mjs)分别注入两种故障，并断言每次 RPC 的顺序和补丁数。这是书架的防御性检查，不代表固定版本的连接器在正常使用中会返回这些回执。
+
+- **状态自相矛盾**：同一个 `status` 既报 `ok: true` 又带有 `error`，初次读取不显示选项，保存前复核直接拒绝（零补丁）。如果补丁已发出，遇到这样的独立读回只能报「未确认」；即使里面正好是目标值，或更新回执明确说尚未同步，也不会显示为已保存。
+- **更新回执不匹配**：连接器可以返回其他偏好，但必须同时回显这次提交的字段和精确值（重置时是该字段的默认值）。回执值为空、只含其他字段或回显错误，即使独立读回是目标值，也只报「未确认」。只发一笔补丁、独立读回一次，不重试。正确回显且读回相符才报「已应用」；此时若 `liveSynced: false` 则报「已保存，当前实例尚未同步」。只有回显、没有有效读回也不能确认。
+
+本轮重建并核对[实际客户端](../lib/client.js)，SHA-256 `8171dcb86fd60d47c04eb69a8da900478fd7533f80a9efab4a20a3dab96c78f4`。同一构建的离线开发验收如下；不替代桌面或发布预检，未修改旧版本的发布门槛。
+
+| 复跑命令 | 结果（退出码均为 0） |
+| --- | --- |
+| `node --test tests/codex-options.test.mjs` | 39/39，含上述两组反例以及原有取消、陈旧、只读和不确定回执对照。 |
+| `npm run build` | 再构建后客户端 SHA-256 不变。 |
+| `npm test` | 299/299，无跳过。 |
+| `npm run test:browser` | 浏览器检查 50 项，未捕获页面错误 0。 |
+| `node tests/provider-options/codex-roundtrip.mjs --offline` | 真实连接器 12 次保存后重开、31 条本地序列化请求，供应商连接 0。 |
+| `node --test --test-concurrency=1 tests/provider-routes/openai-api/contract.test.mjs tests/provider-routes/claude/contract.test.mjs tests/provider-routes/gemini/contract.test.mjs tests/provider-routes/deepseek/contract.test.mjs tests/provider-routes/qwen/contract.test.mjs tests/provider-routes/kimi/contract.test.mjs tests/provider-routes/glm/contract.test.mjs` | 七组串行 28/28，无跳过。只验证本地请求构造和所有者边界，没有给这些线路新增保存入口。 |
+| `node tests/host-inventory/run-contracts.mjs --offline 0.0.1-rc.5 0.2.2-rc.5` | 两个固定宿主均为 `package-contract`；未启动完整桌面。 |
+| `npm pack --dry-run --json --ignore-scripts` | 包清单 93 个文件，无打包依赖；仅干跑，未安装、推送或发布。 |
+
+### 返修前的开发记录
+
 下表保留返修前提交 `3cb03a8` 的开发验收记录：2026-11-27 在 Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 下从仓库根目录复跑的开发验收结果。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
 
 | 命令 | 退出码 | 观察结果 |

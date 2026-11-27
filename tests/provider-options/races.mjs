@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { activeModel } from './host.mjs';
 
-// Start on the same-ID API route, with all six positive writes accounted for.
+// Start on the same-ID API route, with the positive writes accounted for.
 export async function verifyRaces(ui, host) {
   const {page,trace}=ui, row=page.locator('[data-provider-option="outputVerbosity"]');
   const control=row.getByRole('combobox'), save=row.getByRole('button',{name:'保存',exact:true});

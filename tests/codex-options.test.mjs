@@ -43,6 +43,71 @@ test('codex exposes only owner-declared fields', async () => {
   assert.doesNotMatch(JSON.stringify(fields), /private fixture|customInstructions|Display only|speedMode/);
 });
 
+const speedStatus = (patch = {}) => status({
+  catalogStatus: { source: 'online', refresh: 'ok' }, fastModels: [target.model], ultrafastModels: [target.model], speedMode: 'standard', ...patch
+});
+const speedRow = async (io, t = target) => (await io.read(t)).find(f => f.id === 'speedMode');
+
+test('speed tiers come independently from the refreshed account catalog, with use notices', async () => {
+  for (const [fast, ultra] of [[true, true], [true, false], [false, true], [false, false]]) {
+    const { io, calls } = transport(speedStatus({ fastModels: fast ? [target.model] : ['other'], ultrafastModels: ultra ? [target.model] : [], ultraModels: [target.model] }));
+    const field = await speedRow(io);
+    if (fast || ultra) {
+      assert.ok(field, 'expected a declared acceleration tier');
+      assert.equal(field.owner, 'dsh-codex-subscription'); assert.equal(field.scope, scope);
+      assert.deepEqual([field.value, field.reset], ['standard', 'standard']);
+      assert.deepEqual(field.editor.choices, ['standard', ...(fast ? ['fast'] : []), ...(ultra ? ['ultrafast'] : [])]);
+      assert.equal(/快速[^。]*更多 Credits/.test(field.notice), fast);
+      assert.equal(/极速[^。]*订阅额度[^。]*Credits/.test(field.notice), ultra);
+      assert.ok(Object.isFrozen(field.editor.choices));
+    } else assert.equal(field, undefined, 'Ultra reasoning is not a speed tier');
+    assert.deepEqual(calls.map(c => c[1]), [STATUS]);
+  }
+});
+
+test('model name fallbacks, unavailable owners and opaque stored speeds cannot authorize a row', async () => {
+  const t = { ...target, model: 'gpt-5.4' };
+  for (const patch of [
+    { catalogStatus: undefined }, { catalogStatus: { source: 'cache', refresh: 'ok' } },
+    { catalogStatus: { source: 'online', refresh: 'failed' } }, { speedMode: 'turbo' },
+    { writable: false }, { disabledModels: [t.model] }, { composerModelPicker: 'dsh' },
+    { availableModels: [{ id: t.model }, { id: t.model }] }, { fastModels: t.model }, { ultrafastModels: undefined },
+  ]) {
+    const { io, calls } = transport(speedStatus({ availableModels: [{ id: t.model }], fastModels: [t.model], ultrafastModels: [], ...patch }));
+    assert.equal(await speedRow(io, t), undefined); assert.deepEqual(calls.map(c => c[1]), [STATUS]);
+  }
+});
+
+test('a recognized but inapplicable shared speed remains the baseline, not a writable tier', async () => {
+  const { io, calls } = transport(speedStatus({ speedMode: 'ultrafast', ultrafastModels: [] }));
+  const field = await speedRow(io);
+  assert.equal(field?.value, 'ultrafast'); assert.deepEqual(field.editor.choices, ['standard', 'fast']);
+  assert.equal(await io.write(target, field, { set: 'ultrafast' }, undefined, current), 'refused');
+  assert.deepEqual(calls.map(c => c[1]), [STATUS]);
+});
+
+test('speed preflight refuses a revoked tier or permission and does not overwrite another writer', async () => {
+  for (const [patch, result] of [[{ ultrafastModels: [] }, 'refused'], [{ writable: false }, 'refused'],
+    [{ catalogStatus: { source: 'cache', refresh: 'failed' } }, 'refused'], [{ speedMode: 'fast' }, 'conflict']]) {
+    const { io, calls } = transport(speedStatus(), speedStatus(patch));
+    const field = await speedRow(io); assert.ok(field);
+    assert.equal(await io.write(target, field, { set: 'ultrafast' }, undefined, current), result);
+    assert.deepEqual(calls.map(c => c[1]), [STATUS, STATUS]);
+  }
+});
+
+test('speed uses one exact patch and an independent, still-eligible readback', async () => {
+  for (const [receipt, observed, result] of [
+    [ok({}), { speedMode: 'ultrafast' }, 'applied'], [ok({}), { speedMode: 'ultrafast', ultrafastModels: [] }, 'unconfirmed'],
+    [ok({}), {}, 'unconfirmed'], [{ ok: false, error: {} }, { speedMode: 'ultrafast' }, 'unconfirmed'],
+  ]) {
+    const { io, calls } = transport(speedStatus(), speedStatus(), receipt, speedStatus(observed));
+    const field = await speedRow(io); assert.ok(field);
+    assert.equal(await io.write(target, field, { set: 'ultrafast' }, undefined, current), result);
+    assert.deepEqual(calls.map(c => [c[1], c[2]]), [[STATUS, {}], [STATUS, {}], [UPDATE, { speedMode: 'ultrafast' }], [STATUS, {}]]);
+  }
+});
+
 test('non-Codex and incomplete targets never make an RPC', async () => {
   const { io, calls } = transport(status());
   for (const t of [null, ...['openai', 'openai-codex-proxy', 'OpenAI-Codex'].map(provider => ({ ...target, provider })),

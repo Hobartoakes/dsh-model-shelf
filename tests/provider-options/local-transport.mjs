@@ -14,13 +14,15 @@ export function isolateNetwork() {
       catalogs++; return Response.json({ models: catalogRows });
     }
     if (url.origin === 'https://chatgpt.com' && url.pathname === '/backend-api/codex/responses' && req.method === 'POST') {
-      const body = await req.json(); wire.push({ model: body.model, text: body.text, reasoning: body.reasoning });
+      const body = await req.json();
+      wire.push({ model: body.model, text: body.text, reasoning: body.reasoning,
+        ...(Object.hasOwn(body, 'service_tier') ? { service_tier: body.service_tier } : {}) });
       const done = { type: 'response.completed', response: { id: 'fixture-response', status: 'completed', output: [], usage: { input_tokens: 1, output_tokens: 0, total_tokens: 1 } } };
       return new Response('data: ' + JSON.stringify(done) + '\n\n', { headers: { 'content-type': 'text/event-stream' } });
     }
     forbidden++; throw Error('unexpected offline fetch');
   };
-  return { get catalogs() { return catalogs; }, get forbidden() { return forbidden; }, async next(host, model, effort) {
+  return { get requests() { return wire.length; }, get catalogs() { return catalogs; }, get forbidden() { return forbidden; }, async next(host, model, effort) {
     const count = wire.length; await host.request(model, effort); assert.equal(wire.length, count + 1, 'expected exactly one serialized model request'); const result = wire.at(-1); assert.equal(result.model, model); return result;
   }, dispose() { globalThis.fetch = originalFetch; Socket.prototype.connect = originalConnect; } };
 }

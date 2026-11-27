@@ -120,7 +120,8 @@ export function openProviderDrafts(io, target, isCurrent, publish) {
 
 const providerSaveText = { applied: '已保存', 'saved-not-live': '已保存，当前实例尚未同步', conflict: '设置已变更，请重新读取',
   refused: '未保存：目标不可写或连接器已拒绝', unconfirmed: '未确认，请重新读取；不会自动重试', stale: '目标已变化，请重新读取' };
-const providerChoiceText = { default:'模型默认', low:'低', medium:'中', high:'高', auto:'自动（保留默认摘要）', concise:'简明', detailed:'详细', none:'无摘要（不关闭推理）' };
+const providerChoiceText = { default:'模型默认', low:'低', medium:'中', high:'高', auto:'自动（保留默认摘要）', concise:'简明', detailed:'详细', none:'无摘要（不关闭推理）',
+  standard:'标准', fast:'快速', ultrafast:'极速（Beta）' };
 
 export function makeProviderOptionPanel(React) {
   const { createElement: h, useState, useRef, useLayoutEffect } = React;
@@ -141,10 +142,13 @@ export function makeProviderOptionPanel(React) {
       view.rows.map(({option, value, change, result}) => {
         const disabled = view.busy || !!result, { id, label } = option;
         const confirmed = result === 'applied' || result === 'saved-not-live';
+        const unavailable = !confirmed && option.editor.unavailableText;
         return h('div', { key: id, className: 'dmo-provider-field', 'data-provider-option': id },
-          h('label', null, label, h('select', { value, disabled, 'aria-label': label, onChange: e => active.current?.edit(id, { set: e.target.value }) },
+          h('label', null, label, h('select', { value, disabled, 'aria-label': label, 'aria-description': option.notice, onChange: e => active.current?.edit(id, { set: e.target.value }) },
+            unavailable && h('option', { value:option.value, disabled:true }, providerChoiceText[option.value] + '（此模型不支持）'),
             option.editor.choices.map(v => h('option', { key:v, value:v },providerChoiceText[v] ?? v)))),
-          h('small', null, (confirmed ? '已读回：' : '编辑前：') + providerChoiceText[confirmed ? value : option.value]),
+          h('small', null, (confirmed ? '已读回：' : '编辑前：') + providerChoiceText[confirmed ? value : option.value] + (unavailable ? '；' + unavailable : '')),
+          option.notice && h('p', null, option.notice),
           option.reset !== undefined && h('button', { type:'button', disabled, onClick: () => active.current?.edit(id,{reset:true}) }, '恢复默认'),
           h('button', { type:'button', disabled: disabled || !change, onClick: () => active.current?.cancel(id) }, '取消'),
           h('button', { type:'button', disabled: disabled || !change, onClick: () => void active.current?.save(id) }, '保存'),

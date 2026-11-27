@@ -21,13 +21,36 @@ function validCodexTarget(target) {
     typeof target.sessionId === 'string' && target.sessionId.trim() !== '' && target.epoch != null;
 }
 
+// In 3.2.28 an online/ok availableModels entry came from a parsed account
+// row with explicit supportsFast/supportsUltrafast booleans. Outside that
+// catalog fastModels alone can be a model-name fallback, not account evidence.
+function codexSpeedOption(status, model) {
+  const { catalogStatus, fastModels, ultrafastModels, speedMode } = status;
+  if (catalogStatus?.source !== 'online' || catalogStatus.refresh !== 'ok' ||
+      !Array.isArray(status.disabledModels) || !Array.isArray(fastModels) || !Array.isArray(ultrafastModels) ||
+      !['standard', 'fast', 'ultrafast'].includes(speedMode)) return;
+  const fast = fastModels.includes(model), ultra = ultrafastModels.includes(model);
+  if (!fast && !ultra) return;
+  const choices = Object.freeze(['standard', ...(fast ? ['fast'] : []), ...(ultra ? ['ultrafast'] : [])]);
+  const notice = (fast ? '快速模式会消耗更多 Credits。' : '') +
+    (ultra ? '极速模式（Beta）会更快消耗订阅额度和 Credits。' : '');
+  // The saved value belongs to the connector, not to this model. Keep it as
+  // the conflict baseline even if it is no longer among the writable choices.
+  const editor = Object.freeze({ choices, ...(choices.includes(speedMode) ? {} : { unavailableText: '当前模型按标准速度处理' }) });
+  return Object.freeze({ id: 'speedMode', label: '响应速度', value: speedMode, reset: 'standard', editor,
+    owner: codexOwner, scope: codexScope, notice });
+}
+
 function codexOptionsFromStatus(status, target) {
   if (status?.writable !== true || !['auto', 'legacy'].includes(status.composerModelPicker) ||
       !Array.isArray(status.availableModels) || status.availableModels.filter(m => m?.id === target.model).length !== 1 ||
       (status.disabledModels !== undefined && (!Array.isArray(status.disabledModels) || status.disabledModels.includes(target.model)))) return [];
 
-  return codexFields.filter(f => f.supported(status, target) && f.editor.choices.includes(status[f.id]))
+  const fields = codexFields.filter(f => f.supported(status, target) && f.editor.choices.includes(status[f.id]))
     .map(({ id, label, reset, editor }) => Object.freeze({ id, label, reset, value: status[id], editor, scope: codexScope, owner: codexOwner }));
+  const speed = codexSpeedOption(status, target.model);
+  if (speed) fields.push(speed);
+  return fields;
 }
 
 function codexTargetSnapshot({ sessionId, provider, model, epoch, reasoningActive }) {
@@ -50,7 +73,8 @@ function codexChangeValue(field, change) {
 // before preferences.update(). The same 'internal' code can also occur AFTER persistence.
 const codexValidationError = {
   outputVerbosity: 'Invalid output verbosity preference',
-  reasoningSummary: 'Invalid reasoning summary preference'
+  reasoningSummary: 'Invalid reasoning summary preference',
+  speedMode: 'Invalid speed mode preference'
 };
 function codexWriteReceipt(response, field) {
   if (response?.ok === false) {
@@ -110,7 +134,7 @@ export function createCodexOptions(rpc) {
       if (receipt === 'refused') return receipt;
       const confirmed = (await read(target, signal)).find(sameField);
       if (!active()) return 'stale';
-      return confirmed?.value === value ? receipt : 'unconfirmed';
+      return confirmed?.value === value && confirmed.editor.choices.includes(value) ? receipt : 'unconfirmed';
     } finally {
       saving = false;
     }

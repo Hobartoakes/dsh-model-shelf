@@ -39,7 +39,7 @@
     "route": "codex",
     "variant": "openai-codex",
     "field": "speedMode",
-    "status": "candidate",
+    "status": "verified",
     "packagePin": "DSH dsh-v0.2.2-rc.5; dsh-codex-subscription@3.2.28; @earendil-works/pi-ai@1.3.0 (SHA-512: tests/provider-options/pins.json); 3.2.28 服务端入口 Git blob ce2793eafd854184c706e8c57f54559639b1dbf6",
     "source": [
       "https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/model-catalog.js#L142-L151",
@@ -54,12 +54,16 @@
       "https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/client-locales.js#L203-L204",
       "https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/client-locales.js#L355-L356",
       "https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/tests/model-catalog.test.mjs#L948-L962",
+      "https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/model-catalog.js#L368-L379",
+      "tests/provider-options/exercise.mjs:17-74 (verifySpeed)",
+      "tests/provider-options/local-transport.mjs:9-27 (serialized Request)",
+      "tests/codex-options.test.mjs (speed preflight, unavailable value, readback)",
       "61aed96623bc15fec46eaca9060296aa1f9195cf:tests/provider-options/pins.json:89"
     ],
-    "ownerProof": "t32：偏好属于当前 profile 的 dsh-codex-subscription，不是逐模型或会话设置。候选准入要有可信来源的当前账号目录、精确 openai-codex/model、唯一启用模型、可写所有者及内联许可；fastModels 与 ultrafastModels 分别匹配，不用 ultraModels、未知 tier 或模型名回退。",
-    "writeSurface": "仅为所有者已有契约，不是书架已开放的写入口：认证 /api 的 codex-subscription/preferences/status → 单字段 preferences/update {speedMode: value} → 独立 status。standard 为重置；写前复核可用档及共享存值，不自动重置。须先提示其他会话受影响；fast 消耗更多 Credits，ultrafast Beta 更快消耗订阅额度及 Credits，不承诺费率。",
-    "requestProof": "t32 固定源码核对（未做书架保存）：普通聊天构造器将适用 fast 映射为 service_tier=priority、ultrafast 为 service_tier=ultrafast，standard 或不适用省略，不把 ultrafast 降为 fast。上游 node --test tests/model-catalog.test.mjs 的目录样例只区分档位。现有 node tests/provider-options/codex-roundtrip.mjs --offline 只截获 model/text/reasoning，未证明速度。",
-    "reason": "缺书架单字段保存、重开独立读回和下一条 SDK 请求的 service_tier 实证。Task 4 须在隔离 profile 逐档及重置复验，含单档/无档、撤销档位和同名 API 反例，零供应商连接；否则列 gap，不晋级。"
+    "ownerProof": "精确 openai-codex，当前 profile 的 dsh-codex-subscription 可写、允许内联、当前模型在启用目录中唯一。3.2.28 的 online/ok 目录从同一远端记录建立 availableModels 和能力元数据；fastModels / ultrafastModels 必须分别含当前模型。缓存、模型名回退、ultraModels 或未知 tier 不授权。",
+    "writeSurface": "认证 Connection RPC 读取 preferences/status；保存前核对同一目标、原共享值和拟提交的档；只发 preferences/update {speedMode: value}，再独立读取。standard 是显式重置。共享偏好在本模型无效时保留原值，不自动改写；向用户显示当前模型效果、跨会话影响及可选加速档的用量提示。",
+    "requestProof": "node tests/provider-options/codex-roundtrip.mjs --offline — t11 的 6 笔速度保存各自重开并检查下一条序列化请求：双档 fast/ultrafast/重置分别为 service_tier=priority、ultrafast、键缺失；两个单档模型亦可保存适用档。在其他模型上不适用时省略、不降成 fast，text/reasoning 与各模型基线不变。无档/未知档隐藏；写前真实刷新撤档仅 status、零补丁；同名 API 零订阅 RPC。三字段合计 12 笔保存/重开，31 条普通请求，零供应商连接。",
+    "reason": "固定版本的真实所有者保存、独立读回、最终 SDK 请求及反例均已复现。仅证明普通聊天的本地请求构造，不验证真实账号资格、计费或服务端执行效果。"
   },
   {
     "route": "openai-api",

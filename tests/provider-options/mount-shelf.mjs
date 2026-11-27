@@ -66,6 +66,8 @@ export async function mountShelf({ clients, models, initial }) {
     if(await fault.wait==='lost') throw Error('fixture: readback delivery lost');
     return response;
   };
+  // Independent fixture actor; use the native RPC client, including its envelope.
+  window.refreshAccountCatalog=()=>conn.rpc.call('/api','codex-subscription/preferences/models',{},AbortSignal.timeout(6000)).then(r=>r.ok);
   window.otherWrite=value=>conn.rpc.call('/api','codex-subscription/preferences/update',{outputVerbosity:value},new AbortController().signal).then(r=>r.ok);
   window.ownerReady=async()=>{const r=await conn.rpc.call('/api','codex-subscription/preferences/status',{},new AbortController().signal);return r.ok && r.value.writable===true && r.value.verbosityModels.includes(initial.model);};
   paint();

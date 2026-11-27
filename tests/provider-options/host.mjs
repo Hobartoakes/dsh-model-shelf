@@ -10,9 +10,14 @@ import { pathToFileURL } from 'node:url';
 
 const route = 'openai-codex';
 export const activeModel = 'gpt-5.4', plainModel = 'shelf-fixture-no-reasoning';
+export const fastOnly = 'shelf-fixture-fast', ultraOnly = 'shelf-fixture-ultrafast', unknownTier = 'gpt-5.5-fixture';
 export const catalogRows = [
-  { slug: activeModel, default_verbosity: 'high', default_reasoning_level: 'medium', supported_reasoning_levels: ['low','medium','high'].map(effort => ({ effort })) },
+  { slug: activeModel, service_tiers: [{ id: 'priority' }, { id: 'ultrafast' }], default_verbosity: 'high', default_reasoning_level: 'medium', supported_reasoning_levels: ['low','medium','high'].map(effort => ({ effort })) },
   { slug: plainModel, default_verbosity: 'low', supported_reasoning_levels: [] },
+  { slug: fastOnly, additional_speed_tiers: ['fast'] },
+  { slug: ultraOnly, additional_speed_tiers: ['ultrafast'] },
+  // Would match the owner's model-name fallback without account metadata.
+  { slug: unknownTier, service_tiers: [{ id: 'turbo' }] },
 ].map(row => ({ ...row, visibility: 'list', support_verbosity: true, context_window: 120000, display_name: row.slug }));
 
 function syntheticCredentials() {
@@ -62,8 +67,8 @@ export async function bootHost(root) {
     async edit(entry, transform) {
       assert.equal(entry.options.id, id);
       const before = await readConfig(), next = await transform(before, {});
-      const changed = Object.keys(next).filter(k => JSON.stringify(before[k]) !== JSON.stringify(next[k]));
-      assert.equal(changed.length, 1); assert.ok(['outputVerbosity', 'reasoningSummary'].includes(changed[0])); writes.push(changed[0]);
+      const changed = [...new Set([...Object.keys(before), ...Object.keys(next)])].filter(k => JSON.stringify(before[k]) !== JSON.stringify(next[k]));
+      assert.equal(changed.length, 1); assert.ok(['outputVerbosity', 'reasoningSummary', 'speedMode'].includes(changed[0])); writes.push(changed[0]);
       await writeFile(configPath, JSON.stringify(next)); await loader.update(id, { config: await readConfig() });
     }
   });
@@ -73,7 +78,7 @@ export async function bootHost(root) {
   assert.equal(entry.fiber?.state,2,'connector entry must be ACTIVE');
   assert.ok(adapter, 'Codex must register the real PiAiAdapter');
   const models = await adapter.listModels(route);
-  const selected = await Promise.all([activeModel, plainModel].map(async id => {
+  const selected = await Promise.all(catalogRows.map(async ({ slug: id }) => {
     assert.ok(models.some(model => model.id === id), 'synthetic catalog must reach the real adapter: ' + id);
     const { name, reasoning } = await adapter.resolveModel(route, id);
     return { id, name, reasoning };

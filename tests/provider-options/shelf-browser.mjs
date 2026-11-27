@@ -22,11 +22,17 @@ export async function shelfBrowser(host, modules, identity) {
     ['dsh-model-shelf',new URL('../../lib/client.js',import.meta.url)]
   ].map(async ([id,path])=>[id,await readFile(path,'utf8')])));
   const trace = [], blocked = [], errors = [];
+  let fixtureRefresh = false;
   const server = createServer(async (req, res) => {
     try {
       const path = req.url.split('?')[0];
       if (path === '/') { if (host.connection.authorizeIndex(req, res)) { res.setHeader('content-type','text/html; charset=utf-8'); res.end(html); } return; }
       if (files.has(path)) { res.setHeader('content-type',path.endsWith('.css')?'text/css':'text/javascript; charset=utf-8'); res.end(files.get(path)); return; }
+      // One explicit test actor refreshes the synthetic account catalog. The shelf
+      // bridge otherwise rejects anything except the two preference methods.
+      if (fixtureRefresh && path === '/api/codex-subscription/preferences/models') {
+        fixtureRefresh = false; await host.routes.get('/api').handler(req,res); return;
+      }
       if (path.startsWith('/api/')) { const field = path.replace('/api/codex-subscription/preferences/', ''); assert.ok(['status','update'].includes(field)); trace.push(field); await host.routes.get('/api').handler(req,res); return; }
       res.writeHead(404).end();
     } catch { errors.push('HTTP bridge failed'); if (!res.headersSent) res.writeHead(500); res.end(); }
@@ -54,6 +60,13 @@ export async function shelfBrowser(host, modules, identity) {
     await page.goto(host.connection.authenticatedUrl(origin + '/')); assert.equal(page.url(),origin + '/');
     await page.evaluate(mountShelf, { clients, models: host.models, initial: { provider:'openai-codex', model:activeModel } });
     assert.equal(await page.evaluate(() => window.ownerReady()), true, 'real authenticated status/owner before UI assertions'); trace.length=0;
-    return { page, trace, blocked, errors, close };
+    const refreshCatalog = async () => {
+      fixtureRefresh = true;
+      try {
+        assert.equal(await page.evaluate(() => window.refreshAccountCatalog()),true,'independent fixture catalog refresh');
+        assert.equal(fixtureRefresh,false,'test-only refresh was consumed');
+      } finally { fixtureRefresh = false; }
+    };
+    return { page, trace, blocked, errors, close, refreshCatalog };
   } catch (err) { await close(); throw err; }
 }

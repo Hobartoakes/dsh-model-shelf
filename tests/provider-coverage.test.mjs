@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { createProviderConnection, observeProviderTarget } from '../src/provider-option-panel.js';
 
 const readJson = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const rows = readJson('./provider-options/coverage.json');
@@ -11,7 +12,7 @@ const gap = 'gap', builtin = 'builtin', unsupported = 'unsupported';
 // conclusion for this combination, not a default for the connector or vendor.
 const expected = {
   codex: {
-    'openai-codex': { outputVerbosity: 'verified', reasoningSummary: 'verified', speedMode: 'candidate' },
+    'openai-codex': { outputVerbosity: 'verified', reasoningSummary: 'verified', speedMode: 'verified' },
   },
   'openai-api': {
     'official-responses': { outputVerbosity: gap, reasoningSummary: gap },
@@ -119,15 +120,44 @@ test('each row cites pinned sources, ownership, a write path or limit, and repro
   }
 });
 
-test('Codex distinguishes the two Task 2 round trips from the speed source investigation', () => {
+test('each verified Codex field cites a local request round trip', () => {
   const codex = byKey(rows.filter(r => r.route === 'codex'));
-  for (const [field, wire] of [['outputVerbosity', 'text.verbosity'], ['reasoningSummary', 'reasoning.summary']]) {
+  for (const [field, wire] of [['outputVerbosity', 'text.verbosity'], ['reasoningSummary', 'reasoning.summary'], ['speedMode', 'service_tier']]) {
     const row = codex.get(key({ route: 'codex', variant: 'openai-codex', field }));
     assert.equal(row?.status, 'verified', field);
-    assert.ok([].concat(row.source).some(s => s.includes('61aed96623bc15fec46eaca9060296aa1f9195cf') && s.includes('exercise.mjs')), field);
+    if (field === 'speedMode') {
+      assert.ok(row.source.some(ref => ref.includes('05690e4045030bf8d4a85dbd5049d866ea6cd014') && ref.includes('pi-ai-runtime.js')));
+      assert.ok(row.source.some(ref => ref.includes('exercise.mjs') && ref.includes('verifySpeed')));
+    } else assert.ok(row.source.some(ref => ref.includes('61aed96623bc15fec46eaca9060296aa1f9195cf') && ref.includes('exercise.mjs')), field);
     assert.ok(row.requestProof.includes('node tests/provider-options/codex-roundtrip.mjs --offline') && row.requestProof.includes(wire), field);
   }
-  const speed = codex.get(key({ route: 'codex', variant: 'openai-codex', field: 'speedMode' }));
-  assert.equal(speed?.status, 'candidate', 'a catalog or request-builder branch is not a shelf round trip');
-  assert.ok([].concat(speed.source).some(s => s.includes('05690e4045030bf8d4a85dbd5049d866ea6cd014') && s.includes('pi-ai-runtime.js')));
+});
+
+test('the shelf exposes exactly the verified options, with no unresolved candidates', async () => {
+  assert.equal(rows.filter(r => r.status === 'candidate').length, 0);
+  const published = rows.filter(r => r.status === 'verified').map(key).sort();
+  // Exercise the same connection + target dispatch the mounted picker uses.
+  // A fake owner here tests reachability; the pinned offline fixture proves adoption.
+  const store = value => ({ getSnapshot: () => value, subscribe: () => () => {} });
+  const link = createProviderConnection(), calls = [], visible = [];
+  const model = { id:'gpt-5.4', reasoning: { defaultEffort:'medium', efforts:[{id:'medium'}] } };
+  const detach = link.attach({ state:store('connected'), generation:store({id:1}), rpc:{ async call(...args) {
+    calls.push(args.slice(0,3));
+    return { ok:true, value:{ writable:true, composerModelPicker:'auto', availableModels:[model], disabledModels:[],
+      catalogStatus:{source:'online',refresh:'ok'}, fastModels:[model.id], ultrafastModels:[model.id], verbosityModels:[model.id],
+      speedMode:'standard', outputVerbosity:'default', reasoningSummary:'auto', customInstructions:'not a shelf field' } };
+  } } });
+  try {
+    for (const provider of ['openai-codex', 'openai','openai-api','fixture.relay/one','anthropic','google','google-vertex',
+      'deepseek-official','deepseek-account','modelstudio','dashscope','moonshotai','moonshotai-cn','kimi-subscription','opencode','zai','zai-coding-cn','opencode-go','zhipuai']) {
+      const dir = store({ status:'ready', routable:true, current:{provider,model:model.id}, groups:[{id:provider,models:[model]}] });
+      const binding = observeProviderTarget(dir,link,'same-id-control').getSnapshot();
+      if (provider !== 'openai-codex') { assert.equal(binding,null,provider); continue; }
+      assert.ok(binding);
+      const fields = await binding.io.read(binding.target);
+      visible.push(...fields.map(f => key({route:'codex', variant:binding.target.provider, field:f.id})));
+    }
+    assert.deepEqual(visible.sort(),published);
+    assert.deepEqual(calls,[['/api','codex-subscription/preferences/status',{}]]);
+  } finally { detach(); }
 });

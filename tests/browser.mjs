@@ -40,11 +40,17 @@ window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:optio
   if(body.action==='set-model-context-window'){if(body.contextWindow===null)delete wbOverrides[body.model];else wbOverrides[body.model]=body.contextWindow;return jsonResponse({state:'updated',model:body.model,contextWindow:body.contextWindow});}
   wbProbe.candidates=['wb-flash'];wbProbe.results=[{id:'wb-flash',validation:'validating',efforts:['low','medium','high'],probedAt:1}];window.publishEfforts();return jsonResponse({state:'ok',validation:'validating',efforts:['low','medium','high'],requests:2});}
  return jsonResponse({error:'not found'},false,404);};
-// An observable transport, not a fake success response: count every option RPC.
+// This owner can read two options; record every RPC, including unexpected writes.
 window.optionCalls=[];
 const constant=value=>({getSnapshot:()=>value,subscribe:()=>()=>{}});
-const connection={state:constant('connected'),generation:constant({id:1}),rpc:{async call(_path,method){window.optionCalls.push(method);return {ok:false,error:{code:'fixture/unavailable'}}}}};
-const disposers=[]; const ctx={connection,inject(_deps,fn){if(_deps.length===1&&_deps[0]==='connection'&&!location.search.includes('option-owner'))throw Error('optional service is unavailable');fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(id){return id==='fixture-child'?{parentId:'test-session'}:undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false,id='test-session')=>{root.render(React.createElement(Component,{locked,...options.inject(id)}))};return()=>{}}}};
+let childStore;
+window.projectChild=next=>{childStore=constant({...state,...next});render(false,'fixture-child')};
+const connection={state:constant('connected'),generation:constant({id:1}),rpc:{async call(path,method){
+ window.optionCalls.push(method);
+ if(path==='/api'&&method==='codex-subscription/preferences/status')return {ok:true,value:{writable:true,composerModelPicker:'auto',
+   availableModels:[{id:'gpt-5.4'}],verbosityModels:['gpt-5.4'],outputVerbosity:'high',reasoningSummary:'concise'}};
+ return {ok:false,error:{code:'fixture/unavailable'}};}}};
+const disposers=[]; const ctx={connection,inject(_deps,fn){if(_deps.length===1&&_deps[0]==='connection'&&!location.search.includes('option-owner'))throw Error('optional service is unavailable');fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(id){return id==='fixture-child'?{parentId:'test-session'}:undefined}},modelDirectories:{directoryFor(id){return {store:id==='fixture-child'?childStore:store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false,id='test-session')=>{root.render(React.createElement(Component,{locked,...options.inject(id)}))};return()=>{}}}};
 const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
 </script>`;
 await mkdir(new URL('tests/artifacts/', root), { recursive: true });
@@ -771,22 +777,77 @@ try {
   assert.equal(await page.evaluate(() => fetchCalls.some(c => c.options.method === 'POST')), false);
   const codexState = { routable: true, current: { provider: 'openai-codex', model: 'gpt-5.4' }, groups: [{ id: 'openai-codex',
     models: [{ id: 'gpt-5.4', reasoning: { defaultEffort: 'medium', efforts: [{id:'medium'}] } }] }] };
-  // Project that exact eligible route in an addressed child, then a primary on
-  // the same connected transport. Zero calls alone would also fit a dead spy.
-  await page.evaluate(() => render(false, 'fixture-child'));
-  await page.locator('.dmo-trigger').waitFor({ state: 'detached' });
-  const beforeChild = await page.evaluate(() => [selected.length, fetchCalls.length]);
-  await page.evaluate(next => setState(next), codexState); await settle();
-  assert.equal(await page.locator('.dmo-provider-options').count(), 0);
-  assert.equal(await page.evaluate(() => optionCalls.length), 0);
-  assert.deepEqual(await page.evaluate(() => [selected.length, fetchCalls.length]), beforeChild);
-  await page.evaluate(() => render());
-  await page.locator('.dmo-trigger').waitFor();
-  if (!await page.locator('.dmo-panel').isVisible()) await open();
-  await page.waitForFunction(() => window.optionCalls.length > 0);
-  assert.deepEqual(await page.evaluate(() => optionCalls), ['codex-subscription/preferences/status']);
-  ok('addressed child sends zero selection, WorkBuddy or option calls; the same primary route reads once');
   await page.evaluate(() => localStorage.removeItem('wbStock'));
+  const wbState = await page.evaluate(() => ({ routable: true, current: { provider: 'workbuddy-ai', model: 'wb-flash' }, groups: wbGroups }));
+  const traffic = () => page.evaluate(() => ({ selections: selected, options: optionCalls,
+    fetches: fetchCalls.map(c => [c.options.method ?? 'GET', c.url]) }));
+  // If a primary POST is already in flight, completing it after switching to
+  // a child must not start another status GET on behalf of the hidden picker.
+  for (const action of ['probe', 'capacity']) {
+    await page.reload();
+    await page.evaluate(next => setState(next), wbState); await open();
+    const capacity = page.getByLabel('上下文容量', { exact: true });
+    await capacity.waitFor();
+    await page.evaluate(() => {
+      const fetch = window.fetch;
+      window.fetch = async (url, init) => {
+        const result = await fetch(url, init);
+        if (init?.method === 'POST') await new Promise(resolve => { window.releaseOwnerPost = resolve; });
+        return result;
+      };
+    });
+    if (action === 'probe') {
+      await page.getByRole('button', { name: '检测思考强度', exact: true }).click();
+      await page.getByRole('button', { name: '确认检测', exact: true }).click();
+    } else await capacity.selectOption('1000000');
+    await page.waitForFunction(() => typeof window.releaseOwnerPost === 'function');
+    const beforeChild = await traffic();
+    assert.deepEqual(beforeChild, { selections: [], options: [], fetches: [
+      ['GET', '/plugins/dsh-workbuddy-connect/ai/status'], ['POST', '/plugins/dsh-workbuddy-connect/ai/probe'],
+    ] });
+    await page.evaluate(next => projectChild(next), wbState);
+    await page.locator('.dmo-trigger').waitFor({ state: 'detached' });
+    await page.evaluate(() => releaseOwnerPost()); await settle();
+    assert.deepEqual(await traffic(), beforeChild, 'no child refresh after a primary ' + action);
+  }
+  ok('pending primary probe and capacity replies start no follow-up traffic in a child');
+
+  // Start each case on a neutral primary with the popup open. The child has
+  // its own readable projected directory from its very first render; it must
+  // not warm a status cache or fetch options even during the identity switch.
+  for (const projection of [wbState, codexState]) {
+    await page.reload();
+    if (projection === wbState) await page.evaluate(() => { wbOverrides['wb-flash'] = 500000; });
+    await open();
+    const beforeChild = await traffic();
+    assert.deepEqual(beforeChild, { selections: [], fetches: [], options: [] });
+    await page.evaluate(next => projectChild(next), projection);
+    await page.locator('.dmo-trigger').waitFor({ state: 'detached' });
+    await settle();
+    assert.equal(await page.locator('.dmo-panel, .dmo-provider-options').count(), 0);
+    assert.deepEqual(await traffic(), beforeChild, 'addressed child: ' + projection.current.provider);
+
+    // Same transport and exact model, now in a primary. A dead observer would
+    // miss this read too. Showing the owner value proves it is usable.
+    await page.evaluate(next => { setState(next); render(); }, projection);
+    await page.locator('.dmo-trigger').waitFor();
+    if (!await page.locator('.dmo-panel').isVisible()) await open();
+    if (projection === wbState) {
+      const capacity = page.getByLabel('上下文容量', {exact:true});
+      await capacity.waitFor();
+      assert.equal(await capacity.inputValue(), '500000');
+      assert.deepEqual(await capacity.locator('option').allInnerTexts(), ['服务商默认', '500K（当前值）', '300K', '1M']);
+      assert.deepEqual(await traffic(), { ...beforeChild, fetches: [['GET', '/plugins/dsh-workbuddy-connect/ai/status']] });
+      ok('cold WorkBuddy child sends nothing; the same primary reads once and shows the existing out-of-list pin without writing');
+    } else {
+      const verbosity = page.getByLabel('回答详略', {exact:true});
+      await verbosity.waitFor();
+      assert.equal(await verbosity.inputValue(), 'high');
+      assert.equal(await page.getByLabel('推理摘要', {exact:true}).inputValue(), 'concise');
+      assert.deepEqual(await traffic(), { ...beforeChild, options: ['codex-subscription/preferences/status'] });
+      ok('readable Codex child sends nothing; the same primary reads its two option values once without writing');
+    }
+  }
   await page.goto(htmlURL.href); await open();
   // This legacy harness has no connection/generation service. Even an exact
   // Codex route must keep its normal picker/effort without fetching settings.

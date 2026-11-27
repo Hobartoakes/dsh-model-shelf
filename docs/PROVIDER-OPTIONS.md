@@ -105,13 +105,13 @@ DSH pi-ai 连接器与 LLM `0.2.2-rc.5`、pi-ai `1.3.0`、OpenAI SDK `7.19.0`；
 
 ## WorkBuddy：已有功能，单列回归
 
-WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请求连接器探测；容量只列出连接器为该模型声明的值，选择「服务商默认」解除容量固定。未打 CTXPATCH 补丁时不显示容量选项。两者都不是 Codex 偏好。
+WorkBuddy 不计入八组。未声明思考档位且模型列为候选时，点「检测思考强度」只打开确认框，点「确认检测」才请求 WorkBuddy 向上游探测。逐模型容量需要 CTXPATCH：改选声明的容量会立即提交给 WorkBuddy，选「服务商默认」会立即提交解除固定，没有额外的「保存」。若原有固定值不在当前声明中，仍标成「（当前值）」显示，不自动替换。未打补丁时不显示容量控件。
 
-在[浏览器夹具](../tests/browser.mjs)中，打开或取消探测没有写入。主动确认探测、设置 1M、恢复容量默认，合计恰好三次 POST，全部到 WorkBuddy 自己的路由，订阅选项 RPC 为零。对同一个 Codex 目标，子代理没有选模、WorkBuddy 请求或选项 RPC，切回普通会话才有一次偏好读取。本次没有登录 WorkBuddy，也没有对真实账号做容量切换或付费探测。
+在[浏览器夹具](../tests/browser.mjs)中，打开或取消探测没有写入。主动确认探测、设置 1M、恢复容量默认，合计恰好三次 POST，全部到 WorkBuddy 自己的路由，订阅选项 RPC 为零。返修回归从切换身份**之前**记录流量：冷缓存 WorkBuddy 子会话和可读 Codex 子会话都没有选模、WorkBuddy GET/POST 或选项 RPC。切回同模型的普通会话，分别读到一次 WorkBuddy 状态（含声明外的当前容量）和一次 Codex 偏好。普通会话提交的探测或容量请求若在切到子会话后才返回，也不会触发新的状态读取。本次没有登录 WorkBuddy，也没有对真实账号做容量切换或付费探测。
 
 ## 本次验证与复跑
 
-以下是 2026-11-27 在 Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 下从仓库根目录复跑的开发验收结果。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
+下表保留返修前提交 `3cb03a8` 的开发验收记录：2026-11-27 在 Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 下从仓库根目录复跑的开发验收结果。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
 
 | 命令 | 退出码 | 观察结果 |
 | --- | ---: | --- |
@@ -130,7 +130,7 @@ WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请�
 
 复跑 `npm test` 须有支持 `--no-lazy-fetch` 的 Git，且本地对象库中已有提交 `a73633645e67155564736a738dc10412c165bd97`（v1.6.0）和所需文件。测试只读这些对象，另验旧客户端 SHA-256 `2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00`。仅解压本包不提供历史对象；实测对象库不可用时，测试点名缺失输入、退出 1，不跳过、不联网补取。
 
-在**实际开发工作树**直接运行 `node scripts/check-release.mjs` 仍退出 **1**，唯一原因是开发客户端 `15b891e3a940d2dcc6acaf23a706db0957e6788c8ece4ca6780ec2e74ab5dd96` 与旧候选不符。未改发布哈希、旧回执或版本号。两个官方宿主样本都未启动完整桌面；本次没有线上推理、没有取得新发行凭据或发布授权。
+在该次**开发工作树**直接运行 `node scripts/check-release.mjs` 退出 **1**，唯一原因是当时的开发客户端 `15b891e3a940d2dcc6acaf23a706db0957e6788c8ece4ca6780ec2e74ab5dd96` 与旧候选不符。未改发布哈希、旧回执或版本号。两个官方宿主样本都未启动完整桌面；本次没有线上推理、没有取得新发行凭据或发布授权。
 
 ### 七条专线均另行执行
 
@@ -146,4 +146,4 @@ WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请�
 | Kimi | `node --test tests/provider-routes/kimi/contract.test.mjs` | 2/2 | 17 |
 | GLM | `node --test tests/provider-routes/glm/contract.test.mjs` | 2/2 | 15 |
 
-[包成员回归](../tests/provider-coverage.test.mjs)核对 npm 实际列出的[客户端](../lib/client.js)、本文、总表、固定归档清单、隔离辅助模块、选项与宿主测试，以及七条专线各自的契约和证据矩阵。不含厂商源码包、凭据、捕获数据、缓存或临时 profile。冷缓存需先按[Codex](../tests/provider-options/README.md)、[Qwen](../tests/provider-routes/qwen/contract.test.mjs#L1-L8) 和 [Kimi](../tests/provider-routes/kimi/contract.test.mjs#L1-L6) 的说明另行准备公开归档；宿主样本使用自己的[固定版本与校验值](../tests/host-inventory/matrix.json)。[DeepSeek 专线](../tests/provider-routes/deepseek/contract.test.mjs#L44-L63)另需固定版本的本地依赖树（`DSH_DEEPSEEK_TEST_PACKAGES`）或现有官方安装的程序文件，不使用其 profile。本次离线复跑未下载归档。
+[包成员回归](../tests/provider-coverage.test.mjs)核对 npm 实际列出的[客户端](../lib/client.js)、本文、总表、固定归档清单、隔离辅助模块、选项与宿主测试，以及七条专线各自的契约和证据矩阵。这两个新增测试目录按完整文件名核对实际清单；临时副本中额外放入的辅助脚本和未审线路材料也必须排除。包内不含厂商源码包、凭据、捕获数据、缓存或临时 profile。冷缓存需先按[Codex](../tests/provider-options/README.md)、[Qwen](../tests/provider-routes/qwen/contract.test.mjs#L1-L8) 和 [Kimi](../tests/provider-routes/kimi/contract.test.mjs#L1-L6) 的说明另行准备公开归档；宿主样本使用自己的[固定版本与校验值](../tests/host-inventory/matrix.json)。[DeepSeek 专线](../tests/provider-routes/deepseek/contract.test.mjs#L44-L63)另需固定版本的本地依赖树（`DSH_DEEPSEEK_TEST_PACKAGES`）或现有官方安装的程序文件，不使用其 profile。本次离线复跑未下载归档。

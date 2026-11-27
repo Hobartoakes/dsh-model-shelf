@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { createProviderConnection, observeProviderTarget } from '../src/provider-option-panel.js';
 
@@ -67,23 +69,53 @@ const expected = {
   },
 };
 
+const root = new URL('../', import.meta.url);
+const optionFiles = ['README.md', 'coverage.json', 'pins.json', 'archives.mjs', 'codex-roundtrip.mjs', 'exercise.mjs',
+  'host.mjs', 'local-transport.mjs', 'mount-shelf.mjs', 'races.mjs', 'shelf-browser.mjs', 'host-fallback.mjs']
+  .map(name => 'tests/provider-options/' + name);
+const routeFiles = Object.keys(expected).filter(route => route !== 'codex')
+  .flatMap(route => ['contract.test.mjs', 'evidence.json'].map(name => 'tests/provider-routes/' + route + '/' + name));
+const publicProviderFiles = [...optionFiles, ...routeFiles].sort();
+
+function dryPack(cwd) {
+  const [pack] = JSON.parse(execSync('npm pack --dry-run --json --ignore-scripts --offline', {
+    cwd, encoding: 'utf8', windowsHide: true,
+  }));
+  return pack;
+}
+
+function assertProviderFiles(pack) {
+  const files = pack.files.map(file => file.path).filter(path =>
+    path.startsWith('tests/provider-options/') || path.startsWith('tests/provider-routes/'));
+  assert.deepEqual(files.sort(), publicProviderFiles);
+}
+
 test('the dry-run package contains the runnable provider contracts, not their private fixtures', () => {
   const pkg = readJson('../package.json');
   assert.ok(pkg.files.includes('docs/PROVIDER-OPTIONS.md'));
-  const [pack] = JSON.parse(execSync('npm pack --dry-run --json --ignore-scripts --offline', {
-    cwd: new URL('../', import.meta.url), encoding: 'utf8', windowsHide: true,
-  }));
+  const pack = dryPack(root);
+  assertProviderFiles(pack);
   const members = new Set(pack.files.map(file => file.path));
-  const options = ['README.md', 'coverage.json', 'pins.json', 'archives.mjs', 'codex-roundtrip.mjs', 'exercise.mjs',
-    'host.mjs', 'local-transport.mjs', 'mount-shelf.mjs', 'races.mjs', 'shelf-browser.mjs', 'host-fallback.mjs'];
-  const routeFiles = Object.keys(expected).filter(route => route !== 'codex')
-    .flatMap(route => ['contract.test.mjs', 'evidence.json'].map(name => 'tests/provider-routes/' + route + '/' + name));
   const host = ['matrix.json', 'early-pins.json', 'run-contracts.mjs', 'seat-fixture.mjs', 'web-fixture.mjs', 'boot-settlement.mjs'];
   assert.deepEqual(pack.bundled, []);
   for (const path of ['lib/client.js', 'docs/PROVIDER-OPTIONS.md', 'tests/host-packages.mjs', 'tests/clean-profile-support.mjs',
-    'tests/provider-coverage.test.mjs', ...host.map(name => 'tests/host-inventory/' + name),
-    ...options.map(name => 'tests/provider-options/' + name), ...routeFiles]) assert.ok(members.has(path), 'missing package member: ' + path);
+    'tests/provider-coverage.test.mjs', ...host.map(name => 'tests/host-inventory/' + name)]) assert.ok(members.has(path), 'missing package member: ' + path);
   assert.deepEqual([...members].filter(path => /(^|\/)(node_modules|artifacts|vendor|\.cache|\.dsh)(\/|$)|\.tgz$/i.test(path)), []);
+});
+
+test('npm excludes extra option scripts and unknown route evidence even when present on disk', t => {
+  const dir = mkdtempSync(join(tmpdir(), 'shelf-provider-pack-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  // Exercise the real manifest and all reviewed inputs, never copy a local cache.
+  for (const path of ['package.json', ...publicProviderFiles]) {
+    const dest = join(dir, path);
+    mkdirSync(dirname(dest), { recursive: true });
+    copyFileSync(new URL(path, root), dest);
+  }
+  writeFileSync(join(dir, 'tests/provider-options/unreviewed-helper.mjs'), '// synthetic non-member\n');
+  mkdirSync(join(dir, 'tests/provider-routes/unreviewed'), { recursive: true });
+  writeFileSync(join(dir, 'tests/provider-routes/unreviewed/evidence.json'), '{}');
+  assertProviderFiles(dryPack(dir));
 });
 
 function byKey(list) {

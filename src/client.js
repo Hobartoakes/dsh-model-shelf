@@ -179,21 +179,33 @@ export function makeModelPicker(preferences, iconStore, providerConnection) {
       return () => { mounted.current = false; };
     }, []);
 
-    // Ask the owning plugin once per popup (and per model), never per render:
-    // its status route also fetches live credit, and this plugin is a guest.
+    // A child may project a perfectly usable directory even though its picker is
+    // hidden. Bind every WorkBuddy request (including post-action refreshes) to
+    // the committed primary session and model, not just the popup's open state.
+    const provider = state.current?.provider, model = state.current?.model;
+    const workBuddyTarget = React.useMemo(() => available && isWorkBuddyProvider(provider)
+      ? { sessionId, provider, model } : null, [available, sessionId, provider, model]);
+    const liveWorkBuddy = useRef(null);
+    useLayoutEffect(() => {
+      liveWorkBuddy.current = workBuddyTarget;
+      setContextBusy(false); setProbeBusy(false); setProbeStatus(undefined);
+      return () => { liveWorkBuddy.current = null; };
+    }, [workBuddyTarget]);
+    const ownsWorkBuddy = () => workBuddyTarget !== null && liveWorkBuddy.current === workBuddyTarget && isPrimarySession();
+
+    // Ask once per popup and target, not per render: status also fetches credit.
     useEffect(() => {
       if (!open) return;
       setProbeConfirm(false);
       setProbeNote(null);
-      const providerId = state.current?.provider;
-      if (!isWorkBuddyProvider(providerId)) { setProbeStatus(undefined); return; }
+      if (!ownsWorkBuddy()) return;
       let cancelled = false;
       setProbeStatus(undefined);
-      loadProbeStatus(providerId)
-        .then((status) => { if (!cancelled) setProbeStatus(status); })
-        .catch(() => { if (!cancelled) setProbeStatus(undefined); });
+      loadProbeStatus(workBuddyTarget.provider)
+        .then(status => { if (!cancelled && ownsWorkBuddy()) setProbeStatus(status); })
+        .catch(() => { if (!cancelled && ownsWorkBuddy()) setProbeStatus(undefined); });
       return () => { cancelled = true; };
-    }, [open, state.current?.provider, state.current?.model]);
+    }, [open, workBuddyTarget]);
 
     const close = (restore = true) => {
       cancelDrag();
@@ -372,29 +384,39 @@ export function makeModelPicker(preferences, iconStore, providerConnection) {
       setOpen(true);
       Promise.resolve().then(load).catch((e) => { if (mounted.current) setLocalError(String(e.message ?? e)); });
     };
+    // A valid primary operation can finish after the host has switched scope.
+    // It was already submitted; do not reload a directory or read status again
+    // for a target that no longer owns the picker.
+    const refreshWorkBuddy = async () => {
+      if (!ownsWorkBuddy()) return false;
+      try { await load(); } catch { /* leave an unavailable directory alone */ }
+      if (!ownsWorkBuddy()) return false;
+      const status = await loadProbeStatus(workBuddyTarget.provider, { force: true });
+      if (!ownsWorkBuddy()) return false;
+      setProbeStatus(status);
+      return true;
+    };
+
     // Pin or clear this model's window. The owner keeps the choice; reloading the
     // directory is what makes the new size reach the next request.
     const applyContextWindow = async (contextWindow) => {
       const providerId = state.current?.provider;
       const modelId = state.current?.model;
-      if (providerId === undefined || modelId === undefined) return;
+      if (!ownsWorkBuddy() || modelId === undefined) return;
       setContextBusy(true);
       setProbeNote(null);
       try {
         const result = await requestContextWindow(providerId, probeStatus, modelId, contextWindow);
         if (result.state !== 'ok') {
-          if (mounted.current) setProbeNote({ tone: 'error', text: result.reason ?? '容量修改未生效。' });
+          if (ownsWorkBuddy()) setProbeNote({ tone: 'error', text: result.reason ?? '容量修改未生效。' });
           return;
         }
-        try { await Promise.resolve(load()); } catch { /* a rejected reload keeps the old directory, which is still safe */ }
-        const refreshed = await loadProbeStatus(providerId, { force: true });
-        if (!mounted.current) return;
-        setProbeStatus(refreshed);
+        if (!await refreshWorkBuddy()) return;
         setProbeNote({ tone: 'ok', text: contextWindow === null ? '已恢复服务商默认容量。' : `上下文容量已设为 ${formatCapacity(contextWindow)}。` });
       } catch (error) {
-        if (mounted.current) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
+        if (ownsWorkBuddy()) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
       } finally {
-        if (mounted.current) setContextBusy(false);
+        if (ownsWorkBuddy()) setContextBusy(false);
       }
     };
     const runDetection = async () => {
@@ -402,29 +424,26 @@ export function makeModelPicker(preferences, iconStore, providerConnection) {
       const modelId = state.current?.model;
       setProbeConfirm(false);
       setProbeNote(null);
-      if (providerId === undefined || modelId === undefined) return;
+      if (!ownsWorkBuddy() || modelId === undefined) return;
       setProbeBusy(true);
       try {
         const result = await requestProbe(providerId, probeStatus, modelId);
         if (result.state !== 'ok') {
-          if (mounted.current) setProbeNote({ tone: 'error', text: result.reason ?? '检测未完成。' });
+          if (ownsWorkBuddy()) setProbeNote({ tone: 'error', text: result.reason ?? '检测未完成。' });
           return;
         }
         // A successful detection makes the owning plugin invalidate its catalog;
         // reloading the directory is what turns the verdict into a dropdown.
-        try { await Promise.resolve(load()); } catch { /* a rejected reload keeps the old directory, which is still safe */ }
-        const refreshed = await loadProbeStatus(providerId, { force: true });
-        if (!mounted.current) return;
-        setProbeStatus(refreshed);
+        if (!await refreshWorkBuddy()) return;
         setProbeNote(result.validation === 'validating' && result.efforts.length > 0
           ? { tone: 'ok', text: `已检测：${result.efforts.join(' / ')}` }
           : result.validation === 'non-validating'
             ? { tone: 'error', text: '上游接受任意档位取值，无法确认有效档位，因此不提供档位选择。' }
             : { tone: 'error', text: '检测未得到可用档位。' });
       } catch (error) {
-        if (mounted.current) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
+        if (ownsWorkBuddy()) setProbeNote({ tone: 'error', text: error instanceof Error ? error.message : String(error) });
       } finally {
-        if (mounted.current) setProbeBusy(false);
+        if (ownsWorkBuddy()) setProbeBusy(false);
       }
     };
     const probeBlock = !state.current ? null : probeBusy

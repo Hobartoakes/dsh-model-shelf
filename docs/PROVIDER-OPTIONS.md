@@ -111,12 +111,12 @@ WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请�
 
 ## 本次验证与复跑
 
-在仓库根目录、Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 上运行。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
+以下是 2026-11-27 在 Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 下从仓库根目录复跑的开发验收结果。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
 
 | 命令 | 退出码 | 观察结果 |
 | --- | ---: | --- |
 | `npm run build` | 0 | 重建的客户端与本轮输入字节相同。 |
-| `npm test` | **1** | 287 项：285 通过、2 失败、0 跳过。失败的是绑定已发布 1.6.0 客户端的交付预检、桌面凭据正例；这两项未通过，不是缺夹具。 |
+| `npm test` | 0 | 完整 Node 套件 289/289，0 跳过；包含下述历史发布检查的正反对照。 |
 | `npm run test:browser` | 0 | 48 项，未捕获页面错误 0；使用合成目录和 WorkBuddy 路由。 |
 | `node tests/provider-options/codex-roundtrip.mjs --offline` | 0 | 三个字段、12 次保存并重开、31 条本地序列化请求，供应商连接 0。包括同名 API、撤档、冲突与读回失败。 |
 | `node --test tests/codex-options.test.mjs tests/provider-option-panel.test.mjs tests/workbuddy-probe.test.mjs` | 0 | 权限、单字段补丁、读回、过期草稿、速度分档和 WorkBuddy 等专项 62/62，0 跳过。 |
@@ -124,7 +124,13 @@ WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请�
 | `node --test tests/provider-options/host-fallback.mjs` | 0 | 两端各 1 项、0 跳过：缺可选服务仍能选模、固定 low、对同一模型明确恢复默认（请求不含强度）；退让后均仅一个原生入口。 |
 | `npm pack --dry-run --json --ignore-scripts` | 0 | 干跑清单 93 个文件，没有打包依赖；没有生成或安装交付归档。 |
 
-[发布检查](../scripts/check-release.mjs)只认 1.6.0 的特定客户端，不能用它认证改过的开发字节；本次未改哈希、旧记录或版本号。官方宿主样本用的是已发布的前端、目录和插槽组件，不是完整桌面安装或真实推理。历史桌面记录不能转授给本次构建。
+### 为什么开发验收通过，发布预检仍拒绝
+
+首次 `npm test` 退出 **1**（285/287，2 失败，0 跳过）：打包预检和包外桌面回执的两个正例，错把开发客户端当作已发布的 1.6.0。修复的是[测试输入](../tests/release-check.test.mjs)，没有放宽[发布检查](../scripts/check-release.mjs)。现在在临时目录用固定的 1.6.0 文件运行当前检查脚本；包外回执是测试样本，不是真实桌面验收。专项 `node --test tests/release-check.test.mjs` 为 12/12、0 跳过：同一归档和回执原先可通过，只改候选客户端一个字节就因哈希不符被拒绝。
+
+复跑 `npm test` 须有支持 `--no-lazy-fetch` 的 Git，且本地对象库中已有提交 `a73633645e67155564736a738dc10412c165bd97`（v1.6.0）和所需文件。测试只读这些对象，另验旧客户端 SHA-256 `2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00`。仅解压本包不提供历史对象；实测对象库不可用时，测试点名缺失输入、退出 1，不跳过、不联网补取。
+
+在**实际开发工作树**直接运行 `node scripts/check-release.mjs` 仍退出 **1**，唯一原因是开发客户端 `15b891e3a940d2dcc6acaf23a706db0957e6788c8ece4ca6780ec2e74ab5dd96` 与旧候选不符。未改发布哈希、旧回执或版本号。两个官方宿主样本都未启动完整桌面；本次没有线上推理、没有取得新发行凭据或发布授权。
 
 ### 七条专线均另行执行
 
@@ -140,4 +146,4 @@ WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请�
 | Kimi | `node --test tests/provider-routes/kimi/contract.test.mjs` | 2/2 | 17 |
 | GLM | `node --test tests/provider-routes/glm/contract.test.mjs` | 2/2 | 15 |
 
-[包成员回归](../tests/provider-coverage.test.mjs)核对 npm 实际列出的[客户端](../lib/client.js)、本文、总表、固定归档清单、隔离辅助模块、选项与宿主测试，以及七条专线各自的契约和证据矩阵。不含厂商源码包、凭据、捕获数据、缓存或临时 profile。冷缓存需先按[Codex](../tests/provider-options/README.md)、[Qwen](../tests/provider-routes/qwen/contract.test.mjs#L1-L8) 和 [Kimi](../tests/provider-routes/kimi/contract.test.mjs#L1-L6) 的说明另行准备公开归档；宿主样本使用自己的[固定版本与校验值](../tests/host-inventory/matrix.json)。本次离线复跑未下载归档。
+[包成员回归](../tests/provider-coverage.test.mjs)核对 npm 实际列出的[客户端](../lib/client.js)、本文、总表、固定归档清单、隔离辅助模块、选项与宿主测试，以及七条专线各自的契约和证据矩阵。不含厂商源码包、凭据、捕获数据、缓存或临时 profile。冷缓存需先按[Codex](../tests/provider-options/README.md)、[Qwen](../tests/provider-routes/qwen/contract.test.mjs#L1-L8) 和 [Kimi](../tests/provider-routes/kimi/contract.test.mjs#L1-L6) 的说明另行准备公开归档；宿主样本使用自己的[固定版本与校验值](../tests/host-inventory/matrix.json)。[DeepSeek 专线](../tests/provider-routes/deepseek/contract.test.mjs#L44-L63)另需固定版本的本地依赖树（`DSH_DEEPSEEK_TEST_PACKAGES`）或现有官方安装的程序文件，不使用其 profile。本次离线复跑未下载归档。

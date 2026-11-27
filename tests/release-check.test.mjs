@@ -12,6 +12,8 @@ const repo = fileURLToPath(new URL('../', import.meta.url));
 const docs = ['README.md', 'CHANGELOG.md', 'docs/VALIDATION.md', 'docs/RELEASE-CHECKLIST.md', 'docs/HOST-COMPATIBILITY.md'];
 const matrixDocs = ['README.md', 'docs/HOST-COMPATIBILITY.md', 'docs/VALIDATION.md'];
 const version = '1.6.0';
+const releaseCommit = 'a73633645e67155564736a738dc10412c165bd97';
+const releasedClientSHA256 = '2194c0c72775533d1f109ca2e53455fb48d10f39b4001d8d53d39d7922304f00';
 const heading = '## ' + version + ' 发布与验证';
 const pilot = 'f88baf4c10f821900b789913f0345f639c70858a6066df89c6bb42f633d7b6b7';
 const published = '934f9368f5c34fc6e66b987784b2bdda9da966d3ea35d13f0c6e9bbc912acc96';
@@ -23,13 +25,33 @@ function refuses(result, message) {
   assert.match(result.stdout, message);
 }
 
+function refusesOnlyChangedClient(result) {
+  refuses(result, /生产客户端字节与旧宿主修复后复验的候选不符/);
+  assert.equal(result.stdout.match(/^- /gm)?.length, 1, result.stdout);
+}
+
+// Source inputs from the immutable release tree, not the moving checkout. Never fetch on a miss.
+const releasedBlobs = new Map();
+function releasedBlob(path) {
+  if (releasedBlobs.has(path)) return releasedBlobs.get(path);
+  const object = releaseCommit + ':' + path;
+  const r = spawnSync('git', ['--no-lazy-fetch', '--no-replace-objects', 'cat-file', 'blob', object], { cwd: repo });
+  assert.equal(r.status, 0, 'Missing offline v' + version + ' fixture (local Git with --no-lazy-fetch required): ' +
+    object + '\n' + (r.error?.message ?? r.stderr?.toString()));
+  if (path === 'lib/client.js') assert.equal(sha256(r.stdout), releasedClientSHA256, 'wrong released client SHA-256');
+  releasedBlobs.set(path, r.stdout);
+  return r.stdout;
+}
+
 async function fixture(fn) {
   const root = await mkdtemp(join(tmpdir(), 'shelf-gate-'));
   try {
-    for (const path of [...docs, 'scripts/check-release.mjs', 'package.json', 'LICENSE', 'lib/client.js', 'lib/index.js',
+    await mkdir(join(root, 'scripts'));
+    await copyFile(join(repo, 'scripts/check-release.mjs'), join(root, 'scripts/check-release.mjs'));
+    for (const path of [...docs, 'package.json', 'LICENSE', 'lib/client.js', 'lib/index.js',
       ...['main-list', 'uncommon-list', 'dark-list'].map(name => 'docs/images/' + name + '.png')]) {
       await mkdir(dirname(join(root, path)), { recursive: true });
-      await copyFile(join(repo, path), join(root, path));
+      await writeFile(join(root, path), releasedBlob(path));
     }
     const text = path => readFile(join(root, path), 'utf8');
     const put = (path, value) => writeFile(join(root, path), value);
@@ -46,8 +68,15 @@ async function changedDoc({ text, put, run }, path, old, replacement) {
   finally { await put(path, original); }
 }
 
-test('pre-pack check accepts the stable package, not a claim of final acceptance', () => {
-  assert.match(passes(gate(repo)), /打包前.*不代表.*桌面验收/);
+test('pre-pack check accepts the pinned stable package, not a claim of final acceptance', () => fixture(({ run }) => {
+  assert.match(passes(run()), /打包前.*不代表.*桌面验收/);
+}));
+
+test('pre-pack check still checks the actual worktree and its client bytes', async () => {
+  const digest = sha256(await readFile(join(repo, 'lib/client.js')));
+  const result = gate(repo);
+  if (digest === releasedClientSHA256) assert.match(passes(result), /打包前.*不代表.*桌面验收/);
+  else refusesOnlyChangedClient(result);
 });
 
 test('GitHub-only release refuses npm even with historical registry settings', () => fixture(async ({ pkg, put, run }) => {
@@ -133,6 +162,15 @@ async function desktopFixture(f) {
     realModelCalls: false, credentialCopies: false, installScripts: false };
   return { archive, receipt, async check(r) { await writeFile(path, JSON.stringify(r)); return f.run('--final-desktop', archive, path); } };
 }
+
+test('one changed client byte invalidates an otherwise accepted archive and receipt', () => fixture(async f => {
+  const { receipt, check } = await desktopFixture(f);
+  passes(await check(receipt));
+  const client = await readFile(join(f.root, 'lib/client.js'));
+  client[0] ^= 1;
+  await f.put('lib/client.js', client);
+  refusesOnlyChangedClient(await check(receipt));
+}));
 
 test('external desktop check hashes the supplied archive; even a same-version repack invalidates the receipt', () => fixture(async f => {
   const { archive, receipt, check } = await desktopFixture(f);

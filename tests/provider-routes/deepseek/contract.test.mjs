@@ -30,7 +30,7 @@ function registerTests() {
   for (const provider of routes) {
     test(provider + ': a valid standby form is not the active sender', async t => {
       const proof = await isolatedProof(provider);
-      assert.ok(proof.includes(provider + ': standby form, different sender; shelf options: 0; shelf writes: 0; outbound sockets: 0'));
+      assert.ok(proof.includes(provider + ': standby form, different sender; no shelf target; shelf RPCs: 0; Codex control: outputVerbosity; outbound sockets: 0'));
       t.diagnostic(proof.trim());
     });
   }
@@ -60,6 +60,37 @@ async function isolatedProof(scenario) {
     const worker = fileURLToPath(import.meta.url);
     return execFileSync(exe,['--expose-internals',worker,'--deepseek-offline',root,anchor,scenario],{env,cwd,timeout:45000,encoding:'utf8',windowsHide:true});
   } finally { await rm(root,{recursive:true,force:true,maxRetries:3}); }
+}
+
+// CurrentProviderOptions mounts an editor only for a target returned by this selector.
+async function assertNoShelfTarget(current, models) {
+  const { createProviderConnection, observeProviderTarget } = await import('../../../src/provider-option-panel.js');
+  const connection = createProviderConnection(), calls = [];
+  const control = { provider: 'openai-codex', model: 'gpt-5.4' };
+  const statusMethod = 'codex-subscription/preferences/status';
+  const fixedStore = value => ({ getSnapshot: () => value, subscribe: () => () => {} });
+  const detach = connection.attach({
+    state: fixedStore('connected'), generation: fixedStore({ id: 1 }),
+    rpc: { async call(base, method) {
+      calls.push([base, method]);
+      if (base !== '/api' || method !== statusMethod) throw Error('Unexpected shelf RPC: ' + method);
+      return { ok: true, value: { writable: true, composerModelPicker: 'auto', availableModels: [{ id: control.model }],
+        verbosityModels: [control.model], outputVerbosity: 'default' } };
+    } },
+  });
+  const select = (current, models) => observeProviderTarget(fixedStore({ status: 'ready', routable: true,
+    current, groups: [{ id: current.provider, models }] }), connection, 'fixture').getSnapshot();
+  try {
+    assert.equal(select(current, models), null, current.provider + ': no option adapter, hence no fields or submit path');
+    assert.deepEqual(calls, [], 'the shelf did not even request a settings read or write');
+
+    // Same connected selector, supported route: a disconnected or always-null shelf must fail.
+    const item = select(control, [{ id: control.model }]);
+    assert.ok(item, 'the Codex control must have a shelf target');
+    const fields = await item.io.read(item.target);
+    assert.ok(fields.some(field => field.id === 'outputVerbosity'), 'the control exposes a real shelf option');
+    assert.deepEqual(calls, [['/api', statusMethod]]);
+  } finally { detach(); }
 }
 
 // Only the fixture knows which entries it mounted. Their IDs are not a client API.
@@ -170,22 +201,10 @@ async function runOffline(fixtureRoot, packages, scenario) {
       assert.deepEqual([form.applies,field.type,field.meta.min,field.meta.max,field.meta.step], ['live','number',1,Number.MAX_SAFE_INTEGER,1]);
       assert.equal(form.value.maxTokens, form.base.maxTokens); assert.equal(form.user.maxTokens, undefined);
 
-      const {createDeepSeekOptions} = await import('../../../src/provider-routes/deepseek.js');
-      let reads = 0, writes = 0;
-      const io = createDeepSeekOptions({
-        llm: {listConfigurableProviders: () => ctx.llm.listConfigurableProviders(), listProviders: () => ctx.llm.listProviders()},
-        directory: {getSnapshot: () => ({status:'ready', routable:true, current, groups:[{id:provider,models}]})},
-        settings: {describe() { reads++; return settings.describe(); }, mutate(...args) { writes++; return settings.mutate(...args); }},
-      });
-      const target = {sessionId:'fixture',epoch:1,...current}, options = await io.read(target);
-      // Exercise the former read -> submit path if it ever reappears.
-      if (options.length && typeof io.write === 'function') await io.write(target,options[0],{set:2048},undefined,()=>true);
-      assert.deepEqual({fields:options.map(o=>o.id),writes}, {fields:[],writes:0}, provider);
-      assert.equal(io.write, undefined, 'no submit path, even for a stale draft');
-      assert.equal(reads, 0, 'do not read the standby configuration');
+      await assertNoShelfTarget(current, models);
       assert.equal(settings.describe().namespaces.find(r=>r.ns===row.settingsNs).revision, form.revision);
       assert.equal(sockets,0); assert.equal(serialized,0); assert.equal(listings,0); assert.equal(unexpectedFetches,0);
-      console.log(provider + ': standby form, different sender; shelf options: 0; shelf writes: 0; outbound sockets: 0');
+      console.log(provider + ': standby form, different sender; no shelf target; shelf RPCs: 0; Codex control: outputVerbosity; outbound sockets: 0');
       return;
     }
 

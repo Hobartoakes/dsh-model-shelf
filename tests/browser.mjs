@@ -40,7 +40,11 @@ window.fetch=async(url,options)=>{fetchCalls.push({url:String(url),options:optio
   if(body.action==='set-model-context-window'){if(body.contextWindow===null)delete wbOverrides[body.model];else wbOverrides[body.model]=body.contextWindow;return jsonResponse({state:'updated',model:body.model,contextWindow:body.contextWindow});}
   wbProbe.candidates=['wb-flash'];wbProbe.results=[{id:'wb-flash',validation:'validating',efforts:['low','medium','high'],probedAt:1}];window.publishEfforts();return jsonResponse({state:'ok',validation:'validating',efforts:['low','medium','high'],requests:2});}
  return jsonResponse({error:'not found'},false,404);};
-const disposers=[]; const ctx={inject(_deps,fn){if(_deps.length===1&&_deps[0]==='connection')throw Error('optional service is unavailable');fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(){return undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false)=>{root.render(React.createElement(Component,{locked,...options.inject('test-session')}))};return()=>{}}}};
+// An observable transport, not a fake success response: count every option RPC.
+window.optionCalls=[];
+const constant=value=>({getSnapshot:()=>value,subscribe:()=>()=>{}});
+const connection={state:constant('connected'),generation:constant({id:1}),rpc:{async call(_path,method){window.optionCalls.push(method);return {ok:false,error:{code:'fixture/unavailable'}}}}};
+const disposers=[]; const ctx={connection,inject(_deps,fn){if(_deps.length===1&&_deps[0]==='connection'&&!location.search.includes('option-owner'))throw Error('optional service is unavailable');fn(this)},effect(fn){const dispose=fn();if(dispose)disposers.push(dispose)},sessions:{subagentAddress(id){return id==='fixture-child'?{parentId:'test-session'}:undefined}},modelDirectories:{directoryFor(){return {store,resetConnected(){window.setState({status:'ready',pending:null})},async load(){return state},async select(selection){selected.push(selection);window.setState({status:'selecting'});if(shouldWait){shouldWait=false;await new Promise(resolve=>window.finishSelection=resolve)}if(shouldThrow){shouldThrow=false;throw Error('transport disconnected')}if(shouldFail){shouldFail=false;window.setState({status:'error'});return {ok:false,error:{code:'session/writer-held',message:'held'}}}window.setState({current:selection,status:'ready'});return {ok:true}}}}},slots:{spec(){return {kind:'single',scope:'session'}},inject(name,fn){return fn()},register(options,Component){window.registration=options;window.render=(locked=false,id='test-session')=>{root.render(React.createElement(Component,{locked,...options.inject(id)}))};return()=>{}}}};
 const root=ReactDOM.createRoot(document.getElementById('anchor'));plugin.apply(ctx);window.render();window.dispose=()=>{root.unmount();for(const fn of disposers.reverse())fn()};
 </script>`;
 await mkdir(new URL('tests/artifacts/', root), { recursive: true });
@@ -671,8 +675,8 @@ try {
   ok('account note editor and three lists fit a narrow viewport');
   // --- WorkBuddy reasoning-effort detection and the explicit unpin ----------
   await page.setViewportSize({ width: 1280, height: 1000 });
-  if ((await page.locator('.dmo-panel').count()) > 0) { await page.keyboard.press('Escape'); await page.locator('.dmo-panel').waitFor({ state: 'hidden' }); }
-  await page.evaluate(() => setState({ groups: wbGroups }));
+  await page.goto(htmlURL.href + '?option-owner');
+  await page.evaluate(() => setState({ groups: wbGroups, routable: true }));
   await open();
   await page.getByRole('tab', { name: /^主列表/ }).click();
   await page.getByRole('button', { name: '选择 WorkBuddy AI 的 DeepSeek V4.1 Flash，模型 ID wb-flash', exact: true }).click();
@@ -738,6 +742,15 @@ try {
   assert.equal(await page.getByLabel('上下文容量', { exact: true }).inputValue(), '');
   assert.ok((await page.locator('.dmo-probe').innerText()).includes('已恢复服务商默认容量'));
   ok('clearing the pin returns that one model to the provider default');
+  assert.deepEqual(await page.evaluate(() => fetchCalls.filter(c => c.options.method === 'POST')
+    .map(c => [c.url, JSON.parse(c.options.body)])), [
+    { action: 'probe', model: 'wb-flash' },
+    { action: 'set-model-context-window', model: 'wb-flash', contextWindow: 1000000 },
+    { action: 'set-model-context-window', model: 'wb-flash', contextWindow: null },
+  ].map(body => ['/plugins/dsh-workbuddy-connect/ai/probe', body]));
+  assert.deepEqual(await page.evaluate(() => optionCalls), []);
+  assert.equal(await page.locator('.dmo-provider-options').count(), 0);
+  ok('WorkBuddy sends only its three explicit operations and no subscription RPC');
 
   // A stock host has no patch stamp: the control must not appear at all. The
   // status document is cached per provider for a minute, so this reloads the
@@ -754,11 +767,31 @@ try {
   assert.equal(await page.getByLabel('上下文容量', { exact: true }).count(), 0);
   assert.equal(await page.locator('.dmo-context-note').count(), 0);
   ok('an unpatched WorkBuddy host is never shown a per-model window control');
+  assert.deepEqual(await page.evaluate(() => optionCalls), []);
+  assert.equal(await page.evaluate(() => fetchCalls.some(c => c.options.method === 'POST')), false);
+  const codexState = { routable: true, current: { provider: 'openai-codex', model: 'gpt-5.4' }, groups: [{ id: 'openai-codex',
+    models: [{ id: 'gpt-5.4', reasoning: { defaultEffort: 'medium', efforts: [{id:'medium'}] } }] }] };
+  // Project that exact eligible route in an addressed child, then a primary on
+  // the same connected transport. Zero calls alone would also fit a dead spy.
+  await page.evaluate(() => render(false, 'fixture-child'));
+  await page.locator('.dmo-trigger').waitFor({ state: 'detached' });
+  const beforeChild = await page.evaluate(() => [selected.length, fetchCalls.length]);
+  await page.evaluate(next => setState(next), codexState); await settle();
+  assert.equal(await page.locator('.dmo-provider-options').count(), 0);
+  assert.equal(await page.evaluate(() => optionCalls.length), 0);
+  assert.deepEqual(await page.evaluate(() => [selected.length, fetchCalls.length]), beforeChild);
+  await page.evaluate(() => render());
+  await page.locator('.dmo-trigger').waitFor();
+  if (!await page.locator('.dmo-panel').isVisible()) await open();
+  await page.waitForFunction(() => window.optionCalls.length > 0);
+  assert.deepEqual(await page.evaluate(() => optionCalls), ['codex-subscription/preferences/status']);
+  ok('addressed child sends zero selection, WorkBuddy or option calls; the same primary route reads once');
   await page.evaluate(() => localStorage.removeItem('wbStock'));
+  await page.goto(htmlURL.href); await open();
   // This legacy harness has no connection/generation service. Even an exact
   // Codex route must keep its normal picker/effort without fetching settings.
   const beforeOptional = await page.evaluate(() => fetchCalls.length);
-  await page.evaluate(() => setState({ routable:true, current:{ provider:'openai-codex', model:'gpt-5.4' }, groups:[{ id:'openai-codex', models:[{ id:'gpt-5.4', reasoning:{ defaultEffort:'medium',efforts:[{id:'medium'}] } }] }] }));
+  await page.evaluate(next => setState(next), codexState);
   await page.getByLabel('思考强度', {exact:true}).waitFor();
   assert.equal(await page.locator('.dmo-provider-options').count(),0);
   assert.equal(await page.evaluate(() => fetchCalls.length),beforeOptional);

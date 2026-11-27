@@ -1,6 +1,6 @@
 # 服务商选项：哪些能调，哪些不能据此开放
 
-在本次核对的版本中，书架新增可保存的服务商偏好只有 **Codex 订阅的回答详略、推理摘要、响应速度**。打开当前模型的「服务商选项」，按需选值再点「保存」；打开、改选或取消都不写入。三项都是连接器的共享默认值。其他七组没有新增写入口；已有的会话思考档位继续用原选择器。
+在本次核对的版本中，书架新增可保存的服务商偏好只有 **Codex 订阅的回答详略、推理摘要、响应速度**。在普通会话中打开当前模型的选择面板，找到「服务商选项」。改选或点「恢复默认」只是草稿，点该行的「保存」才写入；取消或关闭不写。三项都是连接器的共享默认值。其他七组没有新增写入口；已有的会话思考档位继续用原选择器。
 
 ## 怎样读证据
 
@@ -22,16 +22,16 @@
 | 偏好 | 适用条件和可选值 | 已观察到的下一请求 |
 | --- | --- | --- |
 | 回答详略 `outputVerbosity` | 精确模型在连接器公布的 `verbosityModels` 内。`default / low / medium / high`；恢复默认跟随模型。 | 保存 `low` 后 `text.verbosity=low`；重置 `default` 后取夹具模型默认 `high`，不是所有模型都固定发 high。 |
-| 推理摘要 `reasoningSummary` | 仅对生成 `reasoning` 的请求生效。`auto / concise / detailed / none`。 | 两个显式摘要分别写入 `reasoning.summary`；`auto` 保留构造器原值；`none` 移除摘要，不移除推理强度。非推理模型无 `reasoning`。 |
+| 推理摘要 `reasoningSummary` | 当前书架仅对已验证的 `gpt-5.4` 低/中/高档或其声明的中档默认开放；必须走订阅线路且请求生成 `reasoning`。`auto / concise / detailed / none`。 | 两个显式摘要分别写入 `reasoning.summary`；`auto` 保留构造器原值；`none` 移除摘要，不移除推理强度。非推理模型无 `reasoning`。 |
 | 响应速度 `speedMode` | 标准、快速、极速（Beta）；只显示当前账号目录对本模型声明的加速档。 | 快速发 `service_tier=priority`，极速发 `ultrafast`，恢复标准后省略该键。 |
 
-书架通过[连接器偏好接口](../src/codex-options.js)读取，保存前复核，只发单字段补丁并独立重读。遇到冲突或未确认，请重新读取，不会自动重试；「已保存，当前实例尚未同步」不代表当前实例已采用。隔离 profile 的[书架操作](../tests/provider-options/exercise.mjs)有 12 次保存并重开（详略 2、摘要 4、速度 6），[本地传输](../tests/provider-options/local-transport.mjs)截获 31 条最终 SDK 请求；同名 API 零订阅 RPC，零供应商连接。不是日常桌面或线上推理验收。
+书架通过[连接器偏好接口](../src/codex-options.js)读取，保存前复核，只发单字段补丁并独立重读。遇到冲突或未确认，请点「重新读取服务商选项」确认当前值（其他未保存的草稿会丢弃）。更新回执不明确时，即使独立重读看到了目标值，也不会声称本次保存成功或自动重试；「已保存，当前实例尚未同步」不代表当前实例已采用。隔离 profile 的[书架操作](../tests/provider-options/exercise.mjs)有 12 次保存并重开（详略 2、摘要 4、速度 6），[本地传输](../tests/provider-options/local-transport.mjs)截获 31 条最终 SDK 请求；同名 API 零订阅 RPC，零供应商连接。不是日常桌面或线上推理验收。
 
 ### 响应速度：哪些档会出现？
 
 书架不根据模型名猜速度。它核对完整 `openai-codex` 路由、唯一启用模型与可写的内联偏好，并要求连接器报告当前账号目录已刷新成功（`online/ok`）。在 3.2.28 中，[目录与能力元数据来自同一批模型](<https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/model-catalog.js#L368-L379>)；当前模型还必须分别出现在[快速或极速列表](<https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/index.js#L329-L336>)。仅有一个加速档时，只提供该档和标准；无档、只含未知档、仅有缓存或缺能力信息，都不显示速度控件。
 
-**快速消耗更多 Credits；极速（Beta）会更快消耗订阅额度和 Credits。** 保存的是当前连接器的共享偏好。如果换到只支持快速的模型，而共享值是极速，普通请求使用标准速度；书架显示原共享值，不改成快速或标准。只有主动保存才会修改其他会话使用的默认值。
+**用量提示：快速可能增加 Credits 消耗；极速（Beta）可能更快用完订阅额度和 Credits。** 保存的是当前连接器的共享偏好。如果换到只支持快速的模型，而共享值是极速，普通请求使用标准速度；书架显示原共享值，不改成快速或标准。只有主动保存才会修改其他会话使用的默认值。
 
 [隔离用例](../tests/provider-options/exercise.mjs#L17-L74)对双档模型保存快速、极速、标准，并在两个单档模型保存适用档或重置。六次均重开读回，检查下一条普通请求的 `service_tier` 和不变的 `text`、`reasoning`。另有无档、未知档和不适用共享值的反例。草稿打开后，独立测试客户端刷新真实连接器目录并撤掉所选档，书架只复核状态，零补丁。[固定请求分支](<https://github.com/WSL043/dsh-codex-subscription/blob/05690e4045030bf8d4a85dbd5049d866ea6cd014/src/pi-ai-runtime.js#L156-L190>)不保证供应商实际接受、加速、收费或特定套餐资格。
 
@@ -103,31 +103,41 @@ DSH pi-ai 连接器与 LLM `0.2.2-rc.5`、pi-ai `1.3.0`、OpenAI SDK `7.19.0`；
 - **`zai/glm-5.3`** 不支持显式 off，即便无默认档的请求也能出现 `disabled`。**`opencode-go/glm-5.2`** 不支持该智谱格式开关。**`zai/glm-5.2 (reasoningEfforts=false)`** 夹具隐藏能力后不支持选开关，此时请求确实省略字段；三项都是指定组合的反例。
 - **`zai`、`zai-coding-cn`** 两条共享思考偏好均为缺口：缺独立模式读写入口，整条线路的默认强度不等价。未绑定所有者的 **`zhipuai` 标准 API / 自定义 profile** 同样是缺口：缺实际连接器、模型声明和请求，未用别的网关代证。
 
-## WorkBuddy：保留项，单列回归
+## WorkBuddy：已有功能，单列回归
 
-WorkBuddy **不计入八组，也不算新增功能**。保持[既有档位探测与容量选择](../README.md#L163-L165)：无已声明档位时可按连接器能力就地探测；逐模型容量仅在连接器声明相应能力时出现，不固定为某个容量。沿用[原探测测试](../tests/workbuddy-probe.test.mjs)。本次汇合没有重新验收真实账号、容量切换或桌面回归。
+WorkBuddy 不计入八组。未声明思考档位时，用户可以确认后请求连接器探测；容量只列出连接器为该模型声明的值，选择「服务商默认」解除容量固定。未打 CTXPATCH 补丁时不显示容量选项。两者都不是 Codex 偏好。
 
-## 怎样复跑和打包证据
+在[浏览器夹具](../tests/browser.mjs)中，打开或取消探测没有写入。主动确认探测、设置 1M、恢复容量默认，合计恰好三次 POST，全部到 WorkBuddy 自己的路由，订阅选项 RPC 为零。对同一个 Codex 目标，子代理没有选模、WorkBuddy 请求或选项 RPC，切回普通会话才有一次偏好读取。本次没有登录 WorkBuddy，也没有对真实账号做容量切换或付费探测。
 
-从仓库根目录运行。下列构建与三项测试在本次接线中运行；[覆盖测试](../tests/provider-coverage.test.mjs)核对八组 65 行、七份原始矩阵，并与运行时实际可显示的字段双向比对。
+## 本次验证与复跑
 
-```sh
-node scripts/build.mjs
-node tests/provider-options/codex-roundtrip.mjs --offline
-node --test tests/provider-coverage.test.mjs
-node --test tests/codex-options.test.mjs tests/provider-option-panel.test.mjs
-```
+在仓库根目录、Windows、Node 24.21.0、npm 11.19.0、Edge 158.0.4370.33 上运行。需要已有测试依赖、浏览器和按固定版本校验的归档；[隔离夹具说明](../tests/provider-options/README.md)区分准备缓存与离线执行。未安装、未发布本开发版。
 
-以下命令已由各专线及独立审查运行，不是本次接线重复执行的结果。使用已有测试依赖和已校验归档；七组均无供应商外连。
+| 命令 | 退出码 | 观察结果 |
+| --- | ---: | --- |
+| `npm run build` | 0 | 重建的客户端与本轮输入字节相同。 |
+| `npm test` | **1** | 287 项：285 通过、2 失败、0 跳过。失败的是绑定已发布 1.6.0 客户端的交付预检、桌面凭据正例；这两项未通过，不是缺夹具。 |
+| `npm run test:browser` | 0 | 48 项，未捕获页面错误 0；使用合成目录和 WorkBuddy 路由。 |
+| `node tests/provider-options/codex-roundtrip.mjs --offline` | 0 | 三个字段、12 次保存并重开、31 条本地序列化请求，供应商连接 0。包括同名 API、撤档、冲突与读回失败。 |
+| `node --test tests/codex-options.test.mjs tests/provider-option-panel.test.mjs tests/workbuddy-probe.test.mjs` | 0 | 权限、单字段补丁、读回、过期草稿、速度分档和 WorkBuddy 等专项 62/62，0 跳过。 |
+| `node tests/host-inventory/run-contracts.mjs --offline 0.0.1-rc.5 0.2.2-rc.5` | 0 | 两端均实际加载官方组件，结果均为 `package-contract`；同名不同线路正确切换，拒绝后保留原模型，子代理无选模请求；停用或缺必要能力后原生菜单可打开。 |
+| `node --test tests/provider-options/host-fallback.mjs` | 0 | 两端各 1 项、0 跳过：缺可选服务仍能选模、固定 low、对同一模型明确恢复默认（请求不含强度）；退让后均仅一个原生入口。 |
+| `npm pack --dry-run --json --ignore-scripts` | 0 | 干跑清单 93 个文件，没有打包依赖；没有生成或安装交付归档。 |
 
-| 专线 | 已运行的契约测试 | 本地构造的请求数 |
-| --- | --- | ---: |
-| OpenAI API | `node --test tests/provider-routes/openai-api/contract.test.mjs` | 15 |
-| Claude | `node --test tests/provider-routes/claude/contract.test.mjs` | 26 |
-| Google | `node --test tests/provider-routes/gemini/contract.test.mjs` | 14 |
-| DeepSeek | `node --test tests/provider-routes/deepseek/contract.test.mjs` | 18 |
-| Qwen | `node --test tests/provider-routes/qwen/contract.test.mjs` | 14 |
-| Kimi | `node --test tests/provider-routes/kimi/contract.test.mjs` | 17 |
-| GLM | `node --test tests/provider-routes/glm/contract.test.mjs` | 15 |
+[发布检查](../scripts/check-release.mjs)只认 1.6.0 的特定客户端，不能用它认证改过的开发字节；本次未改哈希、旧记录或版本号。官方宿主样本用的是已发布的前端、目录和插槽组件，不是完整桌面安装或真实推理。历史桌面记录不能转授给本次构建。
 
-**包成员要求（待打包回归核对）。** 运行时需包含[已构建客户端](../lib/client.js)。复跑需保留本文、[覆盖测试](../tests/provider-coverage.test.mjs)、[总表](../tests/provider-options/coverage.json)、[固定归档清单](../tests/provider-options/pins.json)、[隔离说明](../tests/provider-options/README.md)、`tests/provider-options/*.mjs` 的入口与全部导入模块、[隔离路径辅助模块](../tests/clean-profile-support.mjs)，以及七条专线各自的 `contract.test.mjs` 和 `evidence.json`。保留既有宿主清单及夹具依赖；不装入归档缓存、解包目录、凭据、临时 profile 或测试产物。Qwen 原生和 Kimi 订阅的额外归档按专线校验，不随包附带。
+### 七条专线均另行执行
+
+`npm test` 的顶层匹配不含嵌套专线；下列命令逐一重跑，均退出 0、无跳过、无供应商连接。这里统计的是固定连接器在本地构造的请求，不是七条线路新增了可保存设置。
+
+| 专线 | 单独运行的契约 | 通过/总数 | 本地请求数 |
+| --- | --- | ---: | ---: |
+| OpenAI API | `node --test tests/provider-routes/openai-api/contract.test.mjs` | 3/3 | 15 |
+| Claude | `node --test tests/provider-routes/claude/contract.test.mjs` | 2/2 | 26 |
+| Gemini | `node --test tests/provider-routes/gemini/contract.test.mjs` | 8/8 | 14 |
+| DeepSeek | `node --test tests/provider-routes/deepseek/contract.test.mjs` | 4/4 | 18 |
+| Qwen | `node --test tests/provider-routes/qwen/contract.test.mjs` | 7/7 | 14 |
+| Kimi | `node --test tests/provider-routes/kimi/contract.test.mjs` | 2/2 | 17 |
+| GLM | `node --test tests/provider-routes/glm/contract.test.mjs` | 2/2 | 15 |
+
+[包成员回归](../tests/provider-coverage.test.mjs)核对 npm 实际列出的[客户端](../lib/client.js)、本文、总表、固定归档清单、隔离辅助模块、选项与宿主测试，以及七条专线各自的契约和证据矩阵。不含厂商源码包、凭据、捕获数据、缓存或临时 profile。冷缓存需先按[Codex](../tests/provider-options/README.md)、[Qwen](../tests/provider-routes/qwen/contract.test.mjs#L1-L8) 和 [Kimi](../tests/provider-routes/kimi/contract.test.mjs#L1-L6) 的说明另行准备公开归档；宿主样本使用自己的[固定版本与校验值](../tests/host-inventory/matrix.json)。本次离线复跑未下载归档。

@@ -17,6 +17,8 @@
   "files": [
     "lib", "src", "scripts/build.mjs", "scripts/check-release.mjs", "tests/*.mjs", "tests/host-inventory/matrix.json", "tests/host-inventory/early-pins.json",
     "tests/host-inventory/run-contracts.mjs", "tests/host-inventory/seat-fixture.mjs", "tests/host-inventory/web-fixture.mjs", "tests/host-inventory/boot-settlement.mjs",
+    "tests/provider-options/*.mjs", "tests/provider-options/README.md", "tests/provider-options/pins.json", "tests/provider-options/coverage.json",
+    "tests/provider-routes/*/contract.test.mjs", "tests/provider-routes/*/evidence.json", "docs/PROVIDER-OPTIONS.md",
     "docs/images/*.png", "docs/ICON-ATTRIBUTIONS.md", "docs/research/2026-11-01-brand-icon-permissions.md", "docs/research/2026-11-09-retained-brand-distribution.md", "docs/research/2026-11-01-icon-performance.md", "docs/RELEASE-CHECKLIST.md", "docs/PRIVACY.md", "docs/VALIDATION.md", "docs/HOST-COMPATIBILITY.md", "docs/WORKBUDDY-PROBE.md",
     "cordis.patch.yml", "README.md", "CHANGELOG.md", "LICENSE"
   ],

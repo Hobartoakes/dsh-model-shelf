@@ -3,12 +3,16 @@
     "route": "deepseek",
     "variant": "deepseek-official",
     "field": "maxTokens",
-    "status": "candidate",
+    "status": "gap",
     "packagePin": "@deepseek-ai/dsh-llm-deepseek-api-key@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
     "source": [
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-api-key/src/index.ts#L62-L110",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L44-L53",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L78-L89",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L369-L372",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L493-L500",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/types.ts#L230-L235",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/types.ts#L252-L263",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L523-L541",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L565-L572",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L92-L98",
@@ -20,10 +24,10 @@
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L187-L213",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/boot/config-editor/src/index.ts#L134-L148"
     ],
-    "ownerProof": "API Key 连接器在同一 Cordis fiber 下以 deepseek-official 登记目录与实际 adapter；目录带当前装载实例的 entry id 作为 settingsNs、settingsPath=[]，不是显示名或固定 namespace。公开 llm.listConfigurableProviders() 同一 provider 只可登记一次。要求当前已加载、可路由的 provider/model 唯一匹配，目录所有者和脱敏实时表单均唯一。仅白名单 deepseek-flash/deepseek-v4-pro；其他模型或同名中转不推断。",
-    "writeSurface": "ctx.remote.settings.describe() 读取该 ns 的有效值、基值、用户覆盖、版本与 schema；仅 mutate(ns,[{op:\"set\",path:[\"maxTokens\"],value:n}],expectedRevision)，正安全整数；仅现有用户覆盖可用 unset 同一路径。共享该连接器的其他模型/会话受影响。不替换配置、不读凭据服务。",
-    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。隔离 profile fixture-key：保存 2048、独立读回，两个模型的下一条 Messages 均带 max_tokens=2048，另一线路同名模型仍为 4096。重置后 Flash 按本地目录 4096、Pro 按继承值 256000；单次调用显式 73 优先；上下文仍为 1048576。",
-    "reason": "受试本机固定代码载体和本地合成目录，不是厂商在线限制。线路默认值不保证是每次请求值：目录可取 min(线路上限, 模型上限)；models 中该 id 的 maxTokens 显式存在时隐藏。已验证适配层和请求构造，没有书架界面保存/重开闭环，候选不启用。"
+    "ownerProof": "官方 API Key 连接器登记 deepseek-official 的配置目录和推理适配器，但宿主分别维护这两项登记。listProviders() 仅给活动线路的 id/name；listConfigurableProviders() 的 settingsNs 来自配置目录，也可属于备用实例。固定版本未向客户端提供将当前发送实例绑定到该 ns 的依据。",
+    "writeSurface": "书架不读该表单，不显示 maxTokens，也不提供保存或重置入口。宿主可按 ns 和 revision 修改单字段，但版本校验只防止写入过时的表单，不能确认它属于发送实例。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs：测试在隔离 profile 中直接修改已知的 fixture-key（不是书架写入），独立读回 2048。固定版连接器为 Flash 和 Pro 构造的 Messages 均带 max_tokens=2048，另一线路的 Flash 仍为 4096；重置后 Flash 为 4096、Pro 为 256000。单次显式指定 73 优先，每模型覆盖 321 生效，上下文仍为 1048576。传输在本地截获，无供应商连接。",
+    "reason": "缺口是活动推理实例的归属不可核实，不是厂商不支持输出上限。deepseek-official 的反例在同一宿主登记唯一有效的备用表单和同名模型；实际请求分派到另一实例。书架无选项、零写入。"
   },
   {
     "route": "deepseek",
@@ -47,12 +51,16 @@
     "route": "deepseek",
     "variant": "deepseek-account",
     "field": "maxTokens",
-    "status": "candidate",
+    "status": "gap",
     "packagePin": "@deepseek-ai/dsh-llm-deepseek-account@0.2.2-rc.5, @deepseek-ai/dsh-llm-deepseek@0.2.2-rc.5, @deepseek-ai/dsh-llm@0.2.2-rc.5, @deepseek-ai/dsh-api-settings-controller@0.2.2-rc.5, @deepseek-ai/dsh-settings@0.2.2-rc.5",
     "source": [
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek-account/src/index.ts#L59-L96",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L44-L53",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/host.ts#L78-L89",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L369-L372",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L493-L500",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/types.ts#L230-L235",
+      "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/types.ts#L252-L263",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L523-L541",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm/src/index.ts#L565-L572",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/llm/llm-deepseek/src/config.ts#L92-L98",
@@ -64,10 +72,10 @@
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/api/settings-controller/src/index.ts#L187-L213",
       "https://github.com/deepseek-ai/deepseek-harness/blob/9c2670d3bce5275e0d1610272958121af87787bb/packages/boot/config-editor/src/index.ts#L134-L148"
     ],
-    "ownerProof": "账号连接器在同一 Cordis fiber 下以 deepseek-account 登记目录与实际 adapter；目录带当前装载实例的 entry id 作为 settingsNs、settingsPath=[]，不是显示名或固定 namespace。公开 llm.listConfigurableProviders() 同一 provider 只可登记一次。要求当前已加载、可路由的 provider/model 唯一匹配，目录所有者和脱敏实时表单均唯一。仅白名单 deepseek-flash/deepseek-v4-pro；其他模型或同名中转不推断。",
-    "writeSurface": "ctx.remote.settings.describe() 读取该 ns 的有效值、基值、用户覆盖、版本与 schema；仅 mutate(ns,[{op:\"set\",path:[\"maxTokens\"],value:n}],expectedRevision)，正安全整数；仅现有用户覆盖可用 unset 同一路径。共享该连接器的其他模型/会话受影响。不替换配置、不读凭据服务。",
-    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs → fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary。隔离 profile fixture-account：保存 2048、独立读回，两个模型的下一条 Messages 均带 max_tokens=2048，另一线路同名模型仍为 4096。重置后 Flash 按本地目录 4096、Pro 按继承值 256000；单次调用显式 73 优先；上下文仍为 1048576。",
-    "reason": "受试本机固定代码载体和本地合成目录，不是厂商在线限制。线路默认值不保证是每次请求值：目录可取 min(线路上限, 模型上限)；modelOverrides[modelId].maxTokens 显式存在时隐藏。已验证适配层和请求构造，没有书架界面保存/重开闭环，候选不启用。"
+    "ownerProof": "账号连接器登记 deepseek-account 的配置目录和推理适配器，但宿主分别维护这两项登记。listProviders() 仅给活动线路的 id/name；listConfigurableProviders() 的 settingsNs 来自配置目录，也可属于备用实例。固定版本未向客户端提供将当前发送实例绑定到该 ns 的依据。",
+    "writeSurface": "书架不读该表单，不显示 maxTokens，也不提供保存或重置入口。宿主可按 ns 和 revision 修改单字段，但版本校验只防止写入过时的表单，不能确认它属于发送实例。",
+    "requestProof": "node --test tests/provider-routes/deepseek/contract.test.mjs：测试在隔离 profile 中直接修改已知的 fixture-account（不是书架写入），独立读回 2048。固定版连接器为 Flash 和 Pro 构造的 Messages 均带 max_tokens=2048，另一线路的 Flash 仍为 4096；重置后 Flash 为 4096、Pro 为 256000。单次显式指定 73 优先，每模型覆盖 321 生效，上下文仍为 1048576。传输在本地截获，无供应商连接。",
+    "reason": "缺口是活动推理实例的归属不可核实，不是厂商不支持输出上限。deepseek-account 的反例在同一宿主登记唯一有效的备用表单和同名模型；实际请求分派到另一实例。书架无选项、零写入。"
   },
   {
     "route": "deepseek",

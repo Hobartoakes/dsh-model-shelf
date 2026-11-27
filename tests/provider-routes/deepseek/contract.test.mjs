@@ -7,129 +7,17 @@ import { Socket } from 'node:net';
 import { basename, join, resolve } from 'node:path';
 
 const routes = ['deepseek-official', 'deepseek-account'];
-const target = { sessionId: 'fixture', provider: routes[0], model: 'deepseek-flash', epoch: 1 };
-const snapshot = t => ({ status: 'ready', routable: true, current: { provider: t.provider, model: t.model }, groups: [{ id: t.provider, models: [{ id: t.model }] }] });
-const owner = provider => ({provider, settingsNs: provider === routes[0] ? 'key.one' : 'account.two', settingsPath: []});
-const form = provider => ({ ns: owner(provider).settingsNs, revision: 0, applies: 'live',
-  schema: {uid: 7, refs: {7: { type: 'object', dict: {maxTokens: 9} }, 9: {type: 'number', meta: { step: 1, min: 1, max: Number.MAX_SAFE_INTEGER }}}},
-  base: {maxTokens: 8192}, user: {}, value: {maxTokens: 8192, ...(provider === routes[0] ? {models: [{id: target.model}]} : {modelOverrides: {}})},
-});
-
-async function factory() { return (await import('../../../src/provider-routes/deepseek.js')).createDeepSeekOptions; }
-function fixture(create, t = target) {
-  const rows = routes.map(owner), forms = routes.map(form), writes = [];
-  const f = { state: snapshot(t), rows, forms, writes, writable: true, reads: 0 };
-  const services = { directory: { getSnapshot: () => f.state }, llm: { listConfigurableProviders: () => f.rows }, settings: {
-    describe() { f.reads++; return {writable: f.writable, namespaces: f.forms}; },
-    mutate(ns, ops, rev) { writes.push([ns, ops, rev]); const row = f.forms.find(x => x.ns === ns); const [op] = ops;
-      if (op.op === 'set') row.user.maxTokens = op.value; else delete row.user.maxTokens;
-      row.value.maxTokens = row.user.maxTokens ?? row.base.maxTokens; row.revision++; return structuredClone(row);
-    }
-  }};
-  return Object.assign(f, { io: create(services), services });
-}
-
-if (process.argv[2] === '--deepseek-offline') await runOffline(process.argv[3], process.argv[4]);
+if (process.argv[2] === '--deepseek-offline') await runOffline(...process.argv.slice(3));
 else registerTests();
 
 function registerTests() {
-  test('route defaults patch only maxTokens on the unique live owner, and reset to its inherited value', async () => {
-    const create = await factory();
-    for (const provider of routes) {
-      const t = {...target, provider}, f = fixture(create, t);
-      const [initial] = await f.io.read(t);
-      assert.equal(initial.id, 'maxTokens'); assert.equal(initial.value, 8192); assert.equal(initial.editor.unit, 'token');
-      assert.match(initial.scope, /其他会话/); assert.ok(!initial.reset); assert.equal(f.writes.length, 0);
-      assert.equal(await f.io.write(t, initial, {set: 2048}, undefined, () => true), 'applied');
-      const [reopened] = await f.io.read(t); assert.equal(reopened.value, 2048); assert.ok(reopened.reset);
-      assert.equal(await f.io.write(t, reopened, {reset: true}, undefined, () => true), 'applied');
-      assert.deepEqual(f.writes, [[owner(provider).settingsNs,[{op:'set',path:['maxTokens'],value:2048}],0], [owner(provider).settingsNs,[{op:'unset',path:['maxTokens']}],1]]);
-      assert.equal((await f.io.read(t))[0].value, 8192);
-      assert.equal(f.forms.find(x => x.ns !== owner(provider).settingsNs).revision, 0);
-    }
-  });
-
-  test('wrong session, model, relay or stale directory never even reads settings', async () => {
-    const create = await factory();
-    for (const change of [{provider:'relay'},{model:'deepseek-flash-clone'},{sessionId:' '},{sessionId:1},{epoch:-1}]) {
-      const t = {...target,...change}, f = fixture(create,t); let directories = 0;
-      f.services.llm.listConfigurableProviders = () => { directories++; return f.rows; };
-      assert.deepEqual(await f.io.read(t),[]); assert.equal(directories,0); assert.equal(f.reads,0);
-    }
-    for (const corrupt of [f=>f.state.routable=false, f=>f.state.status='loading', f=>f.state.current.model='other',
-      f=>f.state.groups=[], f=>f.state.groups.push(f.state.groups[0]), f=>f.state.groups[0].models.push({id:target.model})]) {
-      const f = fixture(create); corrupt(f); assert.deepEqual(await f.io.read(target),[]); assert.equal(f.reads,0);
-    }
-  });
-
-  test('require exactly one root owner, a live versioned form, known schema and unshadowed model', async () => {
-    const create = await factory();
-    for (const corrupt of [f=>f.rows=[], f=>f.rows.push({...f.rows[0],settingsNs:'other'}), f=>f.rows[1].settingsNs=f.rows[0].settingsNs,
-      f=>f.rows[0].settingsPath=['providers','mirror'], f=>f.rows[0].error='blocked', f=>f.forms.push({...f.forms[0]}),
-      f=>f.writable=false, f=>f.forms[0].applies='reload', f=>delete f.forms[0].revision, f=>f.forms[0].revision=-1,
-      f=>delete f.forms[0].schema.refs[7].dict.maxTokens, f=>f.forms[0].schema.refs[9].type='string',
-      f=>delete f.forms[0].schema.refs[9].meta.step, f=>f.forms[0].value.maxTokens='8192',
-      f=>f.forms[0].value.models=[], f=>f.forms[0].value.models[0].maxTokens=512, f=>f.forms[0].user.maxTokens=4096,
-      f=>f.forms[0].base.maxTokens=0, f=>delete f.forms[0].user, f=>delete f.services.settings.mutate]) {
-      const f = fixture(create); corrupt(f); assert.deepEqual(await f.io.read(target),[]); assert.equal(f.writes.length,0);
-    }
-    const t={...target,provider:routes[1]}, a=fixture(create,t); a.forms[1].value.modelOverrides[t.model]={maxTokens:1024};
-    assert.deepEqual(await a.io.read(t),[]); assert.equal(a.writes.length,0);
-  });
-
-  test('returns only one whitelisted field; numeric inputs are not coerced, extra keys cannot become paths', async () => {
-    const f = fixture(await factory());
-    f.forms[0].value.unrelated='omit-me'; f.forms[0].user.headers={unrelated:'omit-me'};
-    const options = await f.io.read(target); assert.deepEqual(options.map(x=>x.id),['maxTokens']);
-    assert.doesNotMatch(JSON.stringify(options),/omit-me|headers/);
-    const [field]=options;
-    for (const change of [{set:'1'},{set:0},{set:-1},{set:1.1},{set:Number.MAX_SAFE_INTEGER+1},{set:Infinity},{set:NaN},
-      {reset:true},{set:2,reset:true},{set:2,path:['contextWindow']},{set:2,thinking:'off'}]) {
-      assert.equal(await f.io.write(target,field,change,undefined,()=>true),'refused');
-    }
-    assert.equal(await f.io.write(target,{...field},{set:3},undefined,()=>true),'refused');
-    assert.equal(f.writes.length,0);
-    for (const set of [1,Number.MAX_SAFE_INTEGER]) {
-      const [current] = await f.io.read(target); assert.equal(await f.io.write(target,current,{set},undefined,()=>true),'applied');
-    }
-  });
-
-  test('CAS conflict, revoked owner, cancellation and A→B→A epoch invalidate a draft; never retry', async () => {
-    const create=await factory();
-    for (const [expected,change] of [ ['conflict', f=>f.forms[0].revision++], ['refused',f=>f.rows=[]],
-      ['refused', f=>f.writable=false], ['stale',f=>f.state.current.provider=routes[1]] ]) {
-      const f=fixture(create), [field]=await f.io.read(target); change(f);
-      assert.equal(await f.io.write(target,field,{set:2},undefined,()=>true),expected); assert.equal(f.writes.length,0);
-    }
-    const f=fixture(create), [field]=await f.io.read(target);
-    assert.equal(await f.io.write({...target,epoch:3},field,{set:2},undefined,()=>true),'refused');
-    assert.equal(await f.io.write(target,field,{set:2},undefined,()=>false),'stale');
-    f.services.settings.describe=()=>{ f.state.routable=false; return {writable:true,namespaces:f.forms}; };
-    assert.equal(await f.io.write(target,field,{set:2},undefined,()=>true),'stale'); assert.equal(f.writes.length,0);
-    const g=fixture(create), [draft]=await g.io.read(target); let count=0;
-    g.services.settings.mutate=()=>{ count++; throw Object.assign(Error(),{code:'settings/conflict'}); };
-    assert.equal(await g.io.write(target,draft,{set:2},undefined,()=>true),'conflict'); assert.equal(count,1);
-  });
-
-  test('ambiguous receipt or changed readback cannot confirm a committed or superseded mutation', async () => {
-    const create=await factory();
-    for (const response of [() => {throw Error('timeout');}, () => ({}), r=>({...r,value:{...r.value,maxTokens:7}}),
-      r=>({...r,user:{}}), r=>({...r,ns:'different'}), r=>({...r,revision:r.revision+1}), (r,f)=>{f.writable=false; return r;}]) {
-      const f=fixture(create), [field]=await f.io.read(target), mutate=f.services.settings.mutate, reads=f.reads;
-      f.services.settings.mutate=(...args)=>response(mutate(...args),f);
-      assert.equal(await f.io.write(target,field,{set:333},undefined,()=>true),'unconfirmed');
-      assert.equal(f.writes.length,1); assert.equal(f.forms[0].value.maxTokens,333);
-      assert.equal(f.reads-reads,2, 'one preflight and one independent readback');
-    }
-  });
-
-  test('the two variant inputs stay candidates until integrated; native reasoning is not another shelf field', async () => {
-    const {readFile}=await import('node:fs/promises'); const rows=JSON.parse(await readFile(new URL('./evidence.json',import.meta.url)));
+  test('both output caps are gaps; reasoning effort stays in the native model selector', async () => {
+    const rows=JSON.parse(await readFile(new URL('./evidence.json',import.meta.url)));
     const keys=['route','variant','field','status','packagePin','source','ownerProof','writeSurface','requestProof','reason'];
     assert.equal(rows.length,4);
     for (const provider of routes) {
       const r=rows.filter(x=>x.variant===provider);
-      assert.deepEqual(r.map(x=>[x.field,x.status]),[['maxTokens','candidate'],['reasoningEffort','builtin']]);
+      assert.deepEqual(r.map(x=>[x.field,x.status]),[['maxTokens','gap'],['reasoningEffort','builtin']]);
       for (const row of r) {
         assert.deepEqual(Object.keys(row).sort(),[...keys].sort()); assert.equal(row.route,'deepseek');
         assert.match(row.packagePin,/0\.2\.2-rc\.5/); assert.match(JSON.stringify(row.source),/9c2670d3bce5275e0d1610272958121af87787bb/);
@@ -139,35 +27,44 @@ function registerTests() {
     }
   });
 
-  // Supply DSH_DEEPSEEK_TEST_PACKAGES for a loose 0.2.2-rc.5 dependency tree,
-  // or DSH_TEST_INSTALL_DIR for a Windows distribution (code carrier, never its profile).
-  test('fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary', async t => {
-    const {createIsolation} = await import('../../clean-profile-support.mjs');
-    const {mkdtemp, rm} = await import('node:fs/promises');
-    const {execFileSync} = await import('node:child_process');
-    const {tmpdir} = await import('node:os');
-    const {join, resolve} = await import('node:path');
-    const {fileURLToPath} = await import('node:url');
-    const packages = process.env.DSH_DEEPSEEK_TEST_PACKAGES;
-    const install = process.env.DSH_TEST_INSTALL_DIR ?? join(process.env.LOCALAPPDATA ?? '', 'Programs', 'DeepSeek Harness');
-    const exe = packages ? process.execPath : join(install,'DeepSeek Harness.exe');
-    const anchor = packages ? resolve(packages) : join(install,'resources','app.asar','dsh');
-    const root = await mkdtemp(join(tmpdir(),'shelf-deepseek-'));
-    try {
-      const {env,cwd} = await createIsolation(root,exe,process.env);
-      if (!packages) env.ELECTRON_RUN_AS_NODE = '1';
-      env.DEEPSEEK_API_KEY = 'fixture-key-only';
-      const worker = fileURLToPath(import.meta.url);
-      const proof = execFileSync(exe,['--expose-internals',worker,'--deepseek-offline',root,anchor],{env,cwd,timeout:45000,encoding:'utf8',windowsHide:true});
-      assert.match(proof,/Two owners \/ two models; real profile set \+ reset for each; serialized Messages: \d+; outbound sockets: 0/);
+  for (const provider of routes) {
+    test(provider + ': a valid standby form is not the active sender', async t => {
+      const proof = await isolatedProof(provider);
+      assert.ok(proof.includes(provider + ': standby form, different sender; shelf options: 0; shelf writes: 0; outbound sockets: 0'));
       t.diagnostic(proof.trim());
-    } finally { await rm(root,{recursive:true,force:true,maxRetries:3}); }
+    });
+  }
+  test('fixed DeepSeek connectors consume independently reopened route caps at the serialized Messages boundary', async t => {
+    const proof = await isolatedProof('native');
+    assert.match(proof, /Connector-admin set and reset on both routes; serialized Messages: 18; outbound sockets: 0/);
+    t.diagnostic(proof.trim());
   });
 }
 
-// Spawned by the last contract in an isolated process; nothing goes to the network.
-async function runOffline(fixtureRoot, packages) {
-  const createDeepSeekOptions = await factory();
+// Supply a loose pinned dependency tree or the installed code carrier, never its profile.
+async function isolatedProof(scenario) {
+  const {createIsolation} = await import('../../clean-profile-support.mjs');
+  const {mkdtemp, rm} = await import('node:fs/promises');
+  const {execFileSync} = await import('node:child_process');
+  const {tmpdir} = await import('node:os');
+  const {fileURLToPath} = await import('node:url');
+  const packages = process.env.DSH_DEEPSEEK_TEST_PACKAGES;
+  const install = process.env.DSH_TEST_INSTALL_DIR ?? join(process.env.LOCALAPPDATA ?? '', 'Programs', 'DeepSeek Harness');
+  const exe = packages ? process.execPath : join(install,'DeepSeek Harness.exe');
+  const anchor = packages ? resolve(packages) : join(install,'resources','app.asar','dsh');
+  const root = await mkdtemp(join(tmpdir(),'shelf-deepseek-'));
+  try {
+    const {env,cwd} = await createIsolation(root,exe,process.env);
+    if (!packages) env.ELECTRON_RUN_AS_NODE = '1';
+    env.DEEPSEEK_API_KEY = 'fixture-key-only';
+    const worker = fileURLToPath(import.meta.url);
+    return execFileSync(exe,['--expose-internals',worker,'--deepseek-offline',root,anchor,scenario],{env,cwd,timeout:45000,encoding:'utf8',windowsHide:true});
+  } finally { await rm(root,{recursive:true,force:true,maxRetries:3}); }
+}
+
+// Only the fixture knows which entries it mounted. Their IDs are not a client API.
+async function runOffline(fixtureRoot, packages, scenario) {
+  assert.ok(scenario === 'native' || routes.includes(scenario));
   const root = resolve(fixtureRoot);
   assert.match(basename(root), /^shelf-deepseek-[a-zA-Z0-9]+$/);
   for (const [key, sub] of Object.entries({DSH_HOME:'dsh-home', HOME:'user', USERPROFILE:'user', TEMP:'tmp', APPDATA:'appdata', LOCALAPPDATA:'localappdata'})) {
@@ -222,7 +119,28 @@ async function runOffline(fixtureRoot, packages) {
   await mkdir(bundle,{recursive:true});
   await writeFile(join(home,'package.json'), JSON.stringify({name:'route-fixture-installation'}));
   await writeFile(join(bundle,'package.json'), JSON.stringify({name:'route-fixture',version:'1.0.0',dsh:{bundle:{patch:'cordis.patch.yml'}}}));
-  const entries = [ ['editor','config-editor'], ['settings','settings'], ['llm','llm'], [ids[api],'llm-deepseek-api-key'], [ids[acct],'llm-deepseek-account'] ];
+  const native = {[api]:'llm-deepseek-api-key', [acct]:'llm-deepseek-account'};
+  const entries = [['editor','config-editor'], ['settings','settings'], ['llm','llm']];
+  const plugins = new Map(), dispatches = [];
+  if (scenario === 'native') {
+    for (const provider of routes) entries.push([ids[provider],native[provider]]);
+  } else {
+    // Two separate loader entries on the same host. Only the standby declares a form.
+    const provider = scenario, name = provider === api ? 'DeepSeek' : 'DeepSeek Account';
+    entries.push(['standby','directory-only'], ['sender','dispatch-only']);
+    plugins.set('directory-only', {Config: req(pkg(native[provider])).Config, inject: ['llm'], apply(ctx) {
+      ctx.llm.registerConfigurableProviders([{provider, displayName: name, settingsNs: ctx.fiber.entry.options.id, settingsPath: []}]);
+    }});
+    plugins.set('dispatch-only', {inject: ['llm'], apply(ctx) {
+      const {LlmAdapter} = req(pkg('llm')), sender = ctx.fiber.entry.options.id;
+      class Sender extends LlmAdapter {
+        providerInfo() { return {id:provider, name}; }
+        async listModels() { return [{provider,id:flash,name:flash}]; }
+        async *stream(call) { dispatches.push([sender,call.provider,call.model]); yield {type:'finish',reason:{kind:'stop'}}; }
+      }
+      ctx.llm.registerAdapter([provider], new Sender());
+    }});
+  }
   await writeFile(join(bundle,'cordis.patch.yml'), JSON.stringify([{insert:entries.map(([id, name]) => ({id,name:'cordis:'+name}))}]));
   await writeFile(join(dir,'cordis.yml'),'[]\n');
   const profile = {name:'route', startedBundles:['route-fixture'], dir, patchPath:join(dir,'cordis.patch.yml'), installAnchor:join(home,'package.json'), cwd:process.cwd(), home, overlays:[]};
@@ -230,17 +148,51 @@ async function runOffline(fixtureRoot, packages) {
     ctx.provide('profileContext',profile);
     ctx.provide('appReady',{onReady(fn){ fn(); return () => {}; }});
     ctx.provide('deepseekAccount',{resolveToken:async () => 'fixture-account-only'});
-    for (const [,name] of entries) { const mod = req(pkg(name)); ctx.loader.builtins[name] = mod.default ?? mod; }
+    for (const [,name] of entries) { const mod = plugins.get(name) ?? req(pkg(name)); ctx.loader.builtins[name] = mod.default ?? mod; }
   });
   try {
     await ctx.plugin(req(pkg('api-settings-controller')).default);
     const settings = ctx.settingsController;
-    const groups = await Promise.all([api,acct].map(async id => ({id, models:await ctx.llm.listModels(id)})));
-    for (const g of groups) assert.deepEqual(g.models.map(m=>m.id), [flash,pro], g.id+' fixture catalog');
-    const state = {status:'ready', routable:true, groups};
-    const io = createDeepSeekOptions({settings, llm:ctx.llm, directory:{getSnapshot:()=>state}});
-    const target = {sessionId:'offline-session',epoch:0};
-    function select(provider, model) { Object.assign(target,{provider,model,epoch:target.epoch+1}); state.current = {provider,model}; }
+    if (scenario !== 'native') {
+      const provider = scenario, model = flash, current = {provider,model};
+      const rows = ctx.llm.listConfigurableProviders();
+      assert.deepEqual(rows.map(r => [r.provider,r.settingsNs,r.settingsPath]), [[provider,'standby',[]]]);
+      const [row] = rows;
+      assert.deepEqual(ctx.llm.listProviders(), [{id:provider,name:row.displayName}]);
+      const models = await ctx.llm.listModels(provider);
+      assert.deepEqual(models.map(m => [m.provider,m.id]), [[provider,model]]);
+      for await (const chunk of ctx.llm.stream({...current,messages:[]})) assert.equal(chunk.type, 'finish');
+      assert.deepEqual(dispatches, [['sender',provider,model]], 'the host dispatched to the other plugin');
+      const descriptor = settings.describe();
+      const forms = descriptor.namespaces.filter(r => r.schema?.refs?.[r.schema.uid]?.dict?.maxTokens !== undefined);
+      assert.equal(descriptor.writable, true); assert.deepEqual(forms.map(r => r.ns), [row.settingsNs]);
+      const [form] = forms, {refs,uid} = form.schema, field = refs[refs[uid].dict.maxTokens];
+      assert.deepEqual([form.applies,field.type,field.meta.min,field.meta.max,field.meta.step], ['live','number',1,Number.MAX_SAFE_INTEGER,1]);
+      assert.equal(form.value.maxTokens, form.base.maxTokens); assert.equal(form.user.maxTokens, undefined);
+
+      const {createDeepSeekOptions} = await import('../../../src/provider-routes/deepseek.js');
+      let reads = 0, writes = 0;
+      const io = createDeepSeekOptions({
+        llm: {listConfigurableProviders: () => ctx.llm.listConfigurableProviders(), listProviders: () => ctx.llm.listProviders()},
+        directory: {getSnapshot: () => ({status:'ready', routable:true, current, groups:[{id:provider,models}]})},
+        settings: {describe() { reads++; return settings.describe(); }, mutate(...args) { writes++; return settings.mutate(...args); }},
+      });
+      const target = {sessionId:'fixture',epoch:1,...current}, options = await io.read(target);
+      // Exercise the former read -> submit path if it ever reappears.
+      if (options.length && typeof io.write === 'function') await io.write(target,options[0],{set:2048},undefined,()=>true);
+      assert.deepEqual({fields:options.map(o=>o.id),writes}, {fields:[],writes:0}, provider);
+      assert.equal(io.write, undefined, 'no submit path, even for a stale draft');
+      assert.equal(reads, 0, 'do not read the standby configuration');
+      assert.equal(settings.describe().namespaces.find(r=>r.ns===row.settingsNs).revision, form.revision);
+      assert.equal(sockets,0); assert.equal(serialized,0); assert.equal(listings,0); assert.equal(unexpectedFetches,0);
+      console.log(provider + ': standby form, different sender; shelf options: 0; shelf writes: 0; outbound sockets: 0');
+      return;
+    }
+
+    // Connector capability only: the fixture administrator addresses the entries it installed.
+    // A remote shelf does not know that binding and is never used for these edits.
+    for (const provider of routes) assert.deepEqual((await ctx.llm.listModels(provider)).map(m=>m.id), [flash,pro]);
+    const readForm = ns => settings.describe().namespaces.find(r=>r.ns===ns);
     const request = async (provider, model, extra = {}) => {
       const before = serialized;
       const messages = [{role:'user', content:[{type:'text', text:'fixture'}]}];
@@ -255,39 +207,34 @@ async function runOffline(fixtureRoot, packages) {
     const stored = ns => loadProfileDirectory('dsh', dir, profile.installAnchor).patches.findLast(p=>p.id===ns)?.config?.maxTokens;
     for (const provider of [api,acct]) {
       const other = provider === api ? acct : api;
-      select(provider,flash);
+      const ns = ids[provider];
       assert.equal((await request(provider,flash)).cap,4096, 'listing bounds route default');
-      const [start] = await io.read(target);
-      assert.equal(start?.owner,ids[provider]); assert.equal(start.value,256000); assert.equal(start.reset,undefined);
+      const start = readForm(ns);
+      assert.equal(start.value.maxTokens,256000); assert.equal(start.user.maxTokens,undefined);
       const networkBefore = [serialized,listings];
-      assert.equal(await io.write(target,start,{set:2048},undefined,()=>true),'applied');
-      assert.equal(stored(ids[provider]),2048); assert.equal(stored(ids[other]),undefined);
-      const [again] = await io.read(target);
-      assert.equal(again.value,2048); assert.equal(again.reset,256000);
-      assert.deepEqual([serialized,listings],networkBefore,'shelf does not probe provider');
+      await settings.mutate(ns,[{op:'set',path:['maxTokens'],value:2048}],start.revision);
+      assert.equal(stored(ns),2048); assert.equal(stored(ids[other]),undefined);
+      const again = readForm(ns);
+      assert.equal(again.value.maxTokens,2048); assert.equal(again.base.maxTokens,256000); assert.equal(again.user.maxTokens,2048);
+      assert.deepEqual([serialized,listings],networkBefore,'profile edits do not probe the provider');
       assert.deepEqual(await request(provider,flash),{model:flash,cap:2048,thinking:'enabled',effort:'high'});
       assert.equal((await request(provider,pro)).cap,2048,'same route, other model affected');
       assert.equal((await request(other,flash)).cap,4096,'same model, other route untouched');
       assert.equal((await request(provider,flash,{maxTokens:73})).cap,73, 'explicit per-call cap wins');
       assert.deepEqual(await request(provider,flash,{reasoningEffort:'off'}),{model:flash,cap:2048,thinking:'disabled',effort:undefined});
       assert.equal((await ctx.llm.resolveModelInfo(provider,flash)).context.contextWindow,1048576);
-      select(provider,pro);
-      const [sibling] = await io.read(target);
-      assert.equal(sibling.value,2048);
-      assert.equal(await io.write(target,sibling,{reset:true},undefined,()=>true),'applied');
-      assert.equal(stored(ids[provider]),undefined); assert.equal((await io.read(target))[0].value,256000);
+      await settings.mutate(ns,[{op:'unset',path:['maxTokens']}],again.revision);
+      assert.equal(stored(ns),undefined); assert.equal(readForm(ns).value.maxTokens,256000);
       assert.equal((await request(provider,pro)).cap,256000); assert.equal((await request(provider,flash)).cap,4096);
     }
     for (const provider of [api,acct]) {
-      select(provider,flash);
-      const ns=ids[provider], form=settings.describe().namespaces.find(r=>r.ns===ns);
+      const ns=ids[provider], form=readForm(ns);
       const op = provider === api ? {op:'set',path:['models'],value:[{id:flash,maxTokens:321}]} :
         {op:'set',path:['modelOverrides',flash,'maxTokens'],value:321};
-      await settings.mutate(ns,[op],form.revision); // emulate another administrator, not a shelf call
-      assert.deepEqual(await io.read(target),[], 'absolute per-model override suppresses route field');
+      await settings.mutate(ns,[op],form.revision);
       assert.equal((await request(provider,flash)).cap,321);
     }
     assert.equal(sockets,0); assert.equal(unexpectedFetches,0);
-    console.log('Two owners / two models; real profile set + reset for each; serialized Messages: ' + serialized + '; outbound sockets: 0');
+    console.log('Connector-admin set and reset on both routes; serialized Messages: ' + serialized + '; outbound sockets: 0');
   } finally { await ctx.fiber.dispose(); }
 }
